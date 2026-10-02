@@ -5,6 +5,8 @@ import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import { gzip } from "node:zlib";
 import type { MiddlewareHandler } from "hono";
 import type { AppEnv } from "./app-env.js";
 import type { AppDeps } from "./http/context.js";
@@ -21,9 +23,33 @@ import { createMcpHttpHandler } from "./mcp/server.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const apiRoot = path.resolve(here, "..");
-const swaggerUiRoot = path.dirname(
-  createRequire(import.meta.url).resolve("swagger-ui-dist/package.json"),
-);
+const gzipAsync = promisify(gzip);
+
+// Scalar's browser bundle (MIT): from the pinned dev dependency locally and in CI, and from
+// public/scalar/ in the image, where the Dockerfile copies it so the package's own runtime
+// dependencies stay out of the image.
+function scalarBundlePath(): string {
+  try {
+    const entry = createRequire(import.meta.url).resolve("@scalar/api-reference");
+    return path.join(path.dirname(entry), "browser/standalone.js");
+  } catch {
+    return path.join(apiRoot, "public/scalar/standalone.js");
+  }
+}
+
+// Read once, without its source map reference, and gzipped once: 4.4 MB is about 1.3 MB on the wire.
+type ScalarBundle = { raw: Uint8Array<ArrayBuffer>; gzipped: Uint8Array<ArrayBuffer> };
+let scalarBundle: Promise<ScalarBundle | undefined> | undefined;
+function loadScalarBundle(): Promise<ScalarBundle | undefined> {
+  scalarBundle ??= readFile(scalarBundlePath(), "utf8")
+    .then(async (js) => {
+      const raw = Buffer.from(js.replace(/\n\/\/# sourceMappingURL=\S+\s*$/, ""));
+      // zlib's Buffer may sit on a shared pool; copy it into its own ArrayBuffer for the response.
+      return { raw, gzipped: new Uint8Array(await gzipAsync(raw)) };
+    })
+    .catch(() => undefined);
+  return scalarBundle;
+}
 
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
@@ -40,28 +66,26 @@ const DOCS_HTML = `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CDOP reference API</title>
-    <link rel="stylesheet" href="/docs/swagger-ui.css" />
-    <link rel="icon" href="/docs/favicon-32x32.png" />
   </head>
   <body>
-    <div id="swagger-ui"></div>
-    <script src="/docs/swagger-ui-bundle.js"></script>
+    <div id="app"></div>
+    <script src="/docs/scalar.js"></script>
     <script src="/docs/init.js"></script>
   </body>
 </html>`;
 
-// validatorUrl null: otherwise Swagger UI sends the spec URL to validator.swagger.io for a badge.
-// Models start collapsed because the embedded CDOP schemas are large (Full List is about 300 KB).
-const DOCS_INIT = `window.ui = SwaggerUIBundle({
+// Scalar defaults to a font CDN, telemetry, a hosted AI agent and a button that opens the spec in
+// its hosted client; all four are off so the page talks to this origin only. The in-page "Test
+// Request" client stays. The MCP entry advertises this API's own MCP endpoint.
+const DOCS_INIT = `Scalar.createApiReference("#app", {
   url: "/v2/openapi.json",
-  dom_id: "#swagger-ui",
-  validatorUrl: null,
-  deepLinking: true,
-  docExpansion: "list",
-  defaultModelsExpandDepth: 0,
-  defaultModelExpandDepth: 1,
-  tagsSorter: "alpha",
-  tryItOutEnabled: true,
+  withDefaultFonts: false,
+  telemetry: false,
+  agent: { disabled: true },
+  hideClientButton: true,
+  showDeveloperTools: "never",
+  documentDownloadType: "json",
+  mcp: { name: "CDOP reference API", url: new URL("/mcp", location.origin).href },
 });`;
 
 export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
@@ -157,19 +181,23 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
   app.use("/docs/*", selfOnly);
   app.use("/explorer/*", selfOnly);
 
-  // Swagger UI (Apache-2.0) from the pinned `swagger-ui-dist` dependency: no CDN, no telemetry.
+  // Scalar API reference (MIT) from the pinned bundle: no CDN, no telemetry, no hosted services.
   app.get("/docs", (c) => c.redirect("/docs/", 302));
   app.get("/docs/", (c) => c.html(DOCS_HTML));
   app.get("/docs/init.js", (c) =>
     c.body(DOCS_INIT, 200, { "content-type": "text/javascript; charset=utf-8" }),
   );
-  app.use(
-    "/docs/*",
-    serveStatic({
-      root: path.relative(process.cwd(), swaggerUiRoot) || ".",
-      rewriteRequestPath: (p) => p.replace(/^\/docs/, ""),
-    }),
-  );
+  app.get("/docs/scalar.js", async (c) => {
+    const bundle = await loadScalarBundle();
+    if (!bundle) return c.notFound();
+    const gzipped = /\bgzip\b/.test(c.req.header("accept-encoding") ?? "");
+    return c.body(gzipped ? bundle.gzipped : bundle.raw, 200, {
+      "content-type": "text/javascript; charset=utf-8",
+      "cache-control": "public, max-age=3600",
+      vary: "accept-encoding",
+      ...(gzipped ? { "content-encoding": "gzip" } : {}),
+    });
+  });
 
   // HAL Explorer (toedter/hal-explorer, MIT), vendored at build time by scripts/fetch-explorer.mjs.
   app.get("/explorer", (c) =>

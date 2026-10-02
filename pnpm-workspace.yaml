@@ -2,9 +2,10 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
-  # Install-time analytics pulled in by swagger-ui-dist. Never allowed to run.
-  "@scarf/scarf": false
   esbuild: true
+  # Pulled in by @scalar/api-reference, of which only the prebuilt browser bundle is used; its
+  # install script only switches Vue 2/3 shims.
+  vue-demi: false
 minimumReleaseAgeExclude:
   - "@commitlint/cli@21.2.3"
   - "@commitlint/config-conventional@21.2.3"

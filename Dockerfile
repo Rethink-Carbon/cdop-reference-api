@@ -21,7 +21,9 @@ RUN pnpm --filter @cdop/api deploy --prod --legacy /out/api \
  && cp -r supabase /out/api/supabase \
  && cp -r apps/api/openapi /out/api/openapi \
  && cp -r apps/api/public /out/api/public \
- && cp -r apps/api/schemas /out/api/schemas
+ && cp -r apps/api/schemas /out/api/schemas \
+ && mkdir -p /out/api/public/scalar \
+ && cp apps/api/node_modules/@scalar/api-reference/dist/browser/standalone.js /out/api/public/scalar/
 
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production PORT=3000

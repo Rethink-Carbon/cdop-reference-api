@@ -115,9 +115,24 @@ describe("HTTP API", () => {
       expect(html.match(/(?:src|href)="https?:\/\/[^"]+"/g) ?? [], page).toEqual([]);
       expect(html, page).not.toMatch(/ on[a-z]+="/);
     }
+    // Scalar otherwise loads its font CDN, sends telemetry, offers its hosted agent and links the
+    // spec to its hosted client.
     const init = await (await get("/docs/init.js")).text();
-    expect(init).toContain("validatorUrl: null"); // else Swagger UI calls validator.swagger.io
-    expect((await get("/docs/swagger-ui-bundle.js")).status).toBe(200);
+    for (const off of [
+      "withDefaultFonts: false",
+      "telemetry: false",
+      "agent: { disabled: true }",
+      "hideClientButton: true",
+    ])
+      expect(init).toContain(off);
+    const bundle = await get("/docs/scalar.js");
+    expect(bundle.status).toBe(200);
+    const js = await bundle.text();
+    expect(js).toContain("createApiReference");
+    expect(js).not.toContain("sourceMappingURL");
+    const gzipped = await get("/docs/scalar.js", { "accept-encoding": "gzip, br" });
+    expect(gzipped.headers.get("content-encoding")).toBe("gzip");
+    expect((await gzipped.arrayBuffer()).byteLength).toBeLessThan(js.length / 2);
     // HAL Explorer's theme picker is hard-wired to bootswatch.com; we serve themes ourselves.
     const explorer = await (await get("/explorer/")).text();
     const main = /src="(main-[A-Z0-9]+\.js)"/.exec(explorer)?.[1];

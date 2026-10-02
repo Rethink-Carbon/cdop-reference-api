@@ -21,7 +21,7 @@ Ajv 2020-12 validates CDOP payloads with the `x-cdop-*` keywords registered as a
 - The schema revision is reproducible and visible on every response.
 - Schema updates are reviewable diffs, and a conformance test run accompanies each one.
 - The test suite records the upstream examples as expected failures, which is itself feedback.
-- The OpenAPI document is large (the Full List schema alone is about 300 KB). Swagger UI copes with models collapsed by default (see ADR 0008); expanding an operation that returns a CDOP document does no long main-thread work.
+- The OpenAPI document is large (the Full List schema alone is about 300 KB). Scalar renders it at `/docs`; opening an operation that returns a CDOP document runs one main-thread task of about 60 ms (see ADR 0009).
 - Nothing about the CDOP shape is expressed twice, so nothing can drift between the schema and the code.
 
 ## Alternatives considered

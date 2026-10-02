@@ -16,12 +16,12 @@ In September 2026 the CDOP Technical Working Group confirmed it wanted a referen
 
 M1 (v0.1) is feature complete locally: the read-only API, the seed, the conformance tests and the MCP read surface all pass CI's checks. It is not yet deployed to the hosted demo. The endpoint table below marks each route with the milestone in which it lands.
 
-| Milestone | Scope                                                                                                                                                    | Target            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| M1        | Read-only API, all CDOP documents, OpenAPI, Swagger UI, hal-explorer, MCP read tools, seed of WCC 20 + PC 15 + VCS 15 projects, schema-feedback register | 27 September 2026 |
-| M2        | Ledger (issuances, unit blocks), HAL-FORMS actions with API keys, events (SSE, pull feed, webhooks), simulator, accounts, MCP write tools                | weeks 2 to 3      |
-| M3        | 500 projects across 7 standards, golden fixtures, rate limiting, demo reset, `PUT` of pod documents, client package                                      | weeks 4 to 5      |
-| M4        | TWG iteration, Round 2 pods (Registry, Validation, Verification Metadata), `v1.0.0`                                                                      | week 6            |
+| Milestone | Scope                                                                                                                                                              | Target            |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
+| M1        | Read-only API, all CDOP documents, OpenAPI, Scalar API reference, hal-explorer, MCP read tools, seed of WCC 20 + PC 15 + VCS 15 projects, schema-feedback register | 27 September 2026 |
+| M2        | Ledger (issuances, unit blocks), HAL-FORMS actions with API keys, events (SSE, pull feed, webhooks), simulator, accounts, MCP write tools                          | weeks 2 to 3      |
+| M3        | 500 projects across 7 standards, golden fixtures, rate limiting, demo reset, `PUT` of pod documents, client package                                                | weeks 4 to 5      |
+| M4        | TWG iteration, Round 2 pods (Registry, Validation, Verification Metadata), `v1.0.0`                                                                                | week 6            |
 
 ## Quickstart
 
@@ -37,7 +37,7 @@ The first boot applies the migrations and seeds the synthetic dataset (`SEED_ON_
 
 | URL                            | What                                 |
 | ------------------------------ | ------------------------------------ |
-| http://localhost:3000/docs     | OpenAPI 3.1 reference (Swagger UI)   |
+| http://localhost:3000/docs     | OpenAPI 3.1 reference (Scalar)       |
 | http://localhost:3000/explorer | HAL browser (hal-explorer)           |
 | http://localhost:3000/v2       | HAL root: follow the links from here |
 | http://localhost:3000/mcp      | MCP endpoint (Streamable HTTP)       |
@@ -103,7 +103,7 @@ A longer walkthrough, including `If-None-Match`, the URN resolver, HAL-FORMS tem
 
 **REST (HAL + HAL-FORMS).** Every resource carries `_links`. Collections embed compact rows. State-gated actions appear as `_templates` (M2), derived from one transition table per entity, so a retired block never offers `retire`. Errors are RFC 9457 `application/problem+json` with a documented type per problem (`/problems/{slug}`). Custom relations are documented under `/rels/{rel}` and in [docs/rels/](docs/rels/).
 
-**OpenAPI 3.1.** `/v2/openapi.json` describes our routes and embeds each CDOP schema under `components.schemas["cdop.v2.<Pod>"]` without re-expressing it. Swagger UI renders it at `/docs`, served from this origin (see "No third-party calls" below). The artefact is committed at `apps/api/openapi/openapi.json` and CI fails if it drifts from the code.
+**OpenAPI 3.1.** `/v2/openapi.json` describes our routes and embeds each CDOP schema under `components.schemas["cdop.v2.<Pod>"]` without re-expressing it. Scalar renders it at `/docs`, served from this origin (see "No third-party calls" below). The artefact is committed at `apps/api/openapi/openapi.json` and CI fails if it drifts from the code.
 
 **MCP.** `/mcp` mounts an MCP server over Streamable HTTP with the same services behind it: `search_projects`, `get_project`, `get_cdop_document` (with an Ajv conformance report), `validate_payload`, `explain_schema`, `list_enum`, `get_state_machine` and more. Results carry HAL links so an agent can keep navigating. See [docs/mcp.md](docs/mcp.md).
 
@@ -145,10 +145,10 @@ The schema label is derived from `UPSTREAM.json`, so re-vendoring the schema cha
 
 The running service talks to its Postgres database and nothing else. The two bundled UIs are served from the API's own origin and the browser is told to enforce that:
 
-- `/docs` is Swagger UI from the pinned `swagger-ui-dist` dependency (Apache-2.0), so it is in the lockfile, in the image and in `pnpm audit`. No CDN. `validatorUrl` is off, so the spec URL is never sent to `validator.swagger.io`.
+- `/docs` is Scalar (MIT): the browser bundle from `@scalar/api-reference`, pinned to an exact version in the lockfile and in `pnpm audit`, copied alone into the image. No CDN. Its font CDN, telemetry, hosted AI agent and hosted-client link are switched off, and its "Connect MCP" entry points at this API's own `/mcp` (ADR 0009).
 - `/explorer` is HAL Explorer (MIT), vendored. Its theme picker is hard-wired to `bootswatch.com`; the API serves the themes itself instead, so every theme is the Bootstrap build already in the bundle.
 - Both carry `Content-Security-Policy: default-src 'self'; script-src 'self'; connect-src 'self'; ...`. A script, stylesheet, font or request to any other origin is blocked by the browser, not just absent by convention. The test suite fails if either page references another origin.
-- `swagger-ui-dist` pulls in `@scarf/scarf`, an install-time analytics script. It is never run: `pnpm-workspace.yaml` sets it to `false` and the image installs with `--ignore-scripts`.
+- Install scripts run only where `pnpm-workspace.yaml` allows them (`vue-demi`, pulled in by Scalar, is denied), and the image installs with `--ignore-scripts`.
 
 ## Local development
 

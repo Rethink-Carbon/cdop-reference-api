@@ -10,7 +10,7 @@ Fastify was the first candidate. Two properties count against it here. Its respo
 
 ## Decision
 
-Hono 4.13 on `@hono/node-server`. `@hono/zod-openapi` (zod v4) types and documents our own inputs and produces the OpenAPI 3.1 document. Ajv 2020-12, with `strict: false` and the `x-cdop-*` keywords registered as a vocabulary, validates anything CDOP-shaped. `@modelcontextprotocol/hono` mounts the MCP server at `/mcp`. Swagger UI from `swagger-ui-dist` renders `/docs`, served from this origin (ADR 0008). Serialisation is plain `JSON.stringify`.
+Hono 4.13 on `@hono/node-server`. `@hono/zod-openapi` (zod v4) types and documents our own inputs and produces the OpenAPI 3.1 document. Ajv 2020-12, with `strict: false` and the `x-cdop-*` keywords registered as a vocabulary, validates anything CDOP-shaped. `@modelcontextprotocol/hono` mounts the MCP server at `/mcp`. Scalar's browser bundle renders `/docs`, served from this origin (ADR 0008, ADR 0009). Serialisation is plain `JSON.stringify`.
 
 ## Consequences
 

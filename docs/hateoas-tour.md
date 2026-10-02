@@ -15,7 +15,7 @@ H='accept: application/hal+json'
 curl -s -H "$H" "$BASE/v2" | jq
 ```
 
-The root has no data of its own, only links: `self`, `curies`, `service-desc` (the OpenAPI document), `service-doc` (Swagger UI), and the `cdop:` collections (`projects`, `units`, `issuances`, `accounts`, `reference`, `schemas`, `state-machines`, `events`, `changes`, `webhooks`, `feedback`, and a templated `identifier`). The `cdop` curie is templated: `cdop:projects` is documented at `/rels/projects`.
+The root has no data of its own, only links: `self`, `curies`, `service-desc` (the OpenAPI document), `service-doc` (the Scalar API reference), and the `cdop:` collections (`projects`, `units`, `issuances`, `accounts`, `reference`, `schemas`, `state-machines`, `events`, `changes`, `webhooks`, `feedback`, and a templated `identifier`). The `cdop` curie is templated: `cdop:projects` is documented at `/rels/projects`.
 
 ```bash
 curl -s "$BASE/rels/projects"
