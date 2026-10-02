@@ -29,6 +29,9 @@ FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production PORT=3000
 WORKDIR /app
 COPY --from=build /out/api /app
+# /rels/* pages, and the MCP rel and feedback resources, are read from these at run time.
+COPY docs /app/docs
+COPY SCHEMA-FEEDBACK.md /app/SCHEMA-FEEDBACK.md
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
