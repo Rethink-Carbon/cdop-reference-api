@@ -76,9 +76,13 @@ const DOCS_HTML = `<!doctype html>
 
 // Scalar defaults to a font CDN, telemetry, a hosted AI agent and a button that opens the spec in
 // its hosted client; all four are off so the page talks to this origin only. The in-page "Test
-// Request" client stays. The MCP entry advertises this API's own MCP endpoint.
+// Request" client stays. The MCP entry advertises this API's own MCP endpoint. The page is always
+// light: the kepler theme, with the dark-mode toggle hidden.
 const DOCS_INIT = `Scalar.createApiReference("#app", {
   url: "/v2/openapi.json",
+  theme: "kepler",
+  forceDarkModeState: "light",
+  hideDarkModeToggle: true,
   withDefaultFonts: false,
   telemetry: false,
   agent: { disabled: true },

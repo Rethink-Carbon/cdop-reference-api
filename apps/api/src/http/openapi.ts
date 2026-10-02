@@ -1,4 +1,10 @@
+import { loadUpstream } from "@cdop/schemas";
 import type { AppDeps } from "./context.js";
+
+// The CDOP schema's source repository, and the exact tree the vendored schemas were taken from.
+const upstream = loadUpstream();
+const CDOP_REPO_URL = `https://github.com/${upstream.repo}`;
+const CDOP_SCHEMA_TREE_URL = `${CDOP_REPO_URL}/tree/${upstream.commit}/${upstream.paths["schemas/v2"] ?? ""}`;
 
 export function openApiConfig(deps: AppDeps) {
   return {
@@ -10,7 +16,9 @@ export function openApiConfig(deps: AppDeps) {
       description: [
         "HAL + HAL-FORMS hypermedia over the CDOP v2 entity model, with schema-pure CDOP documents per pod, a CloudEvents stream and an MCP server.",
         "",
-        `Embedded CDOP schema version: **${deps.schemaVersion}** (vendored verbatim under \`components.schemas.cdop.v2.*\`).`,
+        `Built and run by [Rethink Carbon](https://rethinkcarbon.co.uk). It implements the [Carbon Data Open Protocol](${CDOP_REPO_URL}), the open, multi-stakeholder schema that standardises data about carbon crediting projects and carbon credits.`,
+        "",
+        `Embedded CDOP schema version: **[${deps.schemaVersion}](${CDOP_SCHEMA_TREE_URL})** (vendored verbatim from the [CDOP repository](${CDOP_REPO_URL}) under \`components.schemas.cdop.v2.*\`).`,
         "",
         "Every response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.",
       ].join("\n"),
@@ -30,7 +38,7 @@ export function openApiConfig(deps: AppDeps) {
     ],
     externalDocs: {
       description: "Carbon Data Open Protocol",
-      url: "https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol",
+      url: CDOP_REPO_URL,
     },
   };
 }
