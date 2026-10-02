@@ -27,18 +27,18 @@ export interface GenerateOptions {
 }
 
 /**
- * Default mix, and what the hosted demo seeds: every standard the generator models, so the demo
- * shows CDOP across registries, small enough to seed in seconds. The full mix (plan §10) is
- * FULL_COUNTS.
+ * Default mix, and what the hosted demo seeds: 370 projects across every standard the generator
+ * models, so the demo shows CDOP across registries rather than mostly UK codes. The shares are the
+ * earlier 70-project mix scaled up. The full mix (plan §10) is FULL_COUNTS.
  */
 export const DEFAULT_COUNTS: Counts = {
-  wcc: 15,
-  pc: 10,
-  vcs: 15,
-  gs4gg: 10,
-  acr: 8,
-  "plan-vivo": 6,
-  puro: 6,
+  wcc: 79,
+  pc: 53,
+  vcs: 79,
+  gs4gg: 53,
+  acr: 42,
+  "plan-vivo": 32,
+  puro: 32,
 };
 export const FULL_COUNTS: Counts = {
   wcc: 200,
