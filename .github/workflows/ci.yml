@@ -36,6 +36,10 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build @cdop/schemas (the API resolves its types from dist/, which is not committed)
+        run: pnpm --filter @cdop/schemas build
+      - name: Fetch HAL Explorer (vendored at build time, not committed; the HTTP tests serve it)
+        run: pnpm --filter @cdop/api explorer:fetch
       - name: Vendored CDOP schemas match their pinned hashes
         run: pnpm cdop:verify
       - name: Schema lint (informational)
