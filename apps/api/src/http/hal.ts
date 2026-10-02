@@ -84,6 +84,16 @@ export class Linker {
     return { href: this.url(path, query), ...extra };
   }
 
+  /**
+   * The public URL of the request being answered. Behind a TLS-terminating proxy (Traefik on the
+   * hosted demo) the API receives http:// on an internal host, so a link copied from the request
+   * would send browsers to http:// and be blocked as mixed content. Only its path and query are kept.
+   */
+  rebase(requestUrl: string): string {
+    const u = new URL(requestUrl);
+    return `${this.baseUrl}${u.pathname}${u.search}`;
+  }
+
   templated(pathWithTemplate: string, extra?: Omit<Link, "href" | "templated">): Link {
     return { href: `${this.baseUrl}${pathWithTemplate}`, templated: true, ...extra };
   }
@@ -123,7 +133,7 @@ export interface PageLinksInput {
 }
 
 export function pageLinks(linker: Linker, input: PageLinksInput): Links {
-  const self = new URL(input.selfUrl);
+  const self = new URL(linker.rebase(input.selfUrl));
   const withCursor = (cursor: string | undefined): string | undefined => {
     if (!cursor) return undefined;
     const u = new URL(self.toString());

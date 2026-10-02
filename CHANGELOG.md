@@ -33,6 +33,7 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 
 ### Fixed
 
+- On the hosted demo, collection `self`, `next` and `first` links, and a project's `units` self link, were `http://`: they were copied from the request, which reaches the API over plain HTTP behind Traefik. Browsers on the HTTPS pages block them as mixed content, so paging failed in HAL Explorer. They are now built from `PUBLIC_BASE_URL`, like every other link.
 - `/v2/units` and `/v2/issuances` stopped after their first page, and any collection sorted by `modified_at` or `created_at` could skip rows. Cursors carried timestamps to the millisecond while Postgres keeps microseconds, so rows sharing the cursor row's millisecond matched neither side of the comparison. Timestamp sort keys now sort and compare at millisecond precision.
 - Unit-level labels claimed a CCP accreditation on every labelled unit, including units with only CORSIA eligibility. Each entry now carries only the half that applies (`CDOP-FB-029`).
 - `credit_block[]` lacked `block_start`, so no Unit Description document validated (`CDOP-FB-003` already described the intended behaviour).

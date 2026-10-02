@@ -198,6 +198,27 @@ describe("HTTP API", () => {
     }
   });
 
+  it("builds request-derived links from PUBLIC_BASE_URL, not from the origin the request arrived on", async (ctx) => {
+    if (!app) return ctx.skip();
+    // Behind Traefik the API sees http:// on an internal host; its links must still be public.
+    const internal = "http://api.internal:3000";
+    const projectId = (await hal(`${internal}/v2/projects?limit=1`))._embedded.projects?.[0]?.id;
+    for (const href of [
+      `${internal}/v2/projects?limit=3`,
+      `${internal}/v2/units?limit=3`,
+      `${internal}/v2/issuances?limit=3`,
+      `${internal}/v2/accounts?limit=3`,
+      `${internal}/v2/projects/${projectId}/units`,
+    ]) {
+      const page = await hal(href);
+      for (const rel of ["self", "next", "first"]) {
+        const link = page._links[rel];
+        if (!link || Array.isArray(link)) continue;
+        expect(link.href.startsWith(`${BASE}/v2/`), `${href} ${rel}: ${link.href}`).toBe(true);
+      }
+    }
+  });
+
   it("puts each project's centroid on its index row, and filters projects by developer account", async (ctx) => {
     if (!app) return ctx.skip();
     const rows = (await hal("/v2/projects?limit=100"))._embedded.projects ?? [];

@@ -373,7 +373,7 @@ export function registerProjectRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): 
         hal(
           { total: items.length, project_id: agg.id },
           {
-            self: linker.link(c.req.url.replace(linker.baseUrl, "")),
+            self: { href: linker.rebase(c.req.url) },
             curies: linker.curies(),
             up: linker.link(`/v2/projects/${agg.id}`),
             collection: linker.link("/v2/units", undefined, { project_id: agg.id }),
