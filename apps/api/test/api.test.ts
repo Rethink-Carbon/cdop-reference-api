@@ -143,6 +143,16 @@ describe("HTTP API", () => {
     ).toContain("text/css");
   });
 
+  it("serves its own favicon, and /docs points at it", async (ctx) => {
+    if (!app) return ctx.skip();
+    for (const href of ["/favicon.ico", "/favicon-192.png"]) {
+      const res = await get(href);
+      expect(res.status, href).toBe(200);
+      expect(res.headers.get("content-type"), href).toBe("image/png");
+    }
+    expect(await (await get("/docs/")).text()).toContain('rel="icon" href="/favicon.ico"');
+  });
+
   it("pages a collection by following next, without repeats", async (ctx) => {
     if (!app) return ctx.skip();
     const seen = new Set<string>();

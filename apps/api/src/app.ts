@@ -66,6 +66,9 @@ const DOCS_HTML = `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CDOP reference API</title>
+    <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/favicon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="/favicon-192.png" />
   </head>
   <body>
     <div id="app"></div>
@@ -184,6 +187,21 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
   // The browser may load and call nothing but this origin on the two bundled UIs.
   app.use("/docs/*", selfOnly);
   app.use("/explorer/*", selfOnly);
+
+  // Rethink Carbon's mark (from rethinkcarbon.co.uk) is the favicon for every page on this origin.
+  for (const [route, file] of [
+    ["/favicon.ico", "favicon-32.png"],
+    ["/favicon-192.png", "favicon-192.png"],
+  ] as const) {
+    app.get(route, async (c) => {
+      const png = await readFile(path.join(apiRoot, "public/brand", file)).catch(() => undefined);
+      if (!png) return c.notFound();
+      return c.body(new Uint8Array(png), 200, {
+        "content-type": "image/png",
+        "cache-control": "public, max-age=86400",
+      });
+    });
+  }
 
   // Scalar API reference (MIT) from the pinned bundle: no CDN, no telemetry, no hosted services.
   app.get("/docs", (c) => c.redirect("/docs/", 302));
