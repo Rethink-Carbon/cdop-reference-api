@@ -1,20 +1,42 @@
-# Dokploy deployment: API only, database is the Supabase project (DATABASE_URL = session pooler).
-# Image is built by GitHub Actions and published to GHCR; Dokploy redeploys via its deploy webhook.
+# Dokploy deployment: Postgres 17 and the API in one Compose service (see docs/deploy-dokploy.md).
+# The image is built by GitHub Actions and published to GHCR; Dokploy redeploys via its deploy webhook.
 name: cdop-reference-api
 services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cdop
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD (URL-safe, e.g. openssl rand -hex 24)}
+      POSTGRES_DB: cdop
+    command: ["postgres", "-c", "max_connections=100"]
+    volumes:
+      - cdop-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cdop -d cdop"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - default
+
   api:
     image: ghcr.io/rethink-carbon/cdop-reference-api:${CDOP_IMAGE_TAG:-latest}
+    # Dokploy redeploys with `docker compose up`, which would otherwise reuse a cached `latest`.
+    pull_policy: always
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     expose:
       - "3000"
     environment:
-      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL to the Supabase SESSION pooler connection string}
-      DATABASE_LISTEN_URL: ${DATABASE_LISTEN_URL:-}
+      DATABASE_URL: postgres://cdop:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/cdop
       PORT: "3000"
       PUBLIC_BASE_URL: https://${CDOP_DOMAIN:-cdop.rethinkcarbon.co.uk}
       SEED_ON_START: ${SEED_ON_START:-true}
       CDOP_SEED: ${CDOP_SEED:-2026}
-      ADMIN_API_KEY: ${ADMIN_API_KEY:?Set ADMIN_API_KEY (generate with pnpm keys:new)}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:?Set ADMIN_API_KEY (see docs/deploy-dokploy.md)}
       AFFORDANCES_FOR_ANONYMOUS: ${AFFORDANCES_FOR_ANONYMOUS:-all}
       SIM_ENABLED: ${SIM_ENABLED:-true}
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -41,7 +63,11 @@ services:
       - traefik.http.routers.cdop-api-websecure.entrypoints=websecure
       - traefik.http.routers.cdop-api-websecure.tls.certResolver=letsencrypt
     networks:
+      - default
       - dokploy-network
+
+volumes:
+  cdop-db:
 
 networks:
   dokploy-network:
