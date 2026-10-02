@@ -40,6 +40,8 @@ services:
       AFFORDANCES_FOR_ANONYMOUS: ${AFFORDANCES_FOR_ANONYMOUS:-all}
       SIM_ENABLED: ${SIM_ENABLED:-true}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Public Mapbox token for the /atlas map; without it the page has no map.
+      MAPBOX_API_KEY: ${MAPBOX_API_KEY:-}
     healthcheck:
       test:
         [

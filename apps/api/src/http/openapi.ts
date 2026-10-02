@@ -21,6 +21,8 @@ export function openApiConfig(deps: AppDeps) {
         `Embedded CDOP schema version: **[${deps.schemaVersion}](${CDOP_SCHEMA_TREE_URL})** (vendored verbatim from the [CDOP repository](${CDOP_REPO_URL}) under \`components.schemas.cdop.v2.*\`).`,
         "",
         "Every response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.",
+        "",
+        "**[Open the visual explorer](/atlas/)**: every project and registry account on a map, with status histories, issuances, units, documents and charts. It is built only on the public endpoints documented here.",
       ].join("\n"),
       license: { name: "MIT", url: "https://opensource.org/licenses/MIT" },
       contact: { name: "Rethink Carbon", url: "https://rethinkcarbon.co.uk" },

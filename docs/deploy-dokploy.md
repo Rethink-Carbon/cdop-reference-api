@@ -28,6 +28,11 @@ In the Dokploy project "CDOP Reference API", create a **Compose** service with t
 | `AFFORDANCES_FOR_ANONYMOUS` | no       | Defaults to `all` on the demo                             |
 | `SIM_ENABLED`               | no       | Defaults to `true` on the demo                            |
 | `LOG_LEVEL`                 | no       | Defaults to `info`                                        |
+| `MAPBOX_API_KEY`            | no       | Public Mapbox token (`pk.…`) for the `/atlas` map         |
+
+The compose file only passes the variables it names to the container, so a variable set in Dokploy but missing from the pasted compose never reaches the API. The compose is pasted as raw source: after changing `docker-compose.dokploy.yml` in the repository, paste it into the Dokploy service again and redeploy.
+
+`MAPBOX_API_KEY` must be a public token. The API ignores a secret (`sk.`) token rather than put it in a web page. In the Mapbox account, restrict the token's URLs to `https://cdop.rethinkcarbon.co.uk` (and `http://localhost:3000` if the same token is used locally).
 
 Generate the two secrets from a checkout:
 
@@ -67,6 +72,7 @@ Expect `200` with `db: ok` and an `events_sequence` (the last outbox sequence). 
 curl -s -D - -o /dev/null https://cdop.rethinkcarbon.co.uk/v2 | grep -iE '^(x-cdop|x-api|strict-transport)'
 open https://cdop.rethinkcarbon.co.uk/docs
 open https://cdop.rethinkcarbon.co.uk/explorer
+open https://cdop.rethinkcarbon.co.uk/atlas
 ```
 
 Server-sent events must not be buffered by the proxy (M2). Open the stream and wait for the heartbeat:

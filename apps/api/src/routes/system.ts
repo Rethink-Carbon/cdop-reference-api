@@ -86,6 +86,10 @@ export function registerSystemRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): v
           type: "application/schema+json",
         })),
         explorer: linker.link("/explorer/", { type: "text/html" }),
+        atlas: linker.link("/atlas/", {
+          type: "text/html",
+          title: "Visual explorer: projects and accounts on a map, with charts",
+        }),
         mcp: linker.link("/mcp", { title: "Model Context Protocol endpoint (Streamable HTTP)" }),
       };
       return halJson(

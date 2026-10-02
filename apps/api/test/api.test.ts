@@ -198,6 +198,24 @@ describe("HTTP API", () => {
     }
   });
 
+  it("puts each project's centroid on its index row, and filters projects by developer account", async (ctx) => {
+    if (!app) return ctx.skip();
+    const rows = (await hal("/v2/projects?limit=100"))._embedded.projects ?? [];
+    for (const row of rows) {
+      const c = row.centroid as { lon: number; lat: number };
+      expect(c.lon, row.id).toBeGreaterThanOrEqual(-180);
+      expect(c.lat, row.id).toBeLessThanOrEqual(90);
+    }
+    const project = await hal(rows[0]?._links.self.href ?? "");
+    const developer = project._links["cdop:owner-account"]?.href;
+    expect(developer).toBeTruthy();
+    const account = await hal(developer ?? "");
+    const developed = await hal(account._links["cdop:projects"]?.href ?? "");
+    const ids = (developed._embedded.projects ?? []).map((p) => p.id);
+    expect(ids).toContain(project.id);
+    expect(ids.length).toBeLessThan(rows.length);
+  });
+
   it("filters with CDOP field names and rejects what it cannot parse as a problem", async (ctx) => {
     if (!app) return ctx.skip();
     const page = await hal("/v2/projects?standard=vcs&limit=5");

@@ -49,6 +49,10 @@ const ProjectQuery = PageQuery.extend({
   project_identifier: z.string().optional().openapi({ example: "cdop:ukl:104000000027017" }),
   current_registry_project_id: z.string().optional(),
   master_project_id: z.string().optional(),
+  developer_account_id: z
+    .string()
+    .optional()
+    .openapi({ description: "Registry account of the project developer", example: "acc_…" }),
   q: z
     .string()
     .optional()
@@ -119,6 +123,7 @@ export function registerProjectRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): 
             ? { current_registry_project_id: q.current_registry_project_id }
             : {}),
           ...(q.master_project_id ? { master_project_id: q.master_project_id } : {}),
+          ...(q.developer_account_id ? { developer_account_id: q.developer_account_id } : {}),
           ...(q.q ? { q: q.q } : {}),
           ...(modifiedSince ? { modified_since: modifiedSince } : {}),
           ...(bboxParts ? { bbox: bboxParts as [number, number, number, number] } : {}),
@@ -131,7 +136,7 @@ export function registerProjectRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): 
         nextCursor: result.nextCursor,
         searchTemplate:
           linker.url("/v2/projects") +
-          "{?status,lifecycle_stage,country_code,registry,standard,crediting_program,project_type,mitigation_type,methodology,program_type,project_identifier,current_registry_project_id,master_project_id,q,modified_since,bbox,sort,limit,cursor}",
+          "{?status,lifecycle_stage,country_code,registry,standard,crediting_program,project_type,mitigation_type,methodology,program_type,project_identifier,current_registry_project_id,master_project_id,developer_account_id,q,modified_since,bbox,sort,limit,cursor}",
         describedBy: linker.url(`/v2/schemas/${SCHEMA_FILES["project-approach-details"]}`),
       });
       links.up = linker.link("/v2");

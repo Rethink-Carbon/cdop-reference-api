@@ -186,6 +186,11 @@ export function renderProjectIndex(row: ProjectIndexRow, linker: Linker) {
       lifecycle_stage: row.lifecycle_state,
       registry_status: row.native_state_code,
       area_ha: row.area_ha ?? undefined,
+      // Lets a map plot every project from one page of the collection, without a request per project.
+      centroid:
+        row.centroid_lon != null && row.centroid_lat != null
+          ? { lon: row.centroid_lon, lat: row.centroid_lat }
+          : undefined,
       estimated_total_emissions_mitigation: row.estimated_total_mitigation ?? undefined,
       project_registration_date: iso(row.registered_on),
       validated_on: iso(row.validated_on),

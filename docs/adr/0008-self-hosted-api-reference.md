@@ -1,6 +1,6 @@
 # ADR 0008: Self-hosted API reference, no third-party calls
 
-Status: accepted (20 September 2026). Supersedes the choice of Scalar in the implementation plan. The `/docs` renderer (Swagger UI) is superseded by ADR 0009, which self-hosts Scalar under the rules below; the CSP, HAL Explorer and no-third-party decisions stand.
+Status: accepted (20 September 2026). Supersedes the choice of Scalar in the implementation plan. The `/docs` renderer (Swagger UI) is superseded by ADR 0009, which self-hosts Scalar under the rules below; the CSP, HAL Explorer and no-third-party decisions stand. ADR 0010 makes one scoped exception, for the `/atlas` map.
 
 ## Context
 

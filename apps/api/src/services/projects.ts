@@ -20,6 +20,7 @@ export interface ProjectFilter {
   project_identifier?: string | undefined;
   current_registry_project_id?: string | undefined;
   master_project_id?: string | undefined;
+  developer_account_id?: string | undefined;
   q?: string | undefined;
   modified_since?: Date | undefined;
   bbox?: [number, number, number, number] | undefined;
@@ -131,6 +132,8 @@ export async function listProjects(
       ) as Q;
     if (filter.master_project_id)
       out = (out as typeof q).where("master_project_id", "=", filter.master_project_id) as Q;
+    if (filter.developer_account_id)
+      out = (out as typeof q).where("developer_account_id", "=", filter.developer_account_id) as Q;
     if (filter.modified_since)
       out = (out as typeof q).where("modified_at", ">=", filter.modified_since) as Q;
     if (filter.q) {

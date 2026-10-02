@@ -36,6 +36,8 @@ services:
       ADMIN_API_KEY: ${ADMIN_API_KEY:-}
       SIM_ENABLED: ${SIM_ENABLED:-false}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Optional public Mapbox token for the /atlas map.
+      MAPBOX_API_KEY: ${MAPBOX_API_KEY:-}
     ports:
       - "${CDOP_PORT:-3000}:3000"
     healthcheck:

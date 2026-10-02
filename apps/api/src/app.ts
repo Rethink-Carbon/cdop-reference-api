@@ -17,6 +17,7 @@ import { registerProjectRoutes } from "./routes/projects.js";
 import { registerUnitRoutes } from "./routes/units.js";
 import { registerAccountRoutes } from "./routes/accounts.js";
 import { registerReferenceRoutes } from "./routes/reference.js";
+import { registerAtlasRoutes } from "./routes/atlas.js";
 import { openApiConfig } from "./http/openapi.js";
 import { newId } from "./domain/ids.js";
 import { createMcpHttpHandler } from "./mcp/server.js";
@@ -268,6 +269,9 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
       rewriteRequestPath: (p) => p.replace(/^\/explorer/, ""),
     }),
   );
+
+  // The visual explorer: a HAL client of this API, with a Mapbox map when a token is configured.
+  registerAtlasRoutes(app, deps);
 
   return app;
 }

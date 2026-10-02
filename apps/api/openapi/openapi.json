@@ -4,7 +4,7 @@
     "title": "CDOP reference API",
     "version": "0.1.0",
     "summary": "Reference implementation of an API for the Carbon Data Open Protocol (CDOP)",
-    "description": "HAL + HAL-FORMS hypermedia over the CDOP v2 entity model, with schema-pure CDOP documents per pod, a CloudEvents stream and an MCP server.\n\nBuilt and run by [Rethink Carbon](https://rethinkcarbon.co.uk). It implements the [Carbon Data Open Protocol](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol), the open, multi-stakeholder schema that standardises data about carbon crediting projects and carbon credits.\n\nEmbedded CDOP schema version: **[2.0+eff6ca3](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/eff6ca3d634fc4032d9873cc2c423487c8f34a1b/json_schema)** (vendored verbatim from the [CDOP repository](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol) under `components.schemas.cdop.v2.*`).\n\nEvery response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.",
+    "description": "HAL + HAL-FORMS hypermedia over the CDOP v2 entity model, with schema-pure CDOP documents per pod, a CloudEvents stream and an MCP server.\n\nBuilt and run by [Rethink Carbon](https://rethinkcarbon.co.uk). It implements the [Carbon Data Open Protocol](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol), the open, multi-stakeholder schema that standardises data about carbon crediting projects and carbon credits.\n\nEmbedded CDOP schema version: **[2.0+eff6ca3](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/eff6ca3d634fc4032d9873cc2c423487c8f34a1b/json_schema)** (vendored verbatim from the [CDOP repository](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol) under `components.schemas.cdop.v2.*`).\n\nEvery response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.\n\n**[Open the visual explorer](/atlas/)**: every project and registry account on a map, with status histories, issuances, units, documents and charts. It is built only on the public endpoints documented here.",
     "license": {
       "name": "MIT",
       "url": "https://opensource.org/licenses/MIT"
@@ -16052,6 +16052,17 @@
             },
             "required": false,
             "name": "master_project_id",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Registry account of the project developer",
+              "example": "acc_…"
+            },
+            "required": false,
+            "description": "Registry account of the project developer",
+            "name": "developer_account_id",
             "in": "query"
           },
           {

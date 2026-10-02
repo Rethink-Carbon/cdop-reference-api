@@ -23,6 +23,8 @@ const schema = z.object({
   SIM_TICK_SECONDS: z.coerce.number().int().min(5).default(60),
   SIM_ACTIONS_PER_TICK: z.coerce.number().int().min(1).default(3),
   WEBHOOK_DELIVERY_ENABLED: boolish.default(true),
+  // Public Mapbox token (pk.…) for the /atlas map. Unset, /atlas shows its charts and tables only.
+  MAPBOX_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
