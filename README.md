@@ -16,12 +16,12 @@ In September 2026 the CDOP Technical Working Group confirmed it wanted a referen
 
 M1 (v0.1) is feature complete locally: the read-only API, the seed, the conformance tests and the MCP read surface all pass CI's checks. It is not yet deployed to the hosted demo. The endpoint table below marks each route with the milestone in which it lands.
 
-| Milestone | Scope                                                                                                                                                              | Target            |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
-| M1        | Read-only API, all CDOP documents, OpenAPI, Scalar API reference, hal-explorer, MCP read tools, seed of WCC 20 + PC 15 + VCS 15 projects, schema-feedback register | 27 September 2026 |
-| M2        | Ledger (issuances, unit blocks), HAL-FORMS actions with API keys, events (SSE, pull feed, webhooks), simulator, accounts, MCP write tools                          | weeks 2 to 3      |
-| M3        | 500 projects across 7 standards, golden fixtures, rate limiting, demo reset, `PUT` of pod documents, client package                                                | weeks 4 to 5      |
-| M4        | TWG iteration, Round 2 pods (Registry, Validation, Verification Metadata), `v1.0.0`                                                                                | week 6            |
+| Milestone | Scope                                                                                                                                                                | Target            |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| M1        | Read-only API, all CDOP documents, OpenAPI, Scalar API reference, hal-explorer, MCP read tools, seed of 70 projects across seven standards, schema-feedback register | 27 September 2026 |
+| M2        | Ledger (issuances, unit blocks), HAL-FORMS actions with API keys, events (SSE, pull feed, webhooks), simulator, accounts, MCP write tools                            | weeks 2 to 3      |
+| M3        | 500 projects across 7 standards, golden fixtures, rate limiting, demo reset, `PUT` of pod documents, client package                                                  | weeks 4 to 5      |
+| M4        | TWG iteration, Round 2 pods (Registry, Validation, Verification Metadata), `v1.0.0`                                                                                  | week 6            |
 
 ## Quickstart
 

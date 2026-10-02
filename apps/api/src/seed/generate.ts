@@ -26,8 +26,20 @@ export interface GenerateOptions {
   now?: Date | undefined;
 }
 
-/** Milestone M1 mix. The full mix (plan §10) is FULL_COUNTS. */
-export const DEFAULT_COUNTS: Counts = { wcc: 20, pc: 15, vcs: 15 };
+/**
+ * Default mix, and what the hosted demo seeds: every standard the generator models, so the demo
+ * shows CDOP across registries, small enough to seed in seconds. The full mix (plan §10) is
+ * FULL_COUNTS.
+ */
+export const DEFAULT_COUNTS: Counts = {
+  wcc: 15,
+  pc: 10,
+  vcs: 15,
+  gs4gg: 10,
+  acr: 8,
+  "plan-vivo": 6,
+  puro: 6,
+};
 export const FULL_COUNTS: Counts = {
   wcc: 200,
   pc: 100,

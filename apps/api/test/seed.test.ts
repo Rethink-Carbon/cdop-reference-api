@@ -39,7 +39,7 @@ describe("synthetic dataset", () => {
   });
 
   it.each([
-    ["the M1 default mix", "2026", DEFAULT_COUNTS],
+    ["the default mix", "2026", DEFAULT_COUNTS],
     [
       "the CI mix",
       "2026",
