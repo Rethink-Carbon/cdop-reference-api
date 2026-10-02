@@ -12,7 +12,7 @@ import {
   z,
 } from "../http/schemas.js";
 import { halJson, csv } from "../http/respond.js";
-import { encodeCursor, parsePage } from "../http/pagination.js";
+import { encodeCursor, parsePage, sortKey } from "../http/pagination.js";
 import { hal, pageLinks } from "../http/hal.js";
 import { notFound } from "../http/problems.js";
 import { iso, isoTs, clean } from "../http/render/common.js";
@@ -107,16 +107,17 @@ export function registerAccountRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): 
       query = where(query);
       count = where(count);
       const col = page.sort === "modified_at" ? "modified_at" : "name";
+      const key = sortKey(col, col === "modified_at");
       if (page.cursor) {
         const cmp = page.direction === "asc" ? ">" : "<";
         const v = col === "modified_at" ? new Date(String(page.cursor.v)) : String(page.cursor.v);
         query = query.where((eb) =>
-          eb.or([eb(col, cmp, v), eb.and([eb(col, "=", v), eb("id", cmp, page.cursor?.id ?? "")])]),
+          eb.or([eb(key, cmp, v), eb.and([eb(key, "=", v), eb("id", cmp, page.cursor?.id ?? "")])]),
         );
       }
       const [rows, total] = await Promise.all([
         query
-          .orderBy(col, page.direction)
+          .orderBy(key, page.direction)
           .orderBy("id", page.direction)
           .limit(page.limit + 1)
           .execute(),

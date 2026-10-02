@@ -1,3 +1,4 @@
+import { sql, type RawBuilder } from "kysely";
 import { ProblemError } from "./problems.js";
 
 export interface Cursor {
@@ -5,6 +6,17 @@ export interface Cursor {
   v: string | number;
   /** id tiebreak */
   id: string;
+}
+
+/**
+ * The column a keyset page sorts and resumes on. A cursor carries a timestamp as an ISO string at
+ * millisecond precision, and Postgres keeps microseconds: compared with the raw column, the cursor
+ * matches neither `=` nor `<` for rows that share its millisecond, and the next page silently skips
+ * them (every seeded unit and issuance shares one transaction timestamp, so page 2 came back
+ * empty). Timestamp keys therefore sort and compare truncated to the millisecond.
+ */
+export function sortKey(column: string, timestamp = false): RawBuilder<unknown> {
+  return timestamp ? sql`date_trunc('milliseconds', ${sql.ref(column)})` : sql.ref(column);
 }
 
 export function encodeCursor(cursor: Cursor): string {

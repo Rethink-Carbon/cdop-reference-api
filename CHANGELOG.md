@@ -31,6 +31,7 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 
 ### Fixed
 
+- `/v2/units` and `/v2/issuances` stopped after their first page, and any collection sorted by `modified_at` or `created_at` could skip rows. Cursors carried timestamps to the millisecond while Postgres keeps microseconds, so rows sharing the cursor row's millisecond matched neither side of the comparison. Timestamp sort keys now sort and compare at millisecond precision.
 - Unit-level labels claimed a CCP accreditation on every labelled unit, including units with only CORSIA eligibility. Each entry now carries only the half that applies (`CDOP-FB-029`).
 - `credit_block[]` lacked `block_start`, so no Unit Description document validated (`CDOP-FB-003` already described the intended behaviour).
 - Ex-post sale tranches could be dated before the tranche they followed, and a PIU assignment could be dated after the verification that converted the vintage.

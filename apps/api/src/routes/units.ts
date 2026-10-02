@@ -13,7 +13,7 @@ import {
   z,
 } from "../http/schemas.js";
 import { halJson, json, csv } from "../http/respond.js";
-import { encodeCursor, parsePage } from "../http/pagination.js";
+import { encodeCursor, parsePage, sortKey } from "../http/pagination.js";
 import { hal, pageLinks } from "../http/hal.js";
 import { notModified, strongEtag } from "../http/etag.js";
 import { ProblemError, notFound } from "../http/problems.js";
@@ -108,24 +108,18 @@ export function registerUnitRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): voi
           : page.sort === "serial_number"
             ? "serial_number"
             : "modified_at";
+      const key = sortKey(col, col === "modified_at");
       if (page.cursor) {
         const cmp = page.direction === "asc" ? ">" : "<";
         const cursorId = page.cursor.id;
-        if (col === "serial_number") {
-          const v = String(page.cursor.v);
-          query = query.where((eb) =>
-            eb.or([eb(col, cmp, v), eb.and([eb(col, "=", v), eb("id", cmp, cursorId)])]),
-          );
-        } else {
-          const v = new Date(String(page.cursor.v));
-          query = query.where((eb) =>
-            eb.or([eb(col, cmp, v), eb.and([eb(col, "=", v), eb("id", cmp, cursorId)])]),
-          );
-        }
+        const v = col === "serial_number" ? String(page.cursor.v) : new Date(String(page.cursor.v));
+        query = query.where((eb) =>
+          eb.or([eb(key, cmp, v), eb.and([eb(key, "=", v), eb("id", cmp, cursorId)])]),
+        );
       }
       const [rows, total] = await Promise.all([
         query
-          .orderBy(col, page.direction)
+          .orderBy(key, page.direction)
           .orderBy("id", page.direction)
           .limit(page.limit + 1)
           .execute(),
@@ -336,17 +330,18 @@ export function registerUnitRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): voi
       query = where(query);
       count = where(count);
       const col = page.sort === "issued_on" ? "issued_on" : "modified_at";
+      const key = sortKey(col, col === "modified_at");
       if (page.cursor) {
         const cmp = page.direction === "asc" ? ">" : "<";
         const cursorId = page.cursor.id;
         const v = new Date(String(page.cursor.v));
         query = query.where((eb) =>
-          eb.or([eb(col, cmp, v), eb.and([eb(col, "=", v), eb("id", cmp, cursorId)])]),
+          eb.or([eb(key, cmp, v), eb.and([eb(key, "=", v), eb("id", cmp, cursorId)])]),
         );
       }
       const [rows, total] = await Promise.all([
         query
-          .orderBy(col, page.direction)
+          .orderBy(key, page.direction)
           .orderBy("id", page.direction)
           .limit(page.limit + 1)
           .execute(),

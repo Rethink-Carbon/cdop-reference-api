@@ -4,7 +4,7 @@ import { loadAggregate, loadAggregates } from "../db/aggregate-loader.js";
 import type { ProjectAggregate } from "../seed/aggregate.js";
 import { parseId, parseUrn } from "../domain/ids.js";
 import { ProblemError, notFound } from "../http/problems.js";
-import { encodeCursor, type PageParams } from "../http/pagination.js";
+import { encodeCursor, sortKey, type PageParams } from "../http/pagination.js";
 
 export interface ProjectFilter {
   status?: string[] | undefined;
@@ -212,16 +212,17 @@ export async function listProjects(
         ]),
       );
     } else {
+      const key = sortKey(sortColumn, true);
       q = q.where((eb) =>
         eb.or([
-          eb(sortColumn, cmp, new Date(String(v))),
-          eb.and([eb(sortColumn, "=", new Date(String(v))), eb("id", cmp, id)]),
+          eb(key, cmp, new Date(String(v))),
+          eb.and([eb(key, "=", new Date(String(v))), eb("id", cmp, id)]),
         ]),
       );
     }
   }
   q = q
-    .orderBy(sortColumn, dir)
+    .orderBy(sortKey(sortColumn, sortColumn === "modified_at" || sortColumn === "created_at"), dir)
     .orderBy("id", dir)
     .limit(page.limit + 1);
   const [rows, total] = await Promise.all([q.execute(), count.executeTakeFirst()]);

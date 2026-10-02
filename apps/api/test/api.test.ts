@@ -171,6 +171,33 @@ describe("HTTP API", () => {
     expect(total).toBeGreaterThan(0);
   });
 
+  it("pages every timestamp-sorted collection to the end, although rows share a microsecond timestamp", async (ctx) => {
+    if (!app) return ctx.skip();
+    // The seed writes each table in one transaction, so every unit and issuance has the same
+    // modified_at; a cursor that compared it at millisecond precision lost page 2 onwards.
+    for (const [collection, extra] of [
+      ["units", ""],
+      ["issuances", ""],
+      ["accounts", "&sort=-modified_at"],
+      ["projects", "&sort=modified_at"],
+    ] as const) {
+      const seen = new Set<string>();
+      let href: string | undefined = `/v2/${collection}?limit=7${extra}`;
+      let total = 0;
+      while (href) {
+        const page: Hal = await hal(href);
+        total = page.total as number;
+        for (const row of page._embedded[collection] ?? []) {
+          expect(seen.has(row.id), `${collection} repeats ${row.id}`).toBe(false);
+          seen.add(row.id);
+        }
+        href = page._links.next?.href;
+      }
+      expect(total, collection).toBeGreaterThan(7);
+      expect(seen.size, collection).toBe(total);
+    }
+  });
+
   it("filters with CDOP field names and rejects what it cannot parse as a problem", async (ctx) => {
     if (!app) return ctx.skip();
     const page = await hal("/v2/projects?standard=vcs&limit=5");
