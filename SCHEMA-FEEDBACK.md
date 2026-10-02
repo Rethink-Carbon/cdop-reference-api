@@ -49,7 +49,7 @@ The register is served by the API at `/rels/feedback` and to MCP clients as the 
 | CDOP-FB-018 | ambiguity | all pods                                                                                             | Only `format: date` is used; no `uri`, `email` or `date-time`                                                      |
 | CDOP-FB-019 | ambiguity | `unit.owner_account_id`, `unit.expected_carbon_credit_price`                                         | Required and Private; no account entity                                                                            |
 | CDOP-FB-020 | ambiguity | `project.compliance_market_id`                                                                       | Required with `minItems: 1` although "if applicable"                                                               |
-| CDOP-FB-021 | ambiguity | `crediting_program`, `carbon_crediting_standard`, `registry`                                         | Three overlapping "standard" concepts with no relation between registry, program and standard                      |
+| CDOP-FB-021 | ambiguity | `crediting_program`, `carbon_crediting_standard`, `registry`                                         | Three overlapping "standard" concepts; field 242 has a different path in Full List and Labels & Certifications     |
 | CDOP-FB-022 | ambiguity | `methodology.versions[].methodology`                                                                 | A 496-value enum with embedded program prefixes                                                                    |
 | CDOP-FB-023 | ambiguity | `project.buffer_pool[]`                                                                              | Buffer totals without dates; the buffer is a ledger                                                                |
 | CDOP-FB-024 | ambiguity | `project.project_risk`                                                                               | JSON stored in a string                                                                                            |
@@ -607,11 +607,11 @@ There is no URL, hash or inline geometry, and no field naming the project (the p
 
 ## CDOP-FB-021: Three overlapping "standard" concepts
 
-|                   |                                                                                                                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| File / field path | `crediting_program.crediting_program[]` (44 to 45), `crediting_program.standard[]` (46 to 47), `carbon_crediting_standard` (242), `registry.current_registry` (83) |
-| Category          | ambiguity                                                                                                                                                          |
-| Status            | open, not yet raised upstream                                                                                                                                      |
+|                   |                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `crediting_program.crediting_program[]` (44 to 45), `crediting_program.standard[]` (46 to 47), `registry.current_registry` (83); field 242 at `carbon_crediting_standard.carbon_standard_level_accreditation` in `schemas/v2/Full_List.schema.json` and at `crediting_program.carbon_standard_level_accreditation` in `schemas/v2/Labels_Certifications.schema.json` |
+| Category          | ambiguity                                                                                                                                                                                                                                                                                                                                                            |
+| Status            | open, not yet raised upstream                                                                                                                                                                                                                                                                                                                                        |
 
 **Observation.** Programs (43 names), standards (19 names) and registries (35 names) are three flat enums with no stated relation, and a fourth entity, `carbon_crediting_standard`, contains a single field:
 
@@ -621,11 +621,27 @@ There is no URL, hash or inline geometry, and no field naming the project (the p
 
 Nothing says that `Woodland Carbon Code` (standard) is administered under a program and hosted on the UK Land Carbon Registry, or that Verra is both a program and a registry.
 
-**Impact.** Consumers cannot join documents across the three lists, and the fourth entity is a naming trap.
+**Field 242 has two paths.** Upstream commit `2ec8c2b` (1 September 2026) renamed the Labels & Certifications entity from `carbon_crediting_standard` to `crediting_program` and left Full List as it was. At the pinned commit the field has the same id, enum and other annotations in both files, but a different parent. In `Full_List.schema.json`:
+
+```json
+"carbon_crediting_standard": { "type": "object", "properties": { "carbon_standard_level_accreditation": { "x-cdop-field-id": 242, "x-cdop-field-path": "carbon_crediting_standard.carbon_standard_level_accreditation" } } }
+```
+
+In `Labels_Certifications.schema.json`:
+
+```json
+"crediting_program": { "type": "object", "properties": { "carbon_standard_level_accreditation": { "x-cdop-field-id": 242, "x-cdop-field-path": "crediting_program.carbon_standard_level_accreditation" } } }
+```
+
+So `crediting_program` now means two things: in Full List it holds the program, standard and standard version fields (44 to 49); in Labels & Certifications it holds only the accreditation. Across the twelve files, 242 is one of three field ids with more than one `x-cdop-field-path`. The other two, 152 and 161, are the mangled keys in CDOP-FB-003 and CDOP-FB-002; 242 is the only one where both paths are well formed.
+
+**Impact.** Consumers cannot join documents across the three lists, and the fourth entity is a naming trap. The split makes the trap concrete: a consumer that reads field 242 by path finds it in one document type and not the other, and a producer that builds a pod as a subset of Full List drops it with no validation error, because the field is `0..1` and in no `required` list.
 
 **What the reference API does.** Keeps normative tables with foreign keys: `registry`, `crediting_program`, `standard` (with its program and registry), `standard_version`. They are served at `/v2/reference/*` and exposed per project as the `cdop:registry` and `cdop:crediting-program` facets.
 
-**Proposal.** Publish one reference table relating registry, program and standard (with slugs), reference it from the enums, and rename `carbon_crediting_standard` to what it holds (standard-level accreditation) or fold it into `labels`.
+Pods are built as the Full List pruned to the keys each pod's schema declares (`buildPodDocument` in `apps/api/src/domain/projection/cdop.ts`). Pruning alone would drop field 242 from Labels & Certifications, because the Full List carries it under a key that pod does not declare. So after pruning, any field the pod declares at a different path from Full List is matched by `x-cdop-field-id` and copied to the pod's path. Each document follows its own schema: `cdop/full-list` carries `"carbon_crediting_standard": { "carbon_standard_level_accreditation": "ICVCM" }` and `cdop/labels-certifications` carries `"crediting_program": { "carbon_standard_level_accreditation": "ICVCM" }`. The step skips paths that cross an array, so fields 152 and 161 stay as CDOP-FB-002 and CDOP-FB-003 describe, and it does nothing once upstream gives each field one path. A conformance test checks that the two documents agree for every seeded project, since schema validation cannot catch the loss.
+
+**Proposal.** Publish one reference table relating registry, program and standard (with slugs), reference it from the enums, and rename `carbon_crediting_standard` to what it holds (standard-level accreditation) or fold it into `labels`. Whichever name is chosen, give field 242 one path in every file. The smallest change is to apply the 1 September rename to Full List too, which puts the accreditation under `crediting_program` beside fields 44 to 49 and retires `carbon_crediting_standard`. A generator check that each `x-cdop-field-id` has exactly one `x-cdop-field-path` across all files would catch this class of drift, and would also have caught CDOP-FB-002 and CDOP-FB-003.
 
 ---
 

@@ -93,6 +93,24 @@ describe.each([
   }
 });
 
+describe("standard-level accreditation, field 242 (CDOP-FB-021)", () => {
+  it("carries the Full List value into Labels & Certifications at that pod's own path", () => {
+    let accredited = 0;
+    for (const p of ds.projects) {
+      const full = buildPodDocument(p, ctx, "full-list").document as {
+        carbon_crediting_standard?: { carbon_standard_level_accreditation?: string };
+      };
+      const labels = buildPodDocument(p, ctx, "labels-certifications").document as {
+        crediting_program?: { carbon_standard_level_accreditation?: string };
+      };
+      const value = full.carbon_crediting_standard?.carbon_standard_level_accreditation;
+      expect(labels.crediting_program?.carbon_standard_level_accreditation).toBe(value);
+      if (value) accredited += 1;
+    }
+    expect(accredited).toBeGreaterThan(0);
+  });
+});
+
 describe("unit-level labels (CDOP-FB-029)", () => {
   it("never claims an accreditation a unit does not hold", () => {
     const big = generateDataset({ seed: "2026", counts: { vcs: 120 } });

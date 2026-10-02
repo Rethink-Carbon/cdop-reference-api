@@ -9,9 +9,12 @@
  *  - CDOP-FB-005: `unit`/`vintage` are per-block, so a project-level Full List carries the
  *    selected block (default: most recently issued) or none; absent sections are omitted unless
  *    `strict` fills placeholders.
+ *  - CDOP-FB-021: a field a pod declares at a different path from Full List (field 242 in
+ *    Labels & Certifications) is matched by `x-cdop-field-id` and moved to the pod's path.
  */
 import {
   SCHEMA_FILES,
+  buildFieldRegistry,
   loadSchema,
   validatePayload,
   type JsonSchema,
@@ -803,6 +806,56 @@ export function pruneToSchema(value: unknown, schema: JsonSchema | undefined): u
   return value;
 }
 
+interface Relocation {
+  from: string[];
+  to: string[];
+}
+
+const relocationCache = new Map<PodName, Relocation[]>();
+
+/**
+ * Fields `pod` declares at a different path from Full List, matched by `x-cdop-field-id`
+ * (CDOP-FB-021). Paths through arrays are left out: fields 152 and 161 are shaped in
+ * buildFullList (CDOP-FB-002/003). Empty once upstream gives each field one path.
+ */
+function relocations(pod: PodName): Relocation[] {
+  const cached = relocationCache.get(pod);
+  if (cached) return cached;
+  const registry = buildFieldRegistry();
+  const fullListPath = new Map<number, string>();
+  for (const f of registry)
+    if (f.fieldId !== undefined && f.pods.includes("full-list"))
+      fullListPath.set(f.fieldId, f.path);
+  const out: Relocation[] = [];
+  for (const f of registry) {
+    if (f.fieldId === undefined || !f.pods.includes(pod)) continue;
+    const from = fullListPath.get(f.fieldId);
+    if (!from || from === f.path || from.includes("[]") || f.path.includes("[]")) continue;
+    out.push({ from: from.split("."), to: f.path.split(".") });
+  }
+  relocationCache.set(pod, out);
+  return out;
+}
+
+function getPath(doc: Record<string, unknown>, keys: string[]): unknown {
+  let cur: unknown = doc;
+  for (const k of keys) {
+    if (!cur || typeof cur !== "object" || Array.isArray(cur)) return undefined;
+    cur = (cur as Record<string, unknown>)[k];
+  }
+  return cur;
+}
+
+function setPath(doc: Record<string, unknown>, keys: string[], value: unknown): void {
+  let cur = doc;
+  for (const k of keys.slice(0, -1)) {
+    const next = cur[k];
+    if (!next || typeof next !== "object" || Array.isArray(next)) cur[k] = {};
+    cur = cur[k] as Record<string, unknown>;
+  }
+  cur[keys[keys.length - 1] as string] = value;
+}
+
 /** Build the document for any pod: Full List first, then prune to the pod's own structure. */
 export function buildPodDocument(
   agg: ProjectAggregate,
@@ -814,6 +867,10 @@ export function buildPodDocument(
   if (pod === "full-list") return full;
   const schema = loadSchema(pod);
   const pruned = pruneToSchema(full.document, schema) as Record<string, unknown>;
+  for (const { from, to } of relocations(pod)) {
+    const value = getPath(full.document, from);
+    if (value !== undefined) setPath(pruned, to, value);
+  }
   const declared = new Set(Object.keys(schema.properties ?? {}));
   return {
     pod,
