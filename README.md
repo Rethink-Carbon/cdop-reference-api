@@ -199,7 +199,7 @@ All API routes live under `/v2`, respond with `application/hal+json`, and use RF
 | GET               | `/v2/openapi.json`, `/docs`, `/explorer`, `/rels/{rel}`, `/problems/{slug}`, `/healthz`                             |                                                                                                                                                                                                                                                                   | M1                |
 | POST              | `/v2/admin/reset`, `/v2/admin/sim`                                                                                  | Reseed; simulator start, stop and rate (admin key)                                                                                                                                                                                                                | M3                |
 
-Reads are anonymous. Writes need `Authorization: Bearer cdop_<keyid>.<64hex>`. Keys are stored as SHA-256 hashes with one of the roles `developer`, `vvb`, `code_admin`, `registry`, `admin`, `sandbox`. `pnpm seed` prints demo keys for a local database.
+Reads are anonymous. Writes need `Authorization: Bearer cdop_<keyid>.<64hex>`. Keys are stored as SHA-256 hashes with one of the roles `developer`, `vvb`, `code_admin`, `registry`, `admin`, `sandbox`. `pnpm seed` prints demo keys for a local database. `pnpm keys:new --role <role> --label <text>` stores a new key and prints its token once; `pnpm keys:new` on its own prints a token for `ADMIN_API_KEY`, which is never stored.
 
 ## Repository layout
 

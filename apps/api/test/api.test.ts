@@ -10,6 +10,7 @@ import pino from "pino";
 import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
+import { createApiKey } from "../src/db/keys-cli.js";
 import { createDb, createPool } from "../src/db/kysely.js";
 import { loadEnv } from "../src/env.js";
 import { createLinker } from "../src/http/context.js";
@@ -229,5 +230,23 @@ describe("HTTP API", () => {
     const geo = await get(`${files._embedded["geolocation-files"]?.[0]?._links.self.href}/content`);
     expect(geo.headers.get("content-type")).toContain("application/geo+json");
     expect(((await geo.json()) as { geometry: { type: string } }).geometry.type).toBe("Polygon");
+  });
+
+  it("accepts a key stored by keys:new and rejects it once revoked", async (ctx) => {
+    if (!app || !pool) return ctx.skip();
+    const db = createDb(pool);
+    const { id, token } = await createApiKey(db, { role: "developer", label: "api.test.ts" });
+    const auth = { authorization: `Bearer ${token}` };
+    try {
+      expect((await get("/v2", auth)).status).toBe(200);
+      await db
+        .updateTable("api_key")
+        .set({ revoked_at: new Date() })
+        .where("id", "=", id)
+        .execute();
+      expect((await get("/v2", auth)).status).toBe(401);
+    } finally {
+      await db.deleteFrom("api_key").where("id", "=", id).execute();
+    }
   });
 });
