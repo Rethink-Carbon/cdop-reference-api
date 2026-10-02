@@ -1,0 +1,42 @@
+{
+  "name": "@cdop/schemas",
+  "version": "0.1.0",
+  "description": "Vendored Carbon Data Open Protocol (CDOP) JSON Schemas with a field registry, enum lookup, Ajv 2020-12 validator, lint and upstream drift tooling.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/*": "./schemas/*",
+    "./examples/*": "./examples/*",
+    "./upstream": "./UPSTREAM.json"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "examples",
+    "UPSTREAM.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.tools.json",
+    "test": "vitest run",
+    "verify": "tsx src/cli.ts verify",
+    "lint:schemas": "tsx src/cli.ts lint",
+    "sync": "tsx src/cli.ts sync",
+    "drift": "tsx src/cli.ts drift"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.1"
+  }
+}

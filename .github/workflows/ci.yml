@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: cdop
+          POSTGRES_PASSWORD: cdop
+          POSTGRES_DB: cdop
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cdop -d cdop"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://cdop:cdop@localhost:5433/cdop
+      PUBLIC_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Vendored CDOP schemas match their pinned hashes
+        run: pnpm cdop:verify
+      - name: Schema lint (informational)
+        run: pnpm cdop:lint
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - name: Migrate + seed the test database
+        run: pnpm db:migrate && pnpm seed -- --counts wcc=8,pc=6,vcs=6,gs4gg=2,acr=2,plan-vivo=2,puro=2
+      - run: pnpm test
+      - name: OpenAPI artefact is up to date
+        run: pnpm openapi:check
+      - name: Spectral lint
+        run: pnpm dlx @stoplight/spectral-cli@6 lint apps/api/openapi/openapi.json --ruleset .spectral.yaml --fail-severity error
+      - name: Docker image builds
+        run: docker build -t cdop-reference-api:ci .

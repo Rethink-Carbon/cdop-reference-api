@@ -1,0 +1,53 @@
+{
+  "name": "cdop-reference-api-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reference implementation of an API for the Carbon Data Open Protocol (CDOP): HAL+HAL-FORMS REST, OpenAPI 3.1, MCP server, CloudEvents stream, synthetic multi-registry data.",
+  "license": "MIT",
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "type": "module",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky",
+    "dev": "pnpm --filter @cdop/api dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r test",
+    "db:migrate": "pnpm --filter @cdop/api db:migrate",
+    "db:types": "pnpm --filter @cdop/api db:types",
+    "seed": "pnpm --filter @cdop/api seed",
+    "sim": "pnpm --filter @cdop/api sim",
+    "openapi:build": "pnpm --filter @cdop/api openapi:build",
+    "openapi:check": "pnpm --filter @cdop/api openapi:check",
+    "cdop:verify": "pnpm --filter @cdop/schemas verify",
+    "cdop:lint": "pnpm --filter @cdop/schemas lint:schemas",
+    "cdop:sync": "pnpm --filter @cdop/schemas sync",
+    "cdop:drift": "pnpm --filter @cdop/schemas drift",
+    "keys:new": "pnpm --filter @cdop/api keys:new",
+    "release": "commit-and-tag-version"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.7.0",
+    "commit-and-tag-version": "^13.2.1",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.8",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.70.0"
+  },
+  "lint-staged": {
+    "*.{ts,js,cjs,mjs}": "eslint --fix",
+    "*.{ts,js,cjs,mjs,json,md,yml,yaml}": "prettier --write"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "project": {
+    "project_identifier": "cdop:KEN:VCS-4721",
+    "audits": [
+      {
+        "auditor_name": "SCS Global Services",
+        "auditor_site_visit_start_date": "2024-02-05",
+        "auditor_site_visit_end_date": "2024-02-12",
+        "verification_report_url": "https://registry.verra.org/app/projectDetail/VCS/4721/verification/2024",
+        "verification_report_date": "2024-04-18"
+      },
+      {
+        "auditor_name": "SCS Global Services",
+        "auditor_site_visit_start_date": "2025-02-03",
+        "auditor_site_visit_end_date": "2025-02-10",
+        "verification_report_url": "https://registry.verra.org/app/projectDetail/VCS/4721/verification/2025",
+        "verification_report_date": "2025-04-22"
+      }
+    ]
+  },
+  "issuance": {
+    "issuance": [
+      {
+        "batch_identifier": "cdop:KEN:VCS-4721:B1",
+        "issuance_url": "https://registry.verra.org/app/projectDetail/VCS/4721/issuances/1",
+        "date_of_issuance": "2024-05-01",
+        "date_of_verification": "2024-04-18",
+        "verification_period_start": "2023-01-01",
+        "verification_period_end": "2023-12-31",
+        "batch_issued_volume": 52300,
+        "cumulative_issued_volume": 52300,
+        "issuance_status": "Verified"
+      },
+      {
+        "batch_identifier": "cdop:KEN:VCS-4721:B2",
+        "issuance_url": "https://registry.verra.org/app/projectDetail/VCS/4721/issuances/2",
+        "date_of_issuance": "2025-05-05",
+        "date_of_verification": "2025-04-22",
+        "verification_period_start": "2024-01-01",
+        "verification_period_end": "2024-12-31",
+        "batch_issued_volume": 54800,
+        "cumulative_issued_volume": 107100,
+        "issuance_status": "Verified"
+      }
+    ]
+  }
+}

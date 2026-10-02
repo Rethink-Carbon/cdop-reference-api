@@ -1,0 +1,42 @@
+name: CDOP schema feedback
+description: Log an implementation conflict, ambiguity or gap found while building against the CDOP schema.
+title: "[CDOP-FB] "
+labels: ["schema-feedback"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Schema file and field path
+      placeholder: "Full_List.schema.json: unit.credit_blockblock_start"
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options: [defect, ambiguity, extension, api-gap]
+    validations:
+      required: true
+  - type: textarea
+    id: observation
+    attributes:
+      label: Observation
+      description: What the schema says, with the evidence (snippet, validator output).
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact on an implementation
+  - type: textarea
+    id: handling
+    attributes:
+      label: What the reference API does today
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change to the schema
+  - type: input
+    id: upstream
+    attributes:
+      label: Upstream issue link (if raised)

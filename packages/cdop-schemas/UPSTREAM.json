@@ -1,0 +1,38 @@
+{
+  "repo": "Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol",
+  "ref": "main",
+  "commit": "eff6ca3d634fc4032d9873cc2c423487c8f34a1b",
+  "commit_date": "2026-09-16T18:05:24Z",
+  "schema_version": "2.0",
+  "fetched_at": "2026-09-20T00:00:00Z",
+  "paths": {
+    "schemas/v2": "json_schema",
+    "examples/v2": "examples"
+  },
+  "files": {
+    "examples/v2/co_benefits.json": "e5ceaae9f5bc008300996b9609a25bb5c10c31e5f9012044e2007eb7301acfdd",
+    "examples/v2/crediting_period.json": "ca2e33b028fcd66394c772a2e02e6994e8eaa88f485a7b6fe57758313948e77c",
+    "examples/v2/disclosures.json": "e44fe6892dbfee436376ea9de73a956610cd73540544a8267bde7570702e1356",
+    "examples/v2/durability_permanence.json": "214b20a9278c5e71a59016433a0b1d4752989859fc858f26519d4f22ba274545",
+    "examples/v2/estimations.json": "2bdf417cf7ff27ac829d0edacaff29a5d3eabb1e7cc1bc7e921923aa95ae7083",
+    "examples/v2/full_list.json": "83becd544a44fc5d99b6fb1424b29563e6499c86a3dac0f9a2e62fc73f9c2303",
+    "examples/v2/issuances.json": "36bee25cf8be22fd1d0562f323e3f2f511880f8d998aebaf04596f59a210f2d7",
+    "examples/v2/location_details.json": "c7bc4c780c2977b0ab53e38f9192937a51295b2087c853a94b2cab2e66ed31fb",
+    "examples/v2/project_approach_and_details.json": "f0a9225340362436901982d69d0f90c67777470572e8b5d5af88b0be1b7022ce",
+    "examples/v2/project_finance.json": "b74cc580f35847615e779e1469185933096eb9843997cf74b831ff06113921e8",
+    "examples/v2/unit_description.json": "1f36a98f6d3ad2c65ee4db94340179d07b99e03cb4d41836e54cf4d1b2e4c825",
+    "schemas/v2/Co_Benefits.schema.json": "85d2d4e7f9e143eb789cc4119469714b826c18cd3ca33f390a6bbb205f55cec5",
+    "schemas/v2/Crediting_Period.schema.json": "1fd8e878954392600b28b28ba426a369a9bfc928435cbb4bbf1ff4ef0ba4edc6",
+    "schemas/v2/Disclosures.schema.json": "ea882f70e977af3beab653cb7b1b417d5d32439e1cb0e509de299e089ca20da2",
+    "schemas/v2/Durability_Permanence.schema.json": "0a860fc52f768d4ddb2b3467e13d2a78788ff4a893e84e243247bc1ada81311f",
+    "schemas/v2/Estimations.schema.json": "72e363b81e71c02b16e4736b558e8286ff616e2f70caa0b7366aef651a444525",
+    "schemas/v2/Full_List.schema.json": "2059fa160b2ac889bc869148066d99d1b5a9a13426e8537a90e6cfc401dbc9c1",
+    "schemas/v2/Issuances.schema.json": "9d42e757c35e927a43255208f5a5986d43f125d9a47d9053769a60e0126fdcd2",
+    "schemas/v2/Labels_Certifications.schema.json": "cd9656752f6facd6399209b0ae6c2d42233e69953603d09ac6bf4ccc2f0abe27",
+    "schemas/v2/Location_Details.schema.json": "d696e47221a7030479b207336078abfdb6aa9c1377de3945f3622468950a086b",
+    "schemas/v2/Project_Approach_Details.schema.json": "27452907f99aa1a53eb0cecfc4bf4200807e55dcd9cd6ca581a9e5bad3a45adc",
+    "schemas/v2/Project_Finance.schema.json": "c0a7f304a2b5a3531b1271c8b1e5561c1797681ed2efa62749194ef167cd74a7",
+    "schemas/v2/Unit_Description.schema.json": "095af99fa02ec64138f046f9b4d0efbeda95ba4afd417d30758c02e8c90b313b",
+    "schemas/v2/unmatched_enum_fields.csv": "bdc5694e50449efd5d9f3788d92f9985623d6d65648a4ebaaf5b4e19fcf6c913"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+pnpm-lock.yaml
+packages/cdop-schemas/schemas
+packages/cdop-schemas/examples
+apps/api/openapi/openapi.json
+apps/api/test/fixtures
+CHANGELOG.md

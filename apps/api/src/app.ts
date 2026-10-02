@@ -1,0 +1,223 @@
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { cors } from "hono/cors";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import type { MiddlewareHandler } from "hono";
+import type { AppEnv } from "./app-env.js";
+import type { AppDeps } from "./http/context.js";
+import { ProblemError, problemResponse } from "./http/problems.js";
+import { callerMiddleware } from "./http/auth.js";
+import { registerSystemRoutes } from "./routes/system.js";
+import { registerProjectRoutes } from "./routes/projects.js";
+import { registerUnitRoutes } from "./routes/units.js";
+import { registerAccountRoutes } from "./routes/accounts.js";
+import { registerReferenceRoutes } from "./routes/reference.js";
+import { openApiConfig } from "./http/openapi.js";
+import { newId } from "./domain/ids.js";
+import { createMcpHttpHandler } from "./mcp/server.js";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const apiRoot = path.resolve(here, "..");
+const swaggerUiRoot = path.dirname(
+  createRequire(import.meta.url).resolve("swagger-ui-dist/package.json"),
+);
+
+const CSP =
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+
+const selfOnly: MiddlewareHandler = async (c, next) => {
+  await next();
+  c.header("content-security-policy", CSP);
+  c.header("referrer-policy", "no-referrer");
+};
+
+const DOCS_HTML = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CDOP reference API</title>
+    <link rel="stylesheet" href="/docs/swagger-ui.css" />
+    <link rel="icon" href="/docs/favicon-32x32.png" />
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="/docs/swagger-ui-bundle.js"></script>
+    <script src="/docs/init.js"></script>
+  </body>
+</html>`;
+
+// validatorUrl null: otherwise Swagger UI sends the spec URL to validator.swagger.io for a badge.
+// Models start collapsed because the embedded CDOP schemas are large (Full List is about 300 KB).
+const DOCS_INIT = `window.ui = SwaggerUIBundle({
+  url: "/v2/openapi.json",
+  dom_id: "#swagger-ui",
+  validatorUrl: null,
+  deepLinking: true,
+  docExpansion: "list",
+  defaultModelsExpandDepth: 0,
+  defaultModelExpandDepth: 1,
+  tagsSorter: "alpha",
+  tryItOutEnabled: true,
+});`;
+
+export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
+  const app = new OpenAPIHono<AppEnv>();
+
+  app.use("*", async (c, next) => {
+    const requestId = c.req.header("x-request-id") ?? newId("evt").slice(4);
+    c.set("requestId", requestId);
+    const started = performance.now();
+    await next();
+    c.header("x-request-id", requestId);
+    c.header("x-api-version", deps.apiVersion);
+    if (!c.res.headers.get("x-cdop-schema-version"))
+      c.header("x-cdop-schema-version", deps.schemaVersion);
+    deps.log.info(
+      {
+        method: c.req.method,
+        path: new URL(c.req.url).pathname,
+        status: c.res.status,
+        ms: Math.round(performance.now() - started),
+        requestId,
+      },
+      "request",
+    );
+  });
+  app.use(
+    "*",
+    cors({
+      origin:
+        deps.env.CORS_ORIGINS === "*" ? "*" : deps.env.CORS_ORIGINS.split(",").map((s) => s.trim()),
+      exposeHeaders: [
+        "etag",
+        "link",
+        "x-cdop-schema-version",
+        "x-cdop-conformance",
+        "x-api-version",
+        "x-request-id",
+      ],
+    }),
+  );
+  app.use("/v2/*", callerMiddleware(deps));
+  app.use("/mcp/*", callerMiddleware(deps));
+  app.use("/mcp", callerMiddleware(deps));
+
+  app.onError((err, c) => {
+    if (err instanceof ProblemError) return problemResponse(c, deps.linker.baseUrl, err);
+    deps.log.error({ err, requestId: c.get("requestId") }, "unhandled error");
+    return problemResponse(
+      c,
+      deps.linker.baseUrl,
+      new ProblemError("internal", "An unexpected error occurred", {
+        request_id: c.get("requestId"),
+      }),
+    );
+  });
+  app.notFound((c) =>
+    problemResponse(
+      c,
+      deps.linker.baseUrl,
+      new ProblemError("not-found", `No resource at ${new URL(c.req.url).pathname}`),
+    ),
+  );
+
+  registerSystemRoutes(app, deps);
+  registerProjectRoutes(app, deps);
+  registerUnitRoutes(app, deps);
+  registerAccountRoutes(app, deps);
+  registerReferenceRoutes(app, deps);
+
+  // MCP (Streamable HTTP, stateless). Tools call this same app in-process.
+  const mcp = createMcpHttpHandler(deps, (req) => Promise.resolve(app.fetch(req)));
+  app.all("/mcp", (c) => mcp(c.req.raw));
+  app.all("/mcp/*", (c) => mcp(c.req.raw));
+
+  // OpenAPI: serve the committed artefact when present (CI keeps it in sync), else the live document.
+  app.get("/v2/openapi.json", async (c) => {
+    try {
+      const text = await readFile(path.join(apiRoot, "openapi/openapi.json"), "utf8");
+      const doc = JSON.parse(text) as { servers?: unknown };
+      doc.servers = [{ url: deps.linker.baseUrl }];
+      return c.body(JSON.stringify(doc), 200, {
+        "content-type": "application/openapi+json; charset=utf-8",
+        "cache-control": "public, max-age=300",
+      });
+    } catch {
+      const doc = app.getOpenAPI31Document(openApiConfig(deps));
+      return c.body(JSON.stringify(doc), 200, {
+        "content-type": "application/openapi+json; charset=utf-8",
+      });
+    }
+  });
+  // The browser may load and call nothing but this origin on the two bundled UIs.
+  app.use("/docs/*", selfOnly);
+  app.use("/explorer/*", selfOnly);
+
+  // Swagger UI (Apache-2.0) from the pinned `swagger-ui-dist` dependency: no CDN, no telemetry.
+  app.get("/docs", (c) => c.redirect("/docs/", 302));
+  app.get("/docs/", (c) => c.html(DOCS_HTML));
+  app.get("/docs/init.js", (c) =>
+    c.body(DOCS_INIT, 200, { "content-type": "text/javascript; charset=utf-8" }),
+  );
+  app.use(
+    "/docs/*",
+    serveStatic({
+      root: path.relative(process.cwd(), swaggerUiRoot) || ".",
+      rewriteRequestPath: (p) => p.replace(/^\/docs/, ""),
+    }),
+  );
+
+  // HAL Explorer (toedter/hal-explorer, MIT), vendored at build time by scripts/fetch-explorer.mjs.
+  app.get("/explorer", (c) =>
+    // HAL Explorer reads the fragment as is: an encoded URI is taken for a relative path.
+    c.redirect("/explorer/#uri=" + deps.linker.url("/v2"), 302),
+  );
+  app.get("/explorer/", async (c) => {
+    try {
+      const html = await readFile(path.join(apiRoot, "public/explorer/vendor/index.html"), "utf8");
+      return c.html(
+        html
+          .replace(/<base href="[^"]*">/, '<base href="/explorer/">')
+          // The bundle defers its stylesheet with an inline onload handler, which the CSP blocks.
+          .replace(/ media="print" onload="this\.media='all'"/, ""),
+      );
+    } catch {
+      return c.html(
+        `<!doctype html><title>HAL Explorer not installed</title><p>Run <code>pnpm explorer:fetch</code> to download the HAL Explorer bundle, or browse the API at <a href="${deps.linker.url("/v2")}">/v2</a>.</p>`,
+        404,
+      );
+    }
+  });
+  // HAL Explorer fetches its themes from bootswatch.com. Point the picker at this origin instead:
+  // every theme resolves to the Bootstrap build already in the bundle, and nothing leaves the host.
+  app.get("/explorer/themes/*", (c) =>
+    c.body(
+      "/* Themes are served locally: this deployment loads no third-party resources. */",
+      200,
+      {
+        "content-type": "text/css; charset=utf-8",
+      },
+    ),
+  );
+  app.get("/explorer/:file{main-[A-Z0-9]+\\.js}", async (c) => {
+    const file = path.join(apiRoot, "public/explorer/vendor", c.req.param("file"));
+    const js = await readFile(file, "utf8").catch(() => undefined);
+    if (js === undefined) return c.notFound();
+    return c.body(js.replaceAll("https://bootswatch.com/5/", "/explorer/themes/"), 200, {
+      "content-type": "text/javascript; charset=utf-8",
+    });
+  });
+  app.use(
+    "/explorer/*",
+    serveStatic({
+      root: path.relative(process.cwd(), path.join(apiRoot, "public/explorer/vendor")) || ".",
+      rewriteRequestPath: (p) => p.replace(/^\/explorer/, ""),
+    }),
+  );
+
+  return app;
+}

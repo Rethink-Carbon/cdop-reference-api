@@ -1,0 +1,58 @@
+{
+  "project": {
+    "location": [
+      {
+        "country_code": "KEN",
+        "country_name": "Kenya",
+        "geographical_region_code": "014",
+        "geographical_region_name": "Eastern Africa",
+        "country_subdivision_code": "KE-300",
+        "country_subdivision_name": "Kilifi",
+        "address_line_1": "Plot 47, Mida Creek Road",
+        "city": "Watamu",
+        "postal_code": "80202"
+      }
+    ]
+  },
+  "project_stakeholder": {
+    "location": [
+      {
+        "country_code": "KEN",
+        "country_name": "Kenya",
+        "geographical_region_code": "014",
+        "geographical_region_name": "Eastern Africa",
+        "address_line_1": "14 Riverside Drive, Suite 300",
+        "city": "Nairobi",
+        "postal_code": "00100",
+        "country_subdivision_name": "Nairobi City"
+      }
+    ]
+  },
+  "facility": {
+    "location": [
+      {
+        "country_code": "KEN",
+        "country_name": "Kenya",
+        "geographical_region_code": "014",
+        "geographical_region_name": "Eastern Africa",
+        "country_subdivision_code": "KE-300",
+        "country_subdivision_name": "Kilifi",
+        "city": "Watamu",
+        "address_line_1": "Mida Creek Conservation Area"
+      }
+    ]
+  },
+  "geolocation_file": {
+    "location": [
+      {
+        "file_name": "mida_creek_project_boundary",
+        "file_format": "GeoJSON",
+        "validity_start_date": "2023-01-01",
+        "file_status": "ACTIVE",
+        "file_created_on": "2023-01-15T09:00:00Z",
+        "area_type": "Project Area",
+        "geometry_type": "Polygon"
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+allowBuilds:
+  # Install-time analytics pulled in by swagger-ui-dist. Never allowed to run.
+  "@scarf/scarf": false
+  esbuild: true
+minimumReleaseAgeExclude:
+  - "@commitlint/cli@21.2.3"
+  - "@commitlint/config-conventional@21.2.3"
+  - "@commitlint/config-validator@21.2.3"
+  - "@commitlint/ensure@21.2.3"
+  - "@commitlint/format@21.2.3"
+  - "@commitlint/is-ignored@21.2.3"
+  - "@commitlint/lint@21.2.3"
+  - "@commitlint/load@21.2.3"
+  - "@commitlint/parse@21.2.3"
+  - "@commitlint/read@21.2.3"
+  - "@commitlint/resolve-extends@21.2.3"
+  - "@commitlint/rules@21.2.3"
+  - "@commitlint/types@21.2.3"
+  - tsx@4.23.15

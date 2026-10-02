@@ -1,0 +1,48 @@
+# Dokploy deployment: API only, database is the Supabase project (DATABASE_URL = session pooler).
+# Image is built by GitHub Actions and published to GHCR; Dokploy redeploys via its deploy webhook.
+name: cdop-reference-api
+services:
+  api:
+    image: ghcr.io/rethink-carbon/cdop-reference-api:${CDOP_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL to the Supabase SESSION pooler connection string}
+      DATABASE_LISTEN_URL: ${DATABASE_LISTEN_URL:-}
+      PORT: "3000"
+      PUBLIC_BASE_URL: https://${CDOP_DOMAIN:-cdop.rethinkcarbon.co.uk}
+      SEED_ON_START: ${SEED_ON_START:-true}
+      CDOP_SEED: ${CDOP_SEED:-2026}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:?Set ADMIN_API_KEY (generate with pnpm keys:new)}
+      AFFORDANCES_FOR_ANONYMOUS: ${AFFORDANCES_FOR_ANONYMOUS:-all}
+      SIM_ENABLED: ${SIM_ENABLED:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.services.cdop-api.loadbalancer.server.port=3000
+      - traefik.http.routers.cdop-api-web.rule=Host(`${CDOP_DOMAIN:-cdop.rethinkcarbon.co.uk}`)
+      - traefik.http.routers.cdop-api-web.entrypoints=web
+      - traefik.http.routers.cdop-api-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.cdop-api-websecure.rule=Host(`${CDOP_DOMAIN:-cdop.rethinkcarbon.co.uk}`)
+      - traefik.http.routers.cdop-api-websecure.entrypoints=websecure
+      - traefik.http.routers.cdop-api-websecure.tls.certResolver=letsencrypt
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true

@@ -1,0 +1,55 @@
+# Quickstart for forkers: `docker compose up` then open http://localhost:${CDOP_PORT:-3000}/docs
+name: cdop-reference-api
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cdop
+      POSTGRES_PASSWORD: cdop
+      POSTGRES_DB: cdop
+    command: ["postgres", "-c", "max_connections=100"]
+    ports:
+      - "${CDOP_DB_PORT:-5433}:5432"
+    volumes:
+      - cdop-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cdop -d cdop"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+    image: cdop-reference-api:local
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://cdop:cdop@db:5432/cdop
+      PORT: "3000"
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:${CDOP_PORT:-3000}}
+      SEED_ON_START: ${SEED_ON_START:-true}
+      CDOP_SEED: ${CDOP_SEED:-2026}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
+      SIM_ENABLED: ${SIM_ENABLED:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${CDOP_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+volumes:
+  cdop-db:

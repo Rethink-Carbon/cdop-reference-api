@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: CDOP schema repository
+    url: https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/issues
+    about: Issues about the schema itself belong upstream; log implementation conflicts here first.
