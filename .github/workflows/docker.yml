@@ -37,7 +37,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Trigger Dokploy redeploy
-        if: ${{ github.ref == 'refs/heads/main' && env.DOKPLOY_DEPLOY_WEBHOOK != '' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         env:
           DOKPLOY_DEPLOY_WEBHOOK: ${{ secrets.DOKPLOY_DEPLOY_WEBHOOK }}
-        run: curl -fsS -X POST "$DOKPLOY_DEPLOY_WEBHOOK"
+        # The empty-secret check lives in the script, not in `if:`, so it does not depend on
+        # which env scopes `if:` can see and the secret stays scoped to this one step.
+        run: |
+          if [ -z "$DOKPLOY_DEPLOY_WEBHOOK" ]; then
+            echo "DOKPLOY_DEPLOY_WEBHOOK is not set; skipping the Dokploy redeploy."
+            exit 0
+          fi
+          curl -fsS -X POST "$DOKPLOY_DEPLOY_WEBHOOK"

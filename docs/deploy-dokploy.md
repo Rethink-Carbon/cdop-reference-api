@@ -56,7 +56,7 @@ Migrations run at container start. On a fresh database the seed runs too; on a p
 1. In the Dokploy Compose service, open the deployments panel and copy the **deploy webhook URL**.
 2. In the GitHub repository, add it as an Actions secret named `DOKPLOY_DEPLOY_WEBHOOK`.
 
-`docker.yml` calls `curl -fsS -X POST "$DOKPLOY_DEPLOY_WEBHOOK"` after a successful push on `main`. The step is skipped when the secret is empty, so forks without a Dokploy box still build.
+`docker.yml` calls `curl -fsS -X POST "$DOKPLOY_DEPLOY_WEBHOOK"` after a successful push on `main`. When the secret is empty the step logs that it is skipping the redeploy and succeeds, so forks without a Dokploy box still build.
 
 ## 5. DNS
 
