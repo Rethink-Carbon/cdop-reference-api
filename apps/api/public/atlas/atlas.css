@@ -164,7 +164,29 @@ h3 {
   text-decoration: none;
 }
 .brand img {
-  border-radius: 4px;
+  display: block;
+}
+.brand .logo-dark {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brand .logo-light {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .brand .logo-dark {
+    display: block;
+  }
+}
+:root[data-theme="dark"] .brand .logo-light {
+  display: none;
+}
+:root[data-theme="dark"] .brand .logo-dark {
+  display: block;
+}
+.brand-name {
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+  line-height: 20px;
 }
 .badge {
   font-size: 11px;

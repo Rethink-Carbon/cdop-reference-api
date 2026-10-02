@@ -38,13 +38,38 @@ function scalarBundlePath(): string {
   }
 }
 
-// Read once, without its source map reference, and gzipped once: 4.4 MB is about 1.3 MB on the wire.
+// Scalar credits itself, with a link to scalar.com, in the sidebar footer ("Powered by Scalar", with
+// tracking parameters) and in the Test Request panel's empty response ("Powered By Scalar.com");
+// here both credit Rethink Carbon. The patterns match where the pinned build renders them (the
+// footer twice: its component default and the reference layout's translated label), so every
+// locale changes, and the docs test fails if a Scalar upgrade changes any of them.
+const RETHINK_URL = "`https://rethinkcarbon.co.uk/`";
+const RETHINK_CREDIT = "`Powered by Rethink Carbon`";
+const SCALAR_CREDITS: Array<[RegExp, string]> = [
+  [
+    /href:[^,]+,(rel:`noopener`,target:`_blank`\},)(?:` Powered by Scalar `|\w+\(\w+\(\w+\)\.translate\(`footer\.poweredByScalar`\)\))/g,
+    `href:${RETHINK_URL},$1${RETHINK_CREDIT}`,
+  ],
+  [
+    /(\{class:`gitbook-show scalar-version-number`,)href:`https:\/\/www\.scalar\.com`/g,
+    `$1href:${RETHINK_URL}`,
+  ],
+  [/\w+\(\w+\(\w+\)\(`apiClient\.responseEmpty\.poweredByScalarcom`\)\)/g, RETHINK_CREDIT],
+];
+
+// Read once, without its source map reference and with the credits swapped, and gzipped once:
+// 4.4 MB is about 1.3 MB on the wire.
 type ScalarBundle = { raw: Uint8Array<ArrayBuffer>; gzipped: Uint8Array<ArrayBuffer> };
 let scalarBundle: Promise<ScalarBundle | undefined> | undefined;
 function loadScalarBundle(): Promise<ScalarBundle | undefined> {
   scalarBundle ??= readFile(scalarBundlePath(), "utf8")
     .then(async (js) => {
-      const raw = Buffer.from(js.replace(/\n\/\/# sourceMappingURL=\S+\s*$/, ""));
+      const raw = Buffer.from(
+        SCALAR_CREDITS.reduce(
+          (out, [pattern, replacement]) => out.replace(pattern, replacement),
+          js.replace(/\n\/\/# sourceMappingURL=\S+\s*$/, ""),
+        ),
+      );
       // zlib's Buffer may sit on a shared pool; copy it into its own ArrayBuffer for the response.
       return { raw, gzipped: new Uint8Array(await gzipAsync(raw)) };
     })

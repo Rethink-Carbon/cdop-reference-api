@@ -130,6 +130,15 @@ describe("HTTP API", () => {
     const js = await bundle.text();
     expect(js).toContain("createApiReference");
     expect(js).not.toContain("sourceMappingURL");
+    // The sidebar footer (at both of its render sites) and the Test Request panel credit Rethink
+    // Carbon, in every locale.
+    expect(
+      js.match(/href:`https:\/\/rethinkcarbon\.co\.uk\/`[^}]+\},`Powered by Rethink Carbon`/g),
+    ).toHaveLength(2);
+    expect(js).not.toContain("` Powered by Scalar `");
+    expect(js).not.toContain("translate(`footer.poweredByScalar`)");
+    expect(js).toContain("scalar-version-number`,href:`https://rethinkcarbon.co.uk/`");
+    expect(js).not.toContain("(`apiClient.responseEmpty.poweredByScalarcom`)");
     const gzipped = await get("/docs/scalar.js", { "accept-encoding": "gzip, br" });
     expect(gzipped.headers.get("content-encoding")).toBe("gzip");
     expect((await gzipped.arrayBuffer()).byteLength).toBeLessThan(js.length / 2);
