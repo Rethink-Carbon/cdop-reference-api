@@ -18,6 +18,7 @@ import {
   dataTable,
   fmtCompact,
   fmtInt,
+  hideTip,
   key,
   legendRow,
   meter,
@@ -199,6 +200,8 @@ function projectMatches(p, f = state.filters) {
       p.project_identifier,
       p.current_registry_project_id,
       p.country_subdivision_name,
+      projectCountry(p),
+      standardName(p.standard),
     ]
       .filter(Boolean)
       .join(" ")
@@ -228,8 +231,8 @@ const anyFilter = () => FILTERS.some((k) => state.filters[k]);
 const resource = (rel, id) => `${linkHref(state.root, rel)}/${encodeURIComponent(id)}`;
 
 // Routing --------------------------------------------------------------------------------------
-// The path is in the fragment; the filters ride along as a query so a view can be shared. A link
-// without a query keeps the current filters.
+// The path is in the fragment; the filters ride along as a query so a view can be shared. Each link
+// includes the current filters explicitly, so unfiltered URLs and browser Back are predictable.
 
 function parseHash() {
   const raw = location.hash.slice(1) || "/";
@@ -239,6 +242,7 @@ function parseHash() {
 function filterQuery() {
   const p = new URLSearchParams();
   for (const k of FILTERS) if (state.filters[k]) p.set(k, state.filters[k]);
+  if (state.accountType) p.set("type", state.accountType);
   const s = p.toString();
   return s ? `?${s}` : "";
 }
@@ -249,19 +253,25 @@ function syncHash() {
 function go(path) {
   location.hash = `#${path}${filterQuery()}`;
 }
-const linkTo = (path) => `#${path}`;
+const linkTo = (path) => `#${path}${filterQuery()}`;
+const listScroll = new Map();
+let previousView = "";
 
 function route() {
+  clearTimeout(searchTimer);
   const { path, params } = parseHash();
-  if (FILTERS.some((k) => params.has(k))) {
-    for (const k of FILTERS) state.filters[k] = params.get(k) ?? "";
-    writeForm();
-    updateMapData();
-  }
+  for (const k of FILTERS) state.filters[k] = params.get(k) ?? "";
+  state.accountType = params.get("type") ?? "";
+  writeForm();
+  updateMapData();
   syncHash();
+  if (previousView) listScroll.set(previousView, panel.scrollTop);
   const changed = path !== state.path;
   state.path = path;
+  previousView = `${path}${filterQuery()}`;
+  clearTimeout(fitTimer);
   void render(path, { scroll: changed });
+  if (changed && ["/", "/projects", "/accounts"].includes(path)) fitResults();
 }
 
 // Filters ----------------------------------------------------------------------------------------
@@ -306,16 +316,28 @@ function readForm() {
   for (const k of FILTERS) state.filters[k] = form.elements[k].value.trim();
 }
 let fitTimer;
+let searchTimer;
 function onFiltersChanged({ fit = true } = {}) {
+  clearTimeout(searchTimer);
   syncHash();
   updateMapData();
   const { path } = parseHash();
-  if (["/", "/projects", "/accounts"].includes(path)) void render(path, { scroll: false });
+  if (!["/", "/projects", "/accounts"].includes(path)) {
+    go(path.startsWith("/accounts") ? "/accounts" : "/projects");
+    return;
+  }
+  previousView = `${path}${filterQuery()}`;
+  panel.scrollTop = 0;
+  void render(path, { scroll: false });
   clearTimeout(fitTimer);
   if (fit && ["/", "/projects"].includes(path)) fitTimer = setTimeout(fitToProjects, 350);
   if (fit && path === "/accounts") fitTimer = setTimeout(fitToAccounts, 350);
 }
-form.addEventListener("submit", (e) => e.preventDefault());
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  readForm();
+  onFiltersChanged();
+});
 form.addEventListener("change", (e) => {
   if (e.target.name === "q") return;
   readForm();
@@ -323,15 +345,132 @@ form.addEventListener("change", (e) => {
 });
 form.addEventListener("input", (e) => {
   if (e.target.name !== "q") return;
+  clearTimeout(searchTimer);
   readForm();
-  onFiltersChanged();
+  searchTimer = setTimeout(onFiltersChanged, 180);
 });
-form.addEventListener("reset", () =>
-  setTimeout(() => {
-    readForm();
-    onFiltersChanged();
-  }),
-);
+form.addEventListener("reset", (e) => {
+  e.preventDefault();
+  clearFilters();
+});
+function clearFilters() {
+  for (const k of FILTERS) state.filters[k] = "";
+  state.accountType = "";
+  writeForm();
+  onFiltersChanged();
+}
+function emptyResults(kind) {
+  return h(
+    "div",
+    { class: "empty-state" },
+    h("h2", {}, `No ${kind} match your filters`),
+    h("p", {}, "Try a different search or remove a filter to see more results."),
+    h("button", { type: "button", onclick: clearFilters }, "Clear all filters"),
+  );
+}
+
+const mobile = window.matchMedia("(max-width: 860px)");
+let expanded = false;
+let mobileMap = false;
+const toggleMap = document.getElementById("toggle-map");
+const fitMap = document.getElementById("fit-map");
+function updateLayout() {
+  document.body.classList.toggle("details-only", expanded || !map.enabled);
+  document.body.classList.toggle("mobile-map", mobileMap && map.enabled);
+  toggleMap.textContent = mobile.matches
+    ? mobileMap
+      ? "Show results"
+      : "Show map"
+    : expanded
+      ? "Show map"
+      : "Expand details";
+  toggleMap.setAttribute("aria-pressed", String(mobile.matches ? mobileMap : expanded));
+  fitMap.hidden = !map.enabled || (mobile.matches ? !mobileMap : expanded);
+  requestAnimationFrame(() => map.resize());
+}
+toggleMap.addEventListener("click", () => {
+  if (mobile.matches) mobileMap = !mobileMap;
+  else expanded = !expanded;
+  updateLayout();
+  if (mobile.matches ? mobileMap : !expanded) requestAnimationFrame(() => map.refit());
+});
+document.querySelector(".skip-link").addEventListener("click", (e) => {
+  e.preventDefault();
+  mobileMap = false;
+  updateLayout();
+  panel.focus();
+});
+function showOnMap(fit) {
+  expanded = false;
+  mobileMap = true;
+  updateLayout();
+  requestAnimationFrame(fit);
+}
+mobile.addEventListener("change", updateLayout);
+fitMap.addEventListener("click", fitResults);
+function fitResults() {
+  if (state.path.startsWith("/accounts")) fitToAccounts();
+  else fitToProjects();
+}
+function updateChrome() {
+  const accounts = state.path.startsWith("/accounts");
+  const projects = filteredProjects();
+  const matches = accounts
+    ? filteredAccounts().filter((a) => !state.accountType || a.account_type === state.accountType)
+    : projects;
+  const total = accounts ? state.accounts.length : state.projects.length;
+  const kind = accounts ? "accounts" : "projects";
+  document.getElementById("result-count").textContent =
+    `${fmtInt(matches.length)} of ${fmtInt(total)} ${kind}`;
+  form.elements.stage.disabled = accounts;
+  form.elements.stage.title = accounts ? "Project stage applies to projects only" : "";
+  form.elements.q.placeholder = accounts
+    ? "Account, organisation or registry ID"
+    : "Project, country or registry ID";
+  form.querySelector('[type="reset"]').disabled = !anyFilter() && !state.accountType;
+  const chips = FILTERS.filter((k) => state.filters[k]).map((k) => {
+    const label =
+      k === "q"
+        ? `Search: ${state.filters[k]}`
+        : `${k === "stage" ? "Project stage" : k[0].toUpperCase() + k.slice(1)}: ${form.elements[k].selectedOptions[0]?.textContent ?? state.filters[k]}${accounts && k === "stage" ? " (projects only)" : ""}`;
+    return h(
+      "button",
+      {
+        type: "button",
+        class: "filter-chip",
+        "aria-label": `Remove ${label}`,
+        onclick: () => {
+          state.filters[k] = "";
+          writeForm();
+          onFiltersChanged();
+          form.elements[k === "stage" && accounts ? "q" : k].focus();
+        },
+      },
+      label,
+      h("span", { "aria-hidden": "true" }, " ×"),
+    );
+  });
+  if (state.accountType)
+    chips.push(
+      h(
+        "button",
+        {
+          type: "button",
+          class: "filter-chip",
+          "aria-label": "Remove account type filter",
+          onclick: () => {
+            state.accountType = "";
+            onFiltersChanged();
+          },
+        },
+        `Account type: ${accountTypeName(state.accountType)} ×`,
+      ),
+    );
+  document.getElementById("active-filters").replaceChildren(...chips);
+  document
+    .getElementById("view-nav")
+    .replaceChildren(tabs(accounts ? "accounts" : state.path === "/" ? "overview" : "projects"));
+}
 
 // Map --------------------------------------------------------------------------------------------
 
@@ -383,7 +522,11 @@ function updateMapData() {
       .filter((p) => p.centroid)
       .map(projectFeature),
   );
-  map.setAccounts(accountFeatures(filteredAccounts()));
+  map.setAccounts(
+    accountFeatures(
+      filteredAccounts().filter((a) => !state.accountType || a.account_type === state.accountType),
+    ),
+  );
 }
 function fitToProjects() {
   const pts = filteredProjects()
@@ -393,6 +536,7 @@ function fitToProjects() {
 }
 function fitToAccounts() {
   const pts = filteredAccounts()
+    .filter((a) => !state.accountType || a.account_type === state.accountType)
     .map((a) => countryCentroid(a.country_code))
     .filter(Boolean);
   map.fitPoints(pts, { maxZoom: 4 });
@@ -462,7 +606,7 @@ function tabs(current) {
         "aria-current": current === id ? "page" : undefined,
       },
       label,
-      count !== undefined ? h("span", { class: "count" }, fmtInt(count)) : undefined,
+      count !== undefined ? h("span", { class: "count" }, ` ${fmtInt(count)}`) : undefined,
     );
   return h(
     "nav",
@@ -556,6 +700,8 @@ function sumUnits(units) {
 
 function footer(trace) {
   const el = h("footer", { class: "sources" });
+  const disclosure = h("details");
+  el.append(disclosure);
   const pathOf = (u) => {
     const url = new URL(u);
     return decodeURIComponent(url.pathname + url.search);
@@ -573,8 +719,9 @@ function footer(trace) {
       ),
     );
   const update = () => {
-    el.replaceChildren(
-      h("div", {}, "This view was built from these API calls (each opens in HAL Explorer):"),
+    disclosure.replaceChildren(
+      h("summary", {}, "API calls behind this view"),
+      h("p", {}, "Each request opens in HAL Explorer."),
       list(trace),
       h(
         "details",
@@ -593,6 +740,9 @@ function footer(trace) {
 let renderSeq = 0;
 async function render(path, { scroll }) {
   const seq = ++renderSeq;
+  hideTip();
+  updateChrome();
+  panel.setAttribute("aria-busy", "true");
   const trace = startTrace();
   const foot = footer(trace);
   const current = () => seq === renderSeq;
@@ -603,27 +753,21 @@ async function render(path, { scroll }) {
     if (!parts.length) view = overview(ctx);
     else if (parts[0] === "projects" && !parts[1]) view = projectList();
     else if (parts[0] === "projects") {
-      if (scroll)
-        panel.replaceChildren(tabs("projects"), h("p", { class: "loading" }, "Loading project…"));
+      if (scroll) panel.replaceChildren(h("p", { class: "loading" }, "Loading project…"));
       view = await projectDetail(decodeURIComponent(parts[1]), parts[2] ?? "overview", ctx);
     } else if (parts[0] === "units") {
-      if (scroll)
-        panel.replaceChildren(
-          tabs("projects"),
-          h("p", { class: "loading" }, "Loading unit block…"),
-        );
+      if (scroll) panel.replaceChildren(h("p", { class: "loading" }, "Loading unit block…"));
       view = await unitDetail(decodeURIComponent(parts[1]), ctx);
     } else if (parts[0] === "accounts" && !parts[1]) view = accountList();
     else if (parts[0] === "accounts") {
-      if (scroll)
-        panel.replaceChildren(tabs("accounts"), h("p", { class: "loading" }, "Loading account…"));
+      if (scroll) panel.replaceChildren(h("p", { class: "loading" }, "Loading account…"));
       view = await accountDetail(decodeURIComponent(parts[1]), ctx);
-    } else view = h("div", {}, tabs(""), h("p", { class: "error" }, `Nothing at ${path}.`));
+    } else view = h("div", {}, h("p", { class: "error" }, `Nothing at ${path}.`));
   } catch (err) {
     view = h(
       "div",
       {},
-      tabs(""),
+
       h("p", { class: "error" }, err.message ?? String(err)),
       err.href
         ? h("p", {}, external(explorerHref(err.href), "Open the failing request in HAL Explorer"))
@@ -634,7 +778,17 @@ async function render(path, { scroll }) {
   const top = panel.scrollTop;
   panel.replaceChildren(view, foot.el);
   foot.update();
-  panel.scrollTop = scroll ? 0 : top;
+  panel.setAttribute("aria-busy", "false");
+  panel.scrollTop = scroll ? (listScroll.get(`${path}${filterQuery()}`) ?? 0) : top;
+  if (scroll && !["/", "/projects", "/accounts"].includes(path)) {
+    mobileMap = false;
+    updateLayout();
+    const heading = panel.querySelector("h1");
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+  }
 }
 
 function overview(ctx) {
@@ -707,7 +861,7 @@ function overview(ctx) {
             ]),
           ),
       })
-    : h("p", { class: "empty" }, "No projects match these filters.");
+    : emptyResults("projects");
 
   // Chart 2: unit blocks by vintage year and current status (loaded after first paint).
   const unitsSlot = h("div", {}, h("p", { class: "loading" }, "Loading unit blocks…"));
@@ -772,18 +926,28 @@ function overview(ctx) {
       );
       ctx.done();
     },
-    (err) =>
-      unitsSlot.replaceChildren(h("p", { class: "error" }, `Units did not load: ${err.message}`)),
+    (err) => {
+      if (!ctx.current()) return;
+      unitKpis.active.textContent = "Unavailable";
+      unitKpis.retired.textContent = "Unavailable";
+      unitsSlot.replaceChildren(h("p", { class: "error" }, `Units did not load: ${err.message}`));
+    },
   );
 
   return h(
     "div",
     {},
-    tabs("overview"),
+
     h(
       "p",
       { class: "sub" },
-      "Projects and registry accounts from the CDOP reference API. Select a project on the map or in the list to see its status history, issuances, units, documents and CDOP documents. Each view lists the API calls it was built from.",
+      "Explore carbon projects by standard, stage and location. Select a map marker or browse the project list to see its history, units and documents.",
+    ),
+    h(
+      "div",
+      { class: "overview-actions" },
+      h("a", { class: "primary-link", href: linkTo("/projects") }, "Browse projects →"),
+      h("a", { href: linkTo("/accounts") }, "Explore accounts →"),
     ),
     kpis,
     stageChart,
@@ -832,7 +996,7 @@ function projectList() {
   return h(
     "div",
     {},
-    tabs("projects"),
+
     h(
       "div",
       { class: "list-tools" },
@@ -875,7 +1039,7 @@ function projectList() {
             ),
           ),
         )
-      : h("p", { class: "empty" }, "No projects match these filters."),
+      : emptyResults("projects"),
   );
 }
 
@@ -883,6 +1047,8 @@ async function projectDetail(id, tab, ctx) {
   const p = await get(
     state.projectById.get(id)?._links?.self?.href ?? resource("cdop:projects", id),
   );
+  if (!ctx.current()) return;
+  resetMapFocus();
   const group = groupOf(p.lifecycle_stage);
   const base = `/projects/${p.id}`;
 
@@ -919,7 +1085,7 @@ async function projectDetail(id, tab, ctx) {
   const head = h(
     "header",
     { class: "detail-head" },
-    h("a", { class: "back", href: linkTo("/projects") }, "← All projects"),
+    h("a", { class: "back", href: linkTo("/projects") }, "← Back to projects"),
     h("h1", {}, p.project_name),
     h(
       "div",
@@ -1248,7 +1414,8 @@ async function projectDetail(id, tab, ctx) {
                     "button",
                     {
                       type: "button",
-                      onclick: () => map.fitPoints([site, ...holderPoints], { maxZoom: 5 }),
+                      onclick: () =>
+                        showOnMap(() => map.fitPoints([site, ...holderPoints], { maxZoom: 5 })),
                     },
                     "Show the holders on the map",
                   )
@@ -1256,7 +1423,11 @@ async function projectDetail(id, tab, ctx) {
               map.enabled
                 ? h(
                     "button",
-                    { type: "button", class: "ghost", onclick: () => map.fitBbox(p.bbox) },
+                    {
+                      type: "button",
+                      class: "ghost",
+                      onclick: () => showOnMap(() => map.fitBbox(p.bbox)),
+                    },
                     "Back to the site",
                   )
                 : undefined,
@@ -1335,13 +1506,14 @@ async function projectDetail(id, tab, ctx) {
         : undefined,
     );
   }
-  return h("div", {}, tabs("projects"), head, nav, body);
+  return h("div", {}, head, nav, body);
 }
 
 async function unitDetail(id, ctx) {
   const u = await get(resource("cdop:units", id));
   const project = state.projectById.get(u.project_id);
   const history = embedded(await get(linkHref(u, "cdop:status-history")), "status-records");
+  if (!ctx.current()) return;
 
   map.setMode("projects");
   map.select(u.project_id);
@@ -1358,7 +1530,7 @@ async function unitDetail(id, ctx) {
   return h(
     "div",
     {},
-    tabs("projects"),
+
     h(
       "header",
       { class: "detail-head" },
@@ -1483,10 +1655,7 @@ function accountList() {
           onclick: (e) => {
             e.preventDefault();
             state.accountType = t;
-            map.setAccounts(
-              accountFeatures(filteredAccounts().filter((a) => !t || a.account_type === t)),
-            );
-            void render(state.path, { scroll: false });
+            onFiltersChanged();
           },
         },
         `${label} ${fmtInt(n)}`,
@@ -1501,7 +1670,7 @@ function accountList() {
   return h(
     "div",
     {},
-    tabs("accounts"),
+
     h(
       "p",
       { class: "sub" },
@@ -1531,7 +1700,7 @@ function accountList() {
             ),
           ),
         )
-      : h("p", { class: "empty" }, "No accounts match these filters."),
+      : emptyResults("accounts"),
   );
 }
 
@@ -1545,6 +1714,7 @@ async function accountDetail(id, ctx) {
       ? get(withQuery(linkHref(a, "cdop:projects"), { limit: 100 }))
       : Promise.resolve(undefined),
   ]);
+  if (!ctx.current()) return;
   const developedProjects = embedded(developed, "projects");
 
   // Holdings by project.
@@ -1588,11 +1758,11 @@ async function accountDetail(id, ctx) {
   return h(
     "div",
     {},
-    tabs("accounts"),
+
     h(
       "header",
       { class: "detail-head" },
-      h("a", { class: "back", href: linkTo("/accounts") }, "← All accounts"),
+      h("a", { class: "back", href: linkTo("/accounts") }, "← Back to accounts"),
       h("h1", {}, a.name),
       h(
         "div",
@@ -1688,14 +1858,23 @@ function sumOf(values) {
 async function boot() {
   map = createMap(document.getElementById("map"), {
     legend: legendEl,
-    onProject: (id) => go(`/projects/${id}`),
+    onProject: (id) => {
+      mobileMap = false;
+      updateLayout();
+      go(`/projects/${id}`);
+    },
     onCountry: (code) => {
+      mobileMap = false;
+      updateLayout();
       state.filters.country = code;
       writeForm();
       go("/accounts");
       onFiltersChanged({ fit: false });
     },
   });
+  toggleMap.hidden = !map.enabled;
+  updateLayout();
+  for (const control of form.elements) control.disabled = true;
   state.boot = startTrace();
   try {
     state.root = await get("/v2");
@@ -1714,7 +1893,12 @@ async function boot() {
     state.projects = projects.items;
     state.accounts = accounts.items;
   } catch (err) {
-    panel.replaceChildren(h("p", { class: "error" }, `The API did not answer: ${err.message}`));
+    document.getElementById("result-count").textContent = "Data could not be loaded";
+    panel.setAttribute("aria-busy", "false");
+    panel.replaceChildren(
+      h("p", { class: "error" }, `The API did not answer: ${err.message}`),
+      h("button", { type: "button", onclick: () => location.reload() }, "Try again"),
+    );
     return;
   }
   for (const p of state.projects) {
@@ -1732,7 +1916,10 @@ async function boot() {
     "units",
     state.boot,
   ).then((r) => r.items);
+  // Views attach their own error display; avoid an unhandled rejection on list routes.
+  state.units.catch(() => {});
 
+  for (const control of form.elements) control.disabled = false;
   fillFilterOptions();
   const { params } = parseHash();
   for (const k of FILTERS) state.filters[k] = params.get(k) ?? "";
@@ -1740,9 +1927,6 @@ async function boot() {
   updateMapData();
   window.addEventListener("hashchange", route);
   route();
-  const { path } = parseHash();
-  if (path === "/accounts") fitToAccounts();
-  else if (path === "/" || path === "/projects") fitToProjects();
 }
 
 void boot();

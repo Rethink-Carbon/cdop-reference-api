@@ -58,6 +58,8 @@ function noMap(el, reason) {
     fitPoints: noop,
     fitBbox: noop,
     refreshColours: noop,
+    resize: noop,
+    refit: noop,
   };
 }
 
@@ -66,27 +68,38 @@ export function createMap(el, { onProject, onCountry, legend }) {
   if (!token)
     return noMap(
       el,
-      "This deployment has no Mapbox token. Set MAPBOX_API_KEY to a public (pk.) token to see projects and accounts on a map; everything else on this page works without it.",
+      "The map is unavailable. You can still explore every project and account using the lists and filters.",
     );
   const mapboxgl = window.mapboxgl;
   if (!mapboxgl)
-    return noMap(el, "Mapbox GL JS did not load. Check the browser console for a blocked request.");
+    return noMap(
+      el,
+      "The map could not load. You can still explore projects and accounts in the lists.",
+    );
 
   mapboxgl.accessToken = token;
   const dark = window.matchMedia("(prefers-color-scheme: dark)");
   const styleUrl = () => `mapbox://styles/mapbox/${dark.matches ? "dark-v11" : "light-v11"}`;
-  const map = new mapboxgl.Map({
-    container: el,
-    style: styleUrl(),
-    // Mercator: fitBounds is exact. Under Natural Earth it framed points off the canvas.
-    projection: "mercator",
-    center: [12, 18],
-    zoom: 1.1,
-    minZoom: 0.6,
-    // Map-load events still go to events.mapbox.com (Mapbox bills by them); performance metrics do not.
-    performanceMetricsCollection: false,
-    attributionControl: true,
-  });
+  let map;
+  try {
+    map = new mapboxgl.Map({
+      container: el,
+      style: styleUrl(),
+      // Mercator: fitBounds is exact. Under Natural Earth it framed points off the canvas.
+      projection: "mercator",
+      center: [12, 18],
+      zoom: 1.1,
+      minZoom: 0.6,
+      // Map-load events still go to events.mapbox.com (Mapbox bills by them); performance metrics do not.
+      performanceMetricsCollection: false,
+      attributionControl: true,
+    });
+  } catch {
+    return noMap(
+      el,
+      "The map is unavailable in this browser. Use the project and account lists to explore the data.",
+    );
+  }
   map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
   map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100 }), "bottom-right");
 
@@ -95,6 +108,7 @@ export function createMap(el, { onProject, onCountry, legend }) {
   let selected;
   let hovered;
   let ready = false;
+  let lastFit;
   const pending = [];
   const whenReady = (fn) => (ready ? fn() : pending.push(fn));
 
@@ -265,7 +279,9 @@ export function createMap(el, { onProject, onCountry, legend }) {
   });
   dark.addEventListener("change", () => {
     ready = false;
-    map.setStyle(styleUrl());
+    // Our sources and state-dependent layers are reinstalled on style.load. Rebuild together
+    // instead of diffing them against a basemap that does not contain those layers.
+    map.setStyle(styleUrl(), { diff: false });
   });
 
   map.on("mousemove", "projects", (e) => {
@@ -288,6 +304,7 @@ export function createMap(el, { onProject, onCountry, legend }) {
     popup.remove();
   });
   map.on("click", "projects", (e) => {
+    popup.remove();
     const id = e.features?.[0]?.properties?.id;
     if (id) onProject(id);
   });
@@ -305,6 +322,7 @@ export function createMap(el, { onProject, onCountry, legend }) {
     popup.remove();
   });
   map.on("click", "accounts", (e) => {
+    popup.remove();
     const code = e.features?.[0]?.properties?.code;
     if (code) onCountry(code);
   });
@@ -316,12 +334,24 @@ export function createMap(el, { onProject, onCountry, legend }) {
 
   // The legend sits in the bottom-left corner; keep fitted points clear of it.
   const camera = () => ({
-    padding: { top: 48, right: 56, left: 48, bottom: 40 + (legend?.offsetHeight ?? 0) },
-    duration: 900,
+    padding: {
+      top: 40,
+      right: 48,
+      left: 32,
+      bottom: Math.min(40 + (legend?.offsetHeight ?? 0), el.clientHeight / 3),
+    },
+    duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 650,
   });
+  new ResizeObserver(() => map.resize()).observe(el);
 
   return {
     enabled: true,
+    resize() {
+      map.resize();
+    },
+    refit() {
+      if (lastFit) whenReady(lastFit);
+    },
     setProjects(features) {
       setData("projects", { type: "FeatureCollection", features });
     },
@@ -377,27 +407,27 @@ export function createMap(el, { onProject, onCountry, legend }) {
       if (!points.length) return;
       const lons = points.map((p) => p[0]);
       const lats = points.map((p) => p[1]);
-      whenReady(() =>
+      lastFit = () =>
         map.fitBounds(
           [
             [Math.min(...lons), Math.min(...lats)],
             [Math.max(...lons), Math.max(...lats)],
           ],
           { ...camera(), maxZoom },
-        ),
-      );
+        );
+      whenReady(lastFit);
     },
     fitBbox(bbox) {
       if (!bbox) return;
-      whenReady(() =>
+      lastFit = () =>
         map.fitBounds(
           [
             [bbox[0], bbox[1]],
             [bbox[2], bbox[3]],
           ],
           { ...camera(), maxZoom: 13 },
-        ),
-      );
+        );
+      whenReady(lastFit);
     },
     refreshColours() {
       whenReady(paint);

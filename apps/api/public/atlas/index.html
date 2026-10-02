@@ -16,6 +16,7 @@
     <script type="module" src="/atlas/atlas.js"></script>
   </head>
   <body>
+    <a class="skip-link" href="#panel">Skip to results</a>
     <header class="topbar">
       <a class="brand" href="#/">
         <img src="/favicon-192.png" alt="" width="24" height="24" />
@@ -39,7 +40,7 @@
         </select>
       </label>
       <label>
-        <span>Stage</span>
+        <span>Project stage</span>
         <select name="stage">
           <option value="">All stages</option>
         </select>
@@ -55,19 +56,36 @@
         <input
           name="q"
           type="search"
-          placeholder="Name, registry id or account"
+          placeholder="Project, country or registry ID"
           autocomplete="off"
         />
       </label>
-      <button type="reset" class="ghost">Clear</button>
+      <button type="reset" class="ghost" disabled>Clear filters</button>
     </form>
 
+    <div class="workspace-bar">
+      <div id="view-nav"></div>
+      <div class="view-controls" role="group" aria-label="Layout">
+        <button type="button" id="fit-map" hidden>Fit results</button>
+        <button type="button" id="toggle-map" aria-pressed="false" hidden>Expand details</button>
+      </div>
+    </div>
+    <div class="filter-summary">
+      <span id="result-count" role="status">Loading projects and accounts…</span>
+      <div id="active-filters" aria-label="Active filters"></div>
+    </div>
     <main class="layout">
       <section class="map-wrap" aria-label="Map">
         <div id="map" class="map"></div>
         <div id="map-legend" class="map-legend" aria-live="polite"></div>
       </section>
-      <section class="panel" id="panel" aria-live="polite">
+      <section
+        class="panel"
+        id="panel"
+        tabindex="-1"
+        aria-label="Explorer results"
+        aria-busy="true"
+      >
         <p class="loading">Loading the API root…</p>
       </section>
     </main>
