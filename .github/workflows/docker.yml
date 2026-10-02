@@ -1,9 +1,8 @@
 name: Publish image
 
+# Called by ci.yml once its checks pass, so only tested commits reach GHCR and Dokploy.
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
+  workflow_call:
 
 permissions:
   contents: read

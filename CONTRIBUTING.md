@@ -42,7 +42,7 @@ Use the usual types (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `
 
 ## What CI runs
 
-`.github/workflows/ci.yml` runs on every push to `main` and on every pull request, against a `postgres:17` service. Run the same steps locally before opening a PR:
+`.github/workflows/ci.yml` runs on every push to `main`, on `v*` tags and on every pull request, against a `postgres:17` service. On pushes it then publishes the image (and redeploys the hosted demo) only if the checks pass; pull requests never publish. Run the same steps locally before opening a PR:
 
 ```bash
 pnpm cdop:verify        # vendored files match the hashes in UPSTREAM.json

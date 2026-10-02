@@ -1,17 +1,17 @@
 # Deploying the hosted demo on Dokploy
 
-The hosted demo at `cdop.rethinkcarbon.co.uk` runs on Rethink Carbon's Dokploy box behind Traefik as one Compose service with two containers: Postgres 17 and the API (API, MCP, event fan-out, webhook dispatcher and simulator). GitHub Actions builds the image and publishes it to GHCR; Dokploy redeploys when the workflow calls its deploy webhook, so every push to `main` that passes the image build goes live.
+The hosted demo at `cdop.rethinkcarbon.co.uk` runs on Rethink Carbon's Dokploy box behind Traefik as one Compose service with two containers: Postgres 17 and the API (API, MCP, event fan-out, webhook dispatcher and simulator). GitHub Actions builds the image and publishes it to GHCR; Dokploy redeploys when the workflow calls its deploy webhook, so every push to `main` that passes CI goes live.
 
 Five steps. Steps 1, 3 and 4 need a human with the right accounts.
 
 ## 1. GitHub repository and GHCR
 
 1. The repository is `github.com/Rethink-Carbon/cdop-reference-api` (public, MIT).
-2. `.github/workflows/docker.yml` runs on every push to `main` and on `v*` tags, builds the image with `docker/build-push-action`, and pushes:
+2. On every push to `main` and on `v*` tags, `.github/workflows/ci.yml` runs its checks and, only if they pass, calls `.github/workflows/docker.yml`, which builds the image with `docker/build-push-action` and pushes:
    - `ghcr.io/rethink-carbon/cdop-reference-api:sha-<short sha>`
    - `ghcr.io/rethink-carbon/cdop-reference-api:latest` (default branch)
    - `ghcr.io/rethink-carbon/cdop-reference-api:<tag>` (tags)
-3. Make the GHCR package public (package settings, "Change visibility"), or add a registry credential in Dokploy so it can pull. GitHub creates new packages as private and has no API for changing their visibility.
+3. Make the GHCR package public (package settings, "Change visibility"), or add a registry credential in Dokploy so it can pull. GitHub creates new packages as private and has no API for changing their visibility. If the visibility setting is disabled, an organisation admin first has to allow public packages under the organisation's Settings, Packages, "Package creation".
 
 ## 2. Dokploy Compose service
 
@@ -49,7 +49,7 @@ Migrations run at container start. On a fresh database the seed runs too; on a p
 gh secret set DOKPLOY_DEPLOY_WEBHOOK --repo Rethink-Carbon/cdop-reference-api
 ```
 
-`docker.yml` calls `curl -fsS -X POST "$DOKPLOY_DEPLOY_WEBHOOK"` after a successful push on `main`. When the secret is empty the step logs that it is skipping the redeploy and succeeds, so forks without a Dokploy box still build.
+`docker.yml` calls `curl -fsS -X POST "$DOKPLOY_DEPLOY_WEBHOOK"` after it has pushed an image built from `main`, which only happens once CI has passed. When the secret is empty the step logs that it is skipping the redeploy and succeeds, so forks without a Dokploy box still build.
 
 ## 4. DNS
 

@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
 
 concurrency:
@@ -55,3 +56,14 @@ jobs:
         run: pnpm dlx @stoplight/spectral-cli@6 lint apps/api/openapi/openapi.json --ruleset .spectral.yaml --fail-severity error
       - name: Docker image builds
         run: docker build -t cdop-reference-api:ci .
+
+  # Pushes to main and v* tags publish the image (and redeploy Dokploy) only after the checks
+  # pass; pull requests never publish.
+  publish:
+    needs: checks
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
