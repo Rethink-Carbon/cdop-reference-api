@@ -136,6 +136,7 @@ export function chartCard({ title, sub, legend, note, draw, table }) {
   );
   toggle.addEventListener("click", () => {
     const showTable = tableWrap.hidden;
+    window.cdopAnalytics?.event("atlas_chart_view", { view: showTable ? "table" : "chart" });
     tableWrap.hidden = !showTable;
     body.hidden = showTable;
     toggle.textContent = showTable ? "Chart" : "Table";

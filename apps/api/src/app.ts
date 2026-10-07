@@ -19,6 +19,7 @@ import { registerAccountRoutes } from "./routes/accounts.js";
 import { registerReferenceRoutes } from "./routes/reference.js";
 import { registerAtlasRoutes } from "./routes/atlas.js";
 import { openApiConfig } from "./http/openapi.js";
+import { analyticsCsp, withAnalytics } from "./http/analytics.js";
 import { newId } from "./domain/ids.js";
 import { createMcpHttpHandler } from "./mcp/server.js";
 
@@ -80,12 +81,6 @@ function loadScalarBundle(): Promise<ScalarBundle | undefined> {
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
-const selfOnly: MiddlewareHandler = async (c, next) => {
-  await next();
-  c.header("content-security-policy", CSP);
-  c.header("referrer-policy", "no-referrer");
-};
-
 const DOCS_HTML = `<!doctype html>
 <html lang="en">
   <head>
@@ -123,6 +118,11 @@ const DOCS_INIT = `Scalar.createApiReference("#app", {
 
 export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
   const app = new OpenAPIHono<AppEnv>();
+  const uiHeaders: MiddlewareHandler = async (c, next) => {
+    await next();
+    c.header("content-security-policy", analyticsCsp(CSP, deps.env));
+    c.header("referrer-policy", "no-referrer");
+  };
 
   app.use("*", async (c, next) => {
     const requestId = c.req.header("x-request-id") ?? newId("evt").slice(4);
@@ -210,9 +210,16 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
       });
     }
   });
-  // The browser may load and call nothing but this origin on the two bundled UIs.
-  app.use("/docs/*", selfOnly);
-  app.use("/explorer/*", selfOnly);
+  // Bundled UI scripts stay local; optional analytics allows only its configured destination.
+  app.use("/docs/*", uiHeaders);
+  app.use("/explorer/*", uiHeaders);
+
+  app.get("/analytics.js", async (c) =>
+    c.body(await readFile(path.join(apiRoot, "public/analytics.js"), "utf8"), 200, {
+      "content-type": "text/javascript; charset=utf-8",
+      "cache-control": "no-cache",
+    }),
+  );
 
   // Rethink Carbon's mark (from rethinkcarbon.co.uk) is the favicon for every page on this origin.
   for (const [route, file] of [
@@ -231,7 +238,7 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
 
   // Scalar API reference (MIT) from the pinned bundle: no CDN, no telemetry, no hosted services.
   app.get("/docs", (c) => c.redirect("/docs/", 302));
-  app.get("/docs/", (c) => c.html(DOCS_HTML));
+  app.get("/docs/", (c) => c.html(withAnalytics(DOCS_HTML, deps.env)));
   app.get("/docs/init.js", (c) =>
     c.body(DOCS_INIT, 200, { "content-type": "text/javascript; charset=utf-8" }),
   );
@@ -256,7 +263,7 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
     try {
       const html = await readFile(path.join(apiRoot, "public/explorer/vendor/index.html"), "utf8");
       return c.html(
-        html
+        withAnalytics(html, deps.env)
           .replace(/<base href="[^"]*">/, '<base href="/explorer/">')
           // The bundle defers its stylesheet with an inline onload handler, which the CSP blocks.
           .replace(/ media="print" onload="this\.media='all'"/, ""),

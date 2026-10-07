@@ -320,6 +320,12 @@ let searchTimer;
 function onFiltersChanged({ fit = true } = {}) {
   clearTimeout(searchTimer);
   syncHash();
+  window.cdopAnalytics?.event("atlas_filters", {
+    standard: Boolean(state.filters.standard),
+    stage: Boolean(state.filters.stage),
+    country: Boolean(state.filters.country),
+    search: Boolean(state.filters.q),
+  });
   updateMapData();
   const { path } = parseHash();
   if (!["/", "/projects", "/accounts"].includes(path)) {
@@ -389,6 +395,7 @@ function updateLayout() {
   requestAnimationFrame(() => map.resize());
 }
 toggleMap.addEventListener("click", () => {
+  window.cdopAnalytics?.event("atlas_layout_toggle");
   if (mobile.matches) mobileMap = !mobileMap;
   else expanded = !expanded;
   updateLayout();
@@ -840,6 +847,7 @@ function overview(ctx) {
             describe:
               "Projects per standard, split into in development, validated or verified, and closed",
             onSelect: (standard, group) => {
+              window.cdopAnalytics?.event("atlas_chart_filter");
               state.filters.standard = standard;
               state.filters.stage = `group:${group}`;
               writeForm();
@@ -1859,11 +1867,13 @@ async function boot() {
   map = createMap(document.getElementById("map"), {
     legend: legendEl,
     onProject: (id) => {
+      window.cdopAnalytics?.event("atlas_map_project");
       mobileMap = false;
       updateLayout();
       go(`/projects/${id}`);
     },
     onCountry: (code) => {
+      window.cdopAnalytics?.event("atlas_map_country");
       mobileMap = false;
       updateLayout();
       state.filters.country = code;

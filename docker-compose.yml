@@ -38,6 +38,8 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       # Optional public Mapbox token for the /atlas map.
       MAPBOX_API_KEY: ${MAPBOX_API_KEY:-}
+      RYBBIT_ORIGIN: ${RYBBIT_ORIGIN:-}
+      RYBBIT_SITE_ID: ${RYBBIT_SITE_ID:-}
     ports:
       - "${CDOP_PORT:-3000}:3000"
     healthcheck:

@@ -25,6 +25,16 @@ const schema = z.object({
   WEBHOOK_DELIVERY_ENABLED: boolish.default(true),
   // Public Mapbox token (pk.…) for the /atlas map. Unset, /atlas shows its charts and tables only.
   MAPBOX_API_KEY: z.string().optional(),
+  // An HTTPS origin only: safe to insert into HTML and a CSP source list.
+  RYBBIT_ORIGIN: z
+    .string()
+    .regex(/^https:\/\/[a-zA-Z0-9.-]+(?::[0-9]{1,5})?$/)
+    .url()
+    .optional(),
+  RYBBIT_SITE_ID: z
+    .string()
+    .regex(/^[1-9][0-9]*$/)
+    .optional(),
 });
 
 export type Env = z.infer<typeof schema>;

@@ -106,7 +106,7 @@ A longer walkthrough, including `If-None-Match`, the URN resolver, HAL-FORMS tem
 
 **REST (HAL + HAL-FORMS).** Every resource carries `_links`. Collections embed compact rows. State-gated actions appear as `_templates` (M2), derived from one transition table per entity, so a retired block never offers `retire`. Errors are RFC 9457 `application/problem+json` with a documented type per problem (`/problems/{slug}`). Custom relations are documented under `/rels/{rel}` and in [docs/rels/](docs/rels/).
 
-**OpenAPI 3.1.** `/v2/openapi.json` describes our routes and embeds each CDOP schema under `components.schemas["cdop.v2.<Pod>"]` without re-expressing it. Scalar renders it at `/docs`, served from this origin (see "No third-party calls" below). The artefact is committed at `apps/api/openapi/openapi.json` and CI fails if it drifts from the code.
+**OpenAPI 3.1.** `/v2/openapi.json` describes our routes and embeds each CDOP schema under `components.schemas["cdop.v2.<Pod>"]` without re-expressing it. Scalar renders it at `/docs`, served from this origin (see "Self-hosted UIs and optional external services" below). The artefact is committed at `apps/api/openapi/openapi.json` and CI fails if it drifts from the code.
 
 **MCP.** `/mcp` mounts an MCP server over Streamable HTTP with the same services behind it: `search_projects`, `get_project`, `get_cdop_document` (with an Ajv conformance report), `validate_payload`, `explain_schema`, `list_enum`, `get_state_machine` and more. Results carry HAL links so an agent can keep navigating. See [docs/mcp.md](docs/mcp.md).
 
@@ -144,15 +144,17 @@ X-API-Version: 0.1.0
 
 The schema label is derived from `UPSTREAM.json`, so re-vendoring the schema changes the header without touching the API version. A `?strict=1` query on a `cdop/{pod}` document adds `X-CDOP-Conformance`, which explains any placeholder the API had to emit to satisfy a defect in the published schema.
 
-## No third-party calls
+## Self-hosted UIs and optional external services
 
-The running service talks to its Postgres database and nothing else. `/docs` and `/explorer` are served from the API's own origin and the browser is told to enforce that. `/atlas` is the one scoped exception, described last.
+The running service talks to its Postgres database and nothing else. `/docs` and `/explorer` are served from the API's own origin and the browser is told to enforce that. Mapbox and operator-configured Rybbit analytics are the scoped exceptions described below.
 
 - `/docs` is Scalar (MIT): the browser bundle from `@scalar/api-reference`, pinned to an exact version in the lockfile and in `pnpm audit`, copied alone into the image. No CDN. Its font CDN, telemetry, hosted AI agent and hosted-client link are switched off, and its "Connect MCP" entry points at this API's own `/mcp` (ADR 0009).
 - `/explorer` is HAL Explorer (MIT), vendored. Its theme picker is hard-wired to `bootswatch.com`; the API serves the themes itself instead, so every theme is the Bootstrap build already in the bundle.
-- Both carry `Content-Security-Policy: default-src 'self'; script-src 'self'; connect-src 'self'; ...`. A script, stylesheet, font or request to any other origin is blocked by the browser, not just absent by convention. The test suite fails if either page references another origin.
+- By default both carry `Content-Security-Policy: default-src 'self'; script-src 'self'; connect-src 'self'; ...`. A script, stylesheet, font or request to any other origin is blocked by the browser, not just absent by convention. The test suite fails if either page references another origin.
 - Install scripts run only where `pnpm-workspace.yaml` allows them (`vue-demi`, pulled in by Scalar, is denied), and the image installs with `--ignore-scripts`.
 - `/atlas` draws its basemap with Mapbox, which cannot be self-hosted (ADR 0010). Only when `MAPBOX_API_KEY` holds a public token does the page load Mapbox GL JS from `api.mapbox.com`, at an exact version with a Subresource Integrity hash, and only that page's policy allows `api.mapbox.com`, `*.tiles.mapbox.com` and `events.mapbox.com`. Mapbox then sees each visitor's IP address, this origin as referrer, and their map loads. Without a token the page keeps the self-only policy. Its own scripts and charts are served from this origin, and the image contains no Mapbox code.
+
+- Optional Rybbit analytics (ADR 0011): set both `RYBBIT_ORIGIN` (HTTPS origin, no trailing slash) and `RYBBIT_SITE_ID` to count visitors to `/docs/`, `/explorer/` and `/atlas/`, plus Atlas navigation and actions. Only the configured origin is added to `connect-src`; scripts stay local. Search text, URL queries, API credentials and session replay are excluded. Do Not Track and Global Privacy Control are respected. Unset both to disable it.
 
 ## Local development
 

@@ -5,6 +5,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import type { MiddlewareHandler } from "hono";
 import type { AppEnv } from "../app-env.js";
+import { analyticsCsp, withAnalytics } from "../http/analytics.js";
 import type { AppDeps } from "../http/context.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -72,7 +73,7 @@ export function registerAtlasRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): vo
     deps.log.warn(
       "MAPBOX_API_KEY is not a public Mapbox token (pk.…); /atlas will not use it, and a secret token must never reach a browser",
     );
-  const csp = atlasCsp(Boolean(token));
+  const csp = analyticsCsp(atlasCsp(Boolean(token)), deps.env);
 
   const headers: MiddlewareHandler = async (c, next) => {
     await next();
@@ -94,7 +95,7 @@ export function registerAtlasRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): vo
   app.get("/atlas", (c) => c.redirect("/atlas/", 302));
   app.get("/atlas/", async (c) => {
     const html = await readFile(path.join(atlasRoot, "index.html"), "utf8");
-    return c.html(html.replace("<!-- mapbox -->", mapTags), 200, {
+    return c.html(withAnalytics(html.replace("<!-- mapbox -->", mapTags), deps.env), 200, {
       "cache-control": "no-cache",
     });
   });

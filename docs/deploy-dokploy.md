@@ -92,3 +92,16 @@ Set `CDOP_IMAGE_TAG` to a previous `sha-…` tag on the Compose service and rede
 ## Resetting the demo data
 
 `POST /v2/admin/reset` with the admin key reseeds (M3). Until then: stop the Compose service, remove its `cdop-db` volume on the box (`docker volume ls | grep cdop-db`, then `docker volume rm` it), and deploy again; the empty database is migrated and seeded on start.
+
+## Rybbit visitor analytics
+
+Optional environment settings for the hosted CDOP site:
+
+```dotenv
+RYBBIT_ORIGIN=https://rybbit.rethinkcodes.com
+RYBBIT_SITE_ID=5
+```
+
+Set both in the Compose service environment, and ensure the saved Raw Compose includes the `RYBBIT_ORIGIN` and `RYBBIT_SITE_ID` forwarding entries from `docker-compose.dokploy.yml`. Save and redeploy after the new image is published. Leave both empty on other deployments unless they have their own analytics site.
+
+Open [CDOP analytics](https://rybbit.rethinkcodes.com/5/main) for visitors, pageviews, referrers and devices. Use Realtime to verify a visit, Sessions/Journeys for navigation, and Events for `atlas_filters`, `atlas_chart_filter`, `atlas_chart_view`, `atlas_map_project`, `atlas_map_country`, `atlas_layout_toggle`, `resource_link` and `outbound_link`. Search is recorded only as a boolean; detail pages are grouped under `/detail`. Tracking respects privacy signals and blockers and does not include API/MCP clients or past visits (ADR 0011).

@@ -17,12 +17,13 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const atlasDir = path.resolve(here, "../public/atlas");
 const pools: Array<ReturnType<typeof createPool>> = [];
 
-function appWith(MAPBOX_API_KEY?: string) {
+function appWith(MAPBOX_API_KEY?: string, analytics: Record<string, string> = {}) {
   const env = loadEnv({
     DATABASE_URL: "postgres://unused@127.0.0.1:1/unused",
     PUBLIC_BASE_URL: "http://localhost:3000",
     LOG_LEVEL: "silent",
     ...(MAPBOX_API_KEY ? { MAPBOX_API_KEY } : {}),
+    ...analytics,
   });
   const pool = createPool(env.DATABASE_URL, 1);
   pools.push(pool);
@@ -100,6 +101,28 @@ describe("atlas", () => {
       const other = (await app.request(page)).headers.get("content-security-policy") ?? "";
       expect(other, page).not.toContain("mapbox");
     }
+  });
+
+  it("enables optional analytics on all three UIs without loading remote scripts", async () => {
+    const app = appWith(undefined, {
+      RYBBIT_ORIGIN: "https://analytics.example",
+      RYBBIT_SITE_ID: "5",
+    });
+    for (const page of ["/atlas/", "/docs/", "/explorer/"]) {
+      const res = await app.request(page);
+      expect(res.status).toBe(200);
+      const html = await res.text();
+      expect(html).toContain('src="/analytics.js"');
+      expect(html).toContain('data-endpoint="https://analytics.example/api/track"');
+      const csp = res.headers.get("content-security-policy") ?? "";
+      expect(directive(csp, "script-src")).toBe("script-src 'self'");
+      expect(directive(csp, "connect-src")).toBe("connect-src 'self' https://analytics.example");
+    }
+    const asset = await app.request("/analytics.js");
+    expect(asset.status).toBe(200);
+    expect(asset.headers.get("content-type")).toContain("javascript");
+    const disabled = await appWith().request("/atlas/");
+    expect(await disabled.text()).not.toContain('src="/analytics.js"');
   });
 
   it("never puts a secret Mapbox token in the page", async () => {

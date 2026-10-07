@@ -42,6 +42,8 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       # Public Mapbox token for the /atlas map; without it the page has no map.
       MAPBOX_API_KEY: ${MAPBOX_API_KEY:-}
+      RYBBIT_ORIGIN: ${RYBBIT_ORIGIN:-}
+      RYBBIT_SITE_ID: ${RYBBIT_SITE_ID:-}
     healthcheck:
       test:
         [
