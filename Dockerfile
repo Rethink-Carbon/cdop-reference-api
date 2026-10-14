@@ -23,11 +23,12 @@ RUN pnpm --filter @cdop/schemas build && pnpm --filter @cdop/api build \
  && (node apps/api/scripts/fetch-explorer.mjs || true)
 # The documentation site at /docs (ADR 0012): static pages, and their libraries' licences.
 RUN pnpm --filter @cdop/docs build
+# apps/api/package.json has no "files" field, so deploy copies the whole package: public/ (with
+# HAL Explorer's vendored build), openapi/ and schemas/ arrive with dist/. Copying them again
+# nested each inside itself (public/public); the tests fail the build if deploy stops copying them.
 RUN pnpm --filter @cdop/api deploy --prod --legacy /out/api \
+ && test -f /out/api/public/analytics.js && test -f /out/api/openapi/openapi.json \
  && cp -r supabase /out/api/supabase \
- && cp -r apps/api/openapi /out/api/openapi \
- && cp -r apps/api/public /out/api/public \
- && cp -r apps/api/schemas /out/api/schemas \
  && mkdir -p /out/api/public/docs \
  && (cd apps/docs/dist/docs && find . -type f ! -name '*.map' ! -path './server/*' -exec cp --parents {} /out/api/public/docs/ \;)
 
