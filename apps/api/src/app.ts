@@ -2,11 +2,8 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
-import { gzip } from "node:zlib";
 import type { MiddlewareHandler } from "hono";
 import type { AppEnv } from "./app-env.js";
 import type { AppDeps } from "./http/context.js";
@@ -18,6 +15,7 @@ import { registerUnitRoutes } from "./routes/units.js";
 import { registerAccountRoutes } from "./routes/accounts.js";
 import { registerReferenceRoutes } from "./routes/reference.js";
 import { registerAtlasRoutes } from "./routes/atlas.js";
+import { registerDocsRoutes } from "./routes/docs.js";
 import { openApiConfig } from "./http/openapi.js";
 import { analyticsCsp, withAnalytics } from "./http/analytics.js";
 import { newId } from "./domain/ids.js";
@@ -25,72 +23,6 @@ import { createMcpHttpHandler } from "./mcp/server.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const apiRoot = path.resolve(here, "..");
-const gzipAsync = promisify(gzip);
-
-// Scalar's browser bundle (MIT): from the pinned dev dependency locally and in CI, and from
-// public/scalar/ in the image, where the Dockerfile copies it so the package's own runtime
-// dependencies stay out of the image.
-function scalarBundlePath(): string {
-  try {
-    const entry = createRequire(import.meta.url).resolve("@scalar/api-reference");
-    return path.join(path.dirname(entry), "browser/standalone.js");
-  } catch {
-    return path.join(apiRoot, "public/scalar/standalone.js");
-  }
-}
-
-// Scalar credits itself, with a link to scalar.com, in the sidebar footer ("Powered by Scalar", with
-// tracking parameters) and in the Test Request panel's empty response ("Powered By Scalar.com");
-// here both credit Rethink Carbon. The patterns match where the pinned build renders them (the
-// footer twice: its component default and the reference layout's translated label), so every
-// locale changes, and the docs test fails if a Scalar upgrade changes any of them.
-//
-// Since 1.74 the bundle also shows "Generate SDK" buttons, which open a dialog that sells Scalar's
-// hosted products (a Cal.com booking embed, an upload of the spec to Scalar's API), when the page
-// runs on localhost or a .test, .example, .invalid or .localhost host. No setting turns it off, so
-// the last pattern pins that check to false; the CSP would block those calls anyway.
-const RETHINK_URL = "`https://rethinkcarbon.co.uk/`";
-const RETHINK_CREDIT = "`Powered by Rethink Carbon`";
-const SCALAR_PATCHES: Array<[RegExp, string]> = [
-  [
-    /href:[^,]+,(rel:`noopener`,target:`_blank`\},)(?:` Powered by Scalar `|\w+\(\w+\(\w+\)\.translate\(`footer\.poweredByScalar`\)\))/g,
-    `href:${RETHINK_URL},$1${RETHINK_CREDIT}`,
-  ],
-  [
-    /(\{class:`gitbook-show scalar-version-number`,)href:`https:\/\/www\.scalar\.com`/g,
-    `$1href:${RETHINK_URL}`,
-  ],
-  [/\w+\(\w+\(\w+\)\(`apiClient\.responseEmpty\.poweredByScalarcom`\)\)/g, RETHINK_CREDIT],
-  [/(\.enabled\?\?\w+\(\(\)=>typeof window<`u`&&)\w+\(window\.location\.href\)\)/g, "$1!1)"],
-];
-
-// The bundle carries no copyright notice of its own, and the credits above no longer name Scalar,
-// so the served copy starts with Scalar's notice; the full licence text is in THIRD-PARTY-NOTICES.md.
-const SCALAR_NOTICE = `/*! @scalar/api-reference | MIT License | Copyright (c) 2023-present Scalar | https://github.com/scalar/scalar
- * Served with its source map reference removed, its "Powered by" links crediting Rethink Carbon and its
- * localhost "Generate SDK" prompts turned off. Licence text and other third-party notices: /licenses */
-`;
-
-// Read once, with the notice added, without its source map reference and with the patches above,
-// and gzipped once: 4.6 MB is about 1.3 MB on the wire.
-type ScalarBundle = { raw: Uint8Array<ArrayBuffer>; gzipped: Uint8Array<ArrayBuffer> };
-let scalarBundle: Promise<ScalarBundle | undefined> | undefined;
-function loadScalarBundle(): Promise<ScalarBundle | undefined> {
-  scalarBundle ??= readFile(scalarBundlePath(), "utf8")
-    .then(async (js) => {
-      const raw = Buffer.from(
-        SCALAR_PATCHES.reduce(
-          (out, [pattern, replacement]) => out.replace(pattern, replacement),
-          SCALAR_NOTICE + js.replace(/\n\/\/# sourceMappingURL=\S+\s*$/, ""),
-        ),
-      );
-      // zlib's Buffer may sit on a shared pool; copy it into its own ArrayBuffer for the response.
-      return { raw, gzipped: new Uint8Array(await gzipAsync(raw)) };
-    })
-    .catch(() => undefined);
-  return scalarBundle;
-}
-
 // Licence texts for the third-party code and data this service serves: at the repository root
 // locally and in CI, and next to dist/ in the image.
 async function readNotices(): Promise<string | undefined> {
@@ -104,43 +36,9 @@ async function readNotices(): Promise<string | undefined> {
   return undefined;
 }
 
+// HAL Explorer's policy: this origin only.
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
-
-const DOCS_HTML = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CDOP reference API</title>
-    <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/png" />
-    <link rel="icon" href="/favicon-192.png" sizes="192x192" type="image/png" />
-    <link rel="apple-touch-icon" href="/favicon-192.png" />
-  </head>
-  <body>
-    <div id="app"></div>
-    <script src="/docs/scalar.js"></script>
-    <script src="/docs/init.js"></script>
-  </body>
-</html>`;
-
-// Scalar defaults to a font CDN, telemetry, a hosted AI agent and a button that opens the spec in
-// its hosted client; all four are off so the page talks to this origin only. The in-page "Test
-// Request" client stays. The MCP entry advertises this API's own MCP endpoint. The page is always
-// light: the kepler theme, with the dark-mode toggle hidden.
-const DOCS_INIT = `Scalar.createApiReference("#app", {
-  url: "/v2/openapi.json",
-  theme: "kepler",
-  forceDarkModeState: "light",
-  hideDarkModeToggle: true,
-  withDefaultFonts: false,
-  telemetry: false,
-  agent: { disabled: true },
-  hideClientButton: true,
-  showDeveloperTools: "never",
-  documentDownloadType: "json",
-  mcp: { name: "CDOP reference API", url: new URL("/mcp", location.origin).href },
-});`;
 
 export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
   const app = new OpenAPIHono<AppEnv>();
@@ -237,7 +135,7 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
     }
   });
   // Bundled UI scripts stay local; optional analytics allows only its configured destination.
-  app.use("/docs/*", uiHeaders);
+  // /docs sets its own policy, with the hashes of each page's inline scripts (routes/docs.ts).
   app.use("/explorer/*", uiHeaders);
 
   app.get("/analytics.js", async (c) =>
@@ -271,23 +169,8 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
     });
   });
 
-  // Scalar API reference (MIT) from the pinned bundle: no CDN, no telemetry, no hosted services.
-  app.get("/docs", (c) => c.redirect("/docs/", 302));
-  app.get("/docs/", (c) => c.html(withAnalytics(DOCS_HTML, deps.env)));
-  app.get("/docs/init.js", (c) =>
-    c.body(DOCS_INIT, 200, { "content-type": "text/javascript; charset=utf-8" }),
-  );
-  app.get("/docs/scalar.js", async (c) => {
-    const bundle = await loadScalarBundle();
-    if (!bundle) return c.notFound();
-    const gzipped = /\bgzip\b/.test(c.req.header("accept-encoding") ?? "");
-    return c.body(gzipped ? bundle.gzipped : bundle.raw, 200, {
-      "content-type": "text/javascript; charset=utf-8",
-      "cache-control": "public, max-age=3600",
-      vary: "accept-encoding",
-      ...(gzipped ? { "content-encoding": "gzip" } : {}),
-    });
-  });
+  // The documentation: guides and the API reference, a static site built by apps/docs (Zudoku).
+  registerDocsRoutes(app, deps);
 
   // HAL Explorer (toedter/hal-explorer, MIT), vendored at build time by scripts/fetch-explorer.mjs.
   app.get("/explorer", (c) =>

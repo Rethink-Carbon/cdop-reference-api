@@ -4,36 +4,33 @@ The CDOP reference API is MIT-licensed (see [LICENSE](LICENSE)). This file cover
 
 Server-side npm packages are not listed here: each keeps its own licence file under `node_modules` in the image.
 
-## Scalar API Reference
+## Zudoku
 
-- Package: `@scalar/api-reference` 1.74.0, https://github.com/scalar/scalar
-- Served at: `/docs/scalar.js` (the API reference at `/docs`)
+- Package: `zudoku` 0.93.0, https://github.com/zuplo/zudoku
+- Served at: `/docs/` (the documentation site, built by `apps/docs`)
 - Licence: MIT
 
-The API serves the package's prebuilt browser bundle, `dist/browser/standalone.js`, with three changes made at serve time: its source map reference is removed, its "Powered by Scalar" links credit Rethink Carbon instead, and the "Generate SDK" prompts it shows on local hosts are turned off. The served file starts with Scalar's copyright notice and a pointer to this file. The bundle includes other open-source libraries, such as Vue and Tailwind CSS, whose own licence comments it keeps.
+`apps/docs` builds the documentation with Zudoku into static pages, which bundle Zudoku's client code and the open-source libraries it uses (React, React Router, Radix UI, Shiki, Pagefind, the Geist fonts and others). The build removes their licence comments, so it also writes `/docs/licenses.txt`: the licence of every package in the site's production dependency tree, with its licence text. That list is deliberately over-inclusive, since the tree also holds build tools that are not shipped to browsers. The API changes the pages as it serves them (ADR 0012): it removes a preconnect to `cdn.zudoku.dev` and writes in its own origin.
 
 ```text
-MIT License
+The MIT License (MIT)
 
-Copyright (c) 2023-present Scalar
+Copyright (c) Zuplo, Inc.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial
+portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
 ## HAL Explorer

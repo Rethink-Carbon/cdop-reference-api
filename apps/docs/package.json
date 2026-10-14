@@ -1,0 +1,22 @@
+{
+  "name": "@cdop/docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The documentation at /docs: the guides and the API reference, built with Zudoku.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "prepare:content": "node scripts/prepare.mjs",
+    "dev": "node scripts/prepare.mjs && ZUDOKU_DO_NOT_TRACK=1 zudoku dev",
+    "build": "node scripts/prepare.mjs && ZUDOKU_DO_NOT_TRACK=1 zudoku build && node scripts/licenses.mjs",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "zudoku": "0.93.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

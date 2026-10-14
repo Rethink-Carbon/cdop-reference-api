@@ -34,6 +34,7 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 
 ### Changed
 
+- `/docs` is now a documentation site built with Zudoku (`apps/docs`, ADR 0012) in place of the Scalar API reference: the guides from `docs/` and the schema feedback register beside the API reference, with a playground, the MCP endpoint's install steps and search across both. It is served from this origin: the API removes Zudoku's preconnect to its CDN, allows each page's inline scripts by hash, and writes in its own `PUBLIC_BASE_URL`. `/docs/licenses.txt` lists the licences of the libraries the site bundles. `analytics.js` counts the site's History API page views.
 - Scalar is now 1.74.0 (from 1.72.3). 1.74 shows "Generate SDK" buttons on local hosts that open a sales dialog for Scalar's hosted products, with a Cal.com booking embed and an upload of the spec to Scalar's API, and no setting turns them off. The API pins that check off when it serves the bundle (ADR 0009).
 
 ### Fixed

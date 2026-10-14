@@ -115,7 +115,15 @@ describe("atlas", () => {
       expect(html).toContain('src="/analytics.js"');
       expect(html).toContain('data-endpoint="https://analytics.example/api/track"');
       const csp = res.headers.get("content-security-policy") ?? "";
-      expect(directive(csp, "script-src")).toBe("script-src 'self'");
+      // /docs adds its pages' inline-script hashes and WebAssembly for search, but no remote source.
+      const scriptSources = directive(csp, "script-src").split(" ").slice(1);
+      expect(scriptSources, page).toContain("'self'");
+      expect(
+        scriptSources.filter(
+          (source) => !/^'(self|wasm-unsafe-eval|sha256-[A-Za-z0-9+/]+=*)'$/.test(source),
+        ),
+        page,
+      ).toEqual([]);
       expect(directive(csp, "connect-src")).toBe("connect-src 'self' https://analytics.example");
     }
     const asset = await app.request("/analytics.js");

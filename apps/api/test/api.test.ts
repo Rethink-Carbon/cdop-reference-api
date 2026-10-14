@@ -3,7 +3,8 @@
  * first). Requests go through `app.request()`, so no port is opened. Without a reachable,
  * seeded database the suite skips rather than fails.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { schemaVersionLabel } from "@cdop/schemas";
 import { sql } from "kysely";
 import pino from "pino";
@@ -103,55 +104,23 @@ describe("HTTP API", () => {
   it("serves its bundled UIs from this origin only, and tells the browser to enforce it", async (ctx) => {
     if (!app) return ctx.skip();
     expect((await get("/docs")).headers.get("location")).toBe("/docs/");
-    for (const page of ["/docs/", "/explorer/"]) {
+    for (const page of ["/docs/", "/docs/api", "/explorer/"]) {
       const res = await get(page);
       expect(res.status, page).toBe(200);
       const csp = res.headers.get("content-security-policy") ?? "";
       expect(csp, page).toContain("default-src 'self'");
       expect(csp, page).toContain("script-src 'self'");
       expect(csp, page).toContain("connect-src 'self'");
+      expect(/script-src ([^;]+)/.exec(csp)?.[1], page).not.toContain("'unsafe-inline'");
       const html = await res.text();
       // No script, stylesheet, font or image from anywhere else, and no inline handlers.
-      expect(html.match(/(?:src|href)="https?:\/\/[^"]+"/g) ?? [], page).toEqual([]);
+      expect(
+        html.match(/<(?:script|link|img|iframe|source)\b[^>]*(?:src|href)="https?:\/\/[^"]+"/g) ??
+          [],
+        page,
+      ).toEqual([]);
       expect(html, page).not.toMatch(/ on[a-z]+="/);
     }
-    // Scalar otherwise loads its font CDN, sends telemetry, offers its hosted agent and links the
-    // spec to its hosted client.
-    const init = await (await get("/docs/init.js")).text();
-    for (const off of [
-      "withDefaultFonts: false",
-      "telemetry: false",
-      "agent: { disabled: true }",
-      "hideClientButton: true",
-    ])
-      expect(init).toContain(off);
-    const bundle = await get("/docs/scalar.js");
-    expect(bundle.status).toBe(200);
-    const js = await bundle.text();
-    expect(js).toContain("createApiReference");
-    expect(js).not.toContain("sourceMappingURL");
-    // The sidebar footer (at both of its render sites) and the Test Request panel credit Rethink
-    // Carbon, in every locale.
-    expect(
-      js.match(/href:`https:\/\/rethinkcarbon\.co\.uk\/`[^}]+\},`Powered by Rethink Carbon`/g),
-    ).toHaveLength(2);
-    expect(js).not.toContain("` Powered by Scalar `");
-    expect(js).not.toContain("translate(`footer.poweredByScalar`)");
-    expect(js).toContain("scalar-version-number`,href:`https://rethinkcarbon.co.uk/`");
-    expect(js).not.toContain("(`apiClient.responseEmpty.poweredByScalarcom`)");
-    // With the credits changed, the served copy starts with Scalar's own notice instead.
-    expect(
-      js.startsWith("/*! @scalar/api-reference | MIT License | Copyright (c) 2023-present Scalar"),
-    ).toBe(true);
-    expect(js).toContain("Licence text and other third-party notices: /licenses");
-    // The "Generate SDK" prompts that sell Scalar's hosted products on local hosts are pinned off.
-    expect(js).not.toMatch(
-      /\.enabled\?\?\w+\(\(\)=>typeof window<`u`&&\w+\(window\.location\.href\)\)/,
-    );
-    expect(js).toMatch(/\.enabled\?\?\w+\(\(\)=>typeof window<`u`&&!1\)/);
-    const gzipped = await get("/docs/scalar.js", { "accept-encoding": "gzip, br" });
-    expect(gzipped.headers.get("content-encoding")).toBe("gzip");
-    expect((await gzipped.arrayBuffer()).byteLength).toBeLessThan(js.length / 2);
     // HAL Explorer's theme picker is hard-wired to bootswatch.com; we serve themes ourselves.
     const explorer = await (await get("/explorer/")).text();
     expect(explorer).toContain("MIT License | Copyright (c) Kai Toedter");
@@ -163,6 +132,39 @@ describe("HTTP API", () => {
     ).toContain("text/css");
   });
 
+  it("serves the Zudoku docs with only their own inline scripts, pointed at this origin", async (ctx) => {
+    if (!app) return ctx.skip();
+    for (const page of ["/docs/", "/docs/api", "/docs/api/mcp", "/docs/guides/hateoas-tour"]) {
+      const res = await get(page);
+      expect(res.status, page).toBe(200);
+      const csp = res.headers.get("content-security-policy") ?? "";
+      const html = await res.text();
+      // Zudoku's template preconnects to its CDN, which no CSP directive covers.
+      expect(html, page).not.toContain("cdn.zudoku.dev");
+      expect(html, page).not.toContain("api-origin.cdop.invalid");
+      // Each inline script is allowed by its own hash.
+      const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)];
+      expect(inline.length, page).toBeGreaterThan(0);
+      for (const [, body] of inline)
+        expect(csp, page).toContain(
+          `'sha256-${createHash("sha256")
+            .update(body ?? "")
+            .digest("base64")}'`,
+        );
+    }
+    // The playground and the MCP card use this deployment's origin, not the build's placeholder.
+    const assets = readdirSync(new URL("../../docs/dist/docs/assets/", import.meta.url));
+    const chunk = assets.find((file) => /^api-openapi\.json-[\w-]+\.js$/.test(file));
+    expect(chunk).toBeTruthy();
+    const gzipped = await get(`/docs/assets/${chunk}`, { "accept-encoding": "gzip" });
+    expect(gzipped.headers.get("content-encoding")).toBe("gzip");
+    const js = await (await get(`/docs/assets/${chunk}`)).text();
+    expect(js).not.toContain("api-origin.cdop.invalid");
+    expect(js).toContain(BASE);
+    expect((await get("/docs/../package.json")).status).toBe(404);
+    expect((await get("/docs/%E0")).status).toBe(404);
+  });
+
   it("serves the third-party notices, at the versions it ships", async (ctx) => {
     if (!app) return ctx.skip();
     const res = await get("/licenses");
@@ -170,21 +172,25 @@ describe("HTTP API", () => {
     expect(res.headers.get("content-type")).toBe("text/plain; charset=utf-8");
     const notices = await res.text();
     for (const holder of [
-      "Copyright (c) 2023-present Scalar",
+      "Copyright (c) Zuplo, Inc.",
       "Copyright (c) 2026 Kai Toedter",
       "Copyright (c) 2025 spgi-lacki",
     ])
       expect(notices).toContain(holder);
-    // Bumping Scalar or HAL Explorer means updating THIRD-PARTY-NOTICES.md too.
-    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
-      devDependencies: Record<string, string>;
-    };
-    expect(notices).toContain(
-      `\`@scalar/api-reference\` ${pkg.devDependencies["@scalar/api-reference"]}`,
-    );
+    // Bumping Zudoku or HAL Explorer means updating THIRD-PARTY-NOTICES.md too.
+    const docs = JSON.parse(
+      readFileSync(new URL("../../docs/package.json", import.meta.url), "utf8"),
+    ) as { dependencies: Record<string, string> };
+    expect(notices).toContain(`\`zudoku\` ${docs.dependencies.zudoku}`);
     const fetcher = readFileSync(new URL("../scripts/fetch-explorer.mjs", import.meta.url), "utf8");
     const halVersion = /HAL_EXPLORER_VERSION \?\? "([^"]+)"/.exec(fetcher)?.[1];
     expect(notices).toContain(`\`toedter/hal-explorer\` ${halVersion}`);
+    // The libraries bundled into /docs lose their licence comments in the build; this lists them.
+    const bundled = await get("/docs/licenses.txt");
+    expect(bundled.status).toBe(200);
+    const list = await bundled.text();
+    for (const pkg of ["zudoku ", "react ", "@fontsource-variable/geist "])
+      expect(list).toContain(`\n${pkg}`);
   });
 
   it("serves its own favicon, and /docs points at it", async (ctx) => {
@@ -194,7 +200,8 @@ describe("HTTP API", () => {
       expect(res.status, href).toBe(200);
       expect(res.headers.get("content-type"), href).toBe("image/png");
     }
-    expect(await (await get("/docs/")).text()).toContain('rel="icon" href="/favicon.ico"');
+    expect(await (await get("/docs/")).text()).toContain('rel="icon" href="/docs/favicon.png"');
+    expect((await get("/docs/favicon.png")).headers.get("content-type")).toBe("image/png");
   });
 
   it("pages a collection by following next, without repeats", async (ctx) => {

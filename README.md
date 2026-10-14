@@ -38,7 +38,7 @@ The first boot applies the migrations and seeds the synthetic dataset (`SEED_ON_
 | URL                            | What                                                        |
 | ------------------------------ | ----------------------------------------------------------- |
 | http://localhost:3000/atlas    | Visual explorer: map, charts and drill-throughs (see below) |
-| http://localhost:3000/docs     | OpenAPI 3.1 reference (Scalar)                              |
+| http://localhost:3000/docs     | Documentation: guides and the OpenAPI 3.1 reference         |
 | http://localhost:3000/explorer | HAL browser (hal-explorer)                                  |
 | http://localhost:3000/v2       | HAL root: follow the links from here                        |
 | http://localhost:3000/mcp      | MCP endpoint (Streamable HTTP)                              |
@@ -106,7 +106,7 @@ A longer walkthrough, including `If-None-Match`, the URN resolver, HAL-FORMS tem
 
 **REST (HAL + HAL-FORMS).** Every resource carries `_links`. Collections embed compact rows. State-gated actions appear as `_templates` (M2), derived from one transition table per entity, so a retired block never offers `retire`. Errors are RFC 9457 `application/problem+json` with a documented type per problem (`/problems/{slug}`). Custom relations are documented under `/rels/{rel}` and in [docs/rels/](docs/rels/).
 
-**OpenAPI 3.1.** `/v2/openapi.json` describes our routes and embeds each CDOP schema under `components.schemas["cdop.v2.<Pod>"]` without re-expressing it. Scalar renders it at `/docs`, served from this origin (see "Self-hosted UIs and optional external services" below). The artefact is committed at `apps/api/openapi/openapi.json` and CI fails if it drifts from the code.
+**OpenAPI 3.1.** `/v2/openapi.json` describes our routes and embeds each CDOP schema under `components.schemas["cdop.v2.<Pod>"]` without re-expressing it. The documentation site at `/docs` renders it beside the guides, served from this origin (see "Self-hosted UIs and optional external services" below). The artefact is committed at `apps/api/openapi/openapi.json` and CI fails if it drifts from the code.
 
 **MCP.** `/mcp` mounts an MCP server over Streamable HTTP with the same services behind it: `search_projects`, `get_project`, `get_cdop_document` (with an Ajv conformance report), `validate_payload`, `explain_schema`, `list_enum`, `get_state_machine` and more. Results carry HAL links so an agent can keep navigating. See [docs/mcp.md](docs/mcp.md).
 
@@ -148,10 +148,10 @@ The schema label is derived from `UPSTREAM.json`, so re-vendoring the schema cha
 
 The running service talks to its Postgres database and nothing else. `/docs` and `/explorer` are served from the API's own origin and the browser is told to enforce that. Mapbox and operator-configured Rybbit analytics are the scoped exceptions described below.
 
-- `/docs` is Scalar (MIT): the browser bundle from `@scalar/api-reference`, pinned to an exact version in the lockfile and in `pnpm audit`, copied alone into the image. No CDN. Its font CDN, telemetry, hosted AI agent and hosted-client link are switched off, its "Connect MCP" entry points at this API's own `/mcp`, and its "Generate SDK" prompts on local hosts are turned off (ADR 0009). Its "Powered by" links credit Rethink Carbon; the served file starts with Scalar's copyright notice, and `/licenses` has the licence text.
+- `/docs` is a static site built by `apps/docs` with Zudoku (MIT): the guides from `docs/` and `SCHEMA-FEEDBACK.md`, the API reference with a playground, the MCP endpoint with install steps for Claude, ChatGPT, Cursor and VS Code, and Pagefind search, all served from this origin (ADR 0012). Its "powered by" badge, AI-assistant links and default favicon are off. The API removes a preconnect to `cdn.zudoku.dev` that every page carries, allows each page's three inline scripts by their hashes, and writes in its own `PUBLIC_BASE_URL` where the build left a placeholder, so one build serves any deployment. `/docs/licenses.txt` lists the licences of the libraries the site bundles.
 - `/explorer` is HAL Explorer (MIT), vendored. Its theme picker is hard-wired to `bootswatch.com`; the API serves the themes itself instead, so every theme is the Bootstrap build already in the bundle.
-- By default both carry `Content-Security-Policy: default-src 'self'; script-src 'self'; connect-src 'self'; ...`. A script, stylesheet, font or request to any other origin is blocked by the browser, not just absent by convention. The test suite fails if either page references another origin.
-- Install scripts run only where `pnpm-workspace.yaml` allows them (`vue-demi`, pulled in by Scalar, is denied), and the image installs with `--ignore-scripts`.
+- By default both carry `Content-Security-Policy: default-src 'self'; script-src 'self'; connect-src 'self'; ...` (on `/docs`, `script-src` adds the page's script hashes and `'wasm-unsafe-eval'` for search). A script, stylesheet, font or request to any other origin is blocked by the browser, not just absent by convention. The test suite fails if either page references another origin.
+- Install scripts run only where `pnpm-workspace.yaml` allows them, and the image installs with `--ignore-scripts`.
 - `/atlas` draws its basemap with Mapbox, which cannot be self-hosted (ADR 0010). Only when `MAPBOX_API_KEY` holds a public token does the page load Mapbox GL JS from `api.mapbox.com`, at an exact version with a Subresource Integrity hash, and only that page's policy allows `api.mapbox.com`, `*.tiles.mapbox.com` and `events.mapbox.com`. Mapbox then sees each visitor's IP address, this origin as referrer, and their map loads. Without a token the page keeps the self-only policy. Its own scripts and charts are served from this origin, and the image contains no Mapbox code.
 
 - Optional Rybbit analytics (ADR 0011): set both `RYBBIT_ORIGIN` (HTTPS origin, no trailing slash) and `RYBBIT_SITE_ID` to count visitors to `/docs/`, `/explorer/` and `/atlas/`, plus Atlas navigation and actions. Only the configured origin is added to `connect-src`; scripts stay local. Search text, URL queries, API credentials and session replay are excluded. Do Not Track and Global Privacy Control are respected. Unset both to disable it.
@@ -166,6 +166,7 @@ docker compose up -d db                 # Postgres 17 on localhost:5433
 cp .env.example apps/api/.env           # the API scripts read .env from apps/api/
 pnpm db:migrate                         # applies supabase/migrations/*.sql with checksums
 pnpm seed                               # deterministic synthetic dataset (CDOP_SEED=2026)
+pnpm --filter @cdop/docs build          # the documentation site the API serves at /docs
 pnpm dev                                # tsx watch on http://localhost:3000
 pnpm test
 ```
@@ -211,6 +212,7 @@ Reads are anonymous. Writes need `Authorization: Bearer cdop_<keyid>.<64hex>`. K
 
 ```
 apps/api/                 the API, MCP server, seeder and simulator (Hono, Kysely, Ajv)
+apps/docs/                the documentation site at /docs (Zudoku): guides from docs/ and the API reference
   src/domain/lifecycle/   per-standard state machines and the canonical vocabularies
   src/http/               HAL, HAL-FORMS, problem details, cursors, ETags
   src/db/                 Kysely setup and the SQL migration runner
@@ -245,4 +247,4 @@ All data in this repository and on the hosted demo is synthetic. Names, places, 
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE). The CDOP schemas are vendored under their own MIT licence from the upstream repository. [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) holds the licence texts for the third-party code and data the service serves (Scalar, HAL Explorer, the CDOP schemas), and the running service serves it at `/licenses`.
+MIT. See [LICENSE](LICENSE). The CDOP schemas are vendored under their own MIT licence from the upstream repository. [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) holds the licence texts for the third-party code and data the service serves (Zudoku, HAL Explorer, the CDOP schemas), and the running service serves it at `/licenses`. `/docs/licenses.txt` lists the libraries bundled into the documentation site.

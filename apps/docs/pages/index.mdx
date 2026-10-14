@@ -1,0 +1,24 @@
+# CDOP reference API
+
+A reference implementation of an API for the [Carbon Data Open Protocol](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol) (CDOP), the open, multi-stakeholder schema that standardises data about carbon crediting projects and carbon credits. Built and run by [Rethink Carbon](https://rethinkcarbon.co.uk).
+
+It serves HAL + HAL-FORMS hypermedia over the CDOP v2 entity model, schema-pure CDOP documents per pod, and an MCP server. All data on the hosted demo is synthetic.
+
+## Start here
+
+- **[HATEOAS tour](./guides/hateoas-tour)**: walk the API from its root by following links, the way a client should.
+- **[API reference](/api)**: every route, with the CDOP schemas embedded verbatim and a playground that calls this API.
+- **[CDOP API profile](./guides/api-profile)**: the conventions this API proposes for any CDOP implementation.
+- **[Projection map](./guides/projection)**: how the entity model fills each CDOP document.
+- **[MCP server](./guides/mcp)**: connect an AI assistant to the same data; the [endpoint and install steps](/api/mcp) are in the reference.
+- **[Schema feedback register](./guides/schema-feedback)**: every conflict found between the published CDOP schema and a working implementation.
+
+## Other ways in
+
+{/* Plain anchors: Markdown links go through the router, which would put /docs in front. */}
+
+- <a href="/explorer">HAL Explorer</a>: browse the hypermedia by hand.
+- <a href="/atlas/">Atlas</a>: every project and registry account on a map, with charts.
+- <a href="/v2">The API root</a> and <a href="/v2/openapi.json">the OpenAPI document</a>.
+
+Licences of the third-party code and data this service serves: <a href="/licenses">/licenses</a>.

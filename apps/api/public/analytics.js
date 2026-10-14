@@ -76,6 +76,17 @@
   }
   pageview();
   window.addEventListener("hashchange", pageview);
+  // /docs navigates with the History API, which fires no event of its own.
+  window.addEventListener("popstate", pageview);
+  for (const method of ["pushState", "replaceState"]) {
+    const original = history[method];
+    history[method] = function (...args) {
+      const result = original.apply(this, args);
+      pageview();
+      return result;
+    };
+  }
+  const section = (pathname) => pathname.split("/")[1];
   document.addEventListener("click", (event) => {
     const link = event.target.closest?.("a[href]");
     if (!link) return;
@@ -83,8 +94,11 @@
     if (!["http:", "https:"].includes(url.protocol)) return;
     if (url.origin !== location.origin) {
       send("custom_event", "outbound_link", { destination: url.hostname });
-    } else if (/^\/(docs|explorer|v2)(\/|$)/.test(url.pathname)) {
-      send("custom_event", "resource_link", { destination: url.pathname.split("/")[1] });
+    } else if (
+      /^\/(docs|explorer|v2)(\/|$)/.test(url.pathname) &&
+      section(url.pathname) !== section(location.pathname)
+    ) {
+      send("custom_event", "resource_link", { destination: section(url.pathname) });
     }
   });
 })();

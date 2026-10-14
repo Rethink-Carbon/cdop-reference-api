@@ -24,9 +24,10 @@ The API package scripts read `.env` from `apps/api/`, so copy `.env.example` the
 
 ## Workspace
 
-This is a pnpm workspace with two packages:
+This is a pnpm workspace with three packages:
 
 - `@cdop/api` in `apps/api`: the Hono app, MCP server, seeder, simulator and migration runner.
+- `@cdop/docs` in `apps/docs`: the documentation site at `/docs`, built with Zudoku from the guides in `docs/` and the committed OpenAPI artefact. `pnpm --filter @cdop/docs build` writes it to `apps/docs/dist/docs`; the HTTP tests serve it.
 - `@cdop/schemas` in `packages/cdop-schemas`: the vendored CDOP schemas plus the field registry, Ajv validator, lint, sync and drift tooling.
 
 Root scripts fan out with `pnpm --filter`. Run `pnpm -r build` before anything that imports `@cdop/schemas` from `dist`.
@@ -45,6 +46,7 @@ Use the usual types (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `
 `.github/workflows/ci.yml` runs on every push to `main`, on `v*` tags and on every pull request, against a `postgres:17` service. On pushes it then publishes the image (and redeploys the hosted demo) only if the checks pass; pull requests never publish. Run the same steps locally before opening a PR:
 
 ```bash
+pnpm --filter @cdop/docs build  # the documentation site, which the HTTP tests serve at /docs
 pnpm cdop:verify        # vendored files match the hashes in UPSTREAM.json
 pnpm cdop:lint          # informational schema lint, never fails the build
 pnpm lint               # eslint, type-checked rules

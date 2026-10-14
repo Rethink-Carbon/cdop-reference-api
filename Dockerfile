@@ -8,22 +8,28 @@ FROM base AS build
 RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf /var/lib/apt/lists/*
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY apps/api/package.json apps/api/package.json
+COPY apps/docs/package.json apps/docs/package.json
 COPY packages/cdop-schemas/package.json packages/cdop-schemas/package.json
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 COPY tsconfig.base.json ./
 COPY packages/cdop-schemas packages/cdop-schemas
 COPY apps/api apps/api
+COPY apps/docs apps/docs
+COPY docs docs
+COPY SCHEMA-FEEDBACK.md SCHEMA-FEEDBACK.md
 COPY supabase supabase
 # Only the HAL Explorer download is optional; a failed TypeScript build must fail the image.
 RUN pnpm --filter @cdop/schemas build && pnpm --filter @cdop/api build \
  && (node apps/api/scripts/fetch-explorer.mjs || true)
+# The documentation site at /docs (ADR 0012): static pages, and their libraries' licences.
+RUN pnpm --filter @cdop/docs build
 RUN pnpm --filter @cdop/api deploy --prod --legacy /out/api \
  && cp -r supabase /out/api/supabase \
  && cp -r apps/api/openapi /out/api/openapi \
  && cp -r apps/api/public /out/api/public \
  && cp -r apps/api/schemas /out/api/schemas \
- && mkdir -p /out/api/public/scalar \
- && cp apps/api/node_modules/@scalar/api-reference/dist/browser/standalone.js /out/api/public/scalar/
+ && mkdir -p /out/api/public/docs \
+ && (cd apps/docs/dist/docs && find . -type f ! -name '*.map' ! -path './server/*' -exec cp --parents {} /out/api/public/docs/ \;)
 
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production PORT=3000

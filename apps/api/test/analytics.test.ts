@@ -43,6 +43,7 @@ function browser(overrides: Record<string, unknown> = {}) {
       requests.push({ url, body: JSON.parse(options.body) as Record<string, unknown> });
       return Promise.resolve();
     },
+    history: { pushState: (..._args: unknown[]) => {}, replaceState: (..._args: unknown[]) => {} },
     URL,
     ...overrides,
   };
@@ -103,6 +104,21 @@ describe("optional Rybbit analytics", () => {
       properties: '{"search":true}',
     });
     expect(JSON.stringify(requests)).not.toMatch(/secret|private|token/);
+  });
+  it("counts each page /docs opens with the History API once, ignoring in-page anchors", () => {
+    const { context, requests, location } = browser();
+    location.hash = "";
+    location.pathname = "/docs/api";
+    context.history.pushState({}, "", "/docs/api");
+    location.hash = "#list-projects";
+    context.history.replaceState({}, "", "/docs/api#list-projects");
+    location.pathname = "/docs/guides/mcp";
+    context.history.pushState({}, "", "/docs/guides/mcp");
+    expect(requests.map((request) => request.body.pathname)).toEqual([
+      "/atlas/projects",
+      "/docs/api",
+      "/docs/guides/mcp",
+    ]);
   });
   it("respects privacy signals, opt-out, unavailable storage and the configured hostname", () => {
     for (const override of [

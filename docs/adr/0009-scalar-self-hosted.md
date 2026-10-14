@@ -1,6 +1,6 @@
 # ADR 0009: Scalar for /docs, self-hosted and held to ADR 0008's rules
 
-Status: accepted (2 October 2026). Supersedes the `/docs` renderer chosen in ADR 0008; ADR 0008's Content-Security-Policy, HAL Explorer and no-third-party rules stand.
+Status: superseded by ADR 0012 (14 October 2026), which replaced Scalar at `/docs` with a Zudoku documentation site. Accepted 2 October 2026; it superseded the `/docs` renderer chosen in ADR 0008, whose Content-Security-Policy, HAL Explorer and no-third-party rules stand.
 
 ## Context
 

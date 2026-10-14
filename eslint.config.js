@@ -20,7 +20,11 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         // The tools tsconfigs add tests, scripts and vitest configs to what the build tsconfigs cover.
-        project: ["apps/api/tsconfig.tools.json", "packages/cdop-schemas/tsconfig.tools.json"],
+        project: [
+          "apps/api/tsconfig.tools.json",
+          "apps/docs/tsconfig.json",
+          "packages/cdop-schemas/tsconfig.tools.json",
+        ],
         tsconfigRootDir: import.meta.dirname,
       },
     },
