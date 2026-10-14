@@ -3,7 +3,8 @@ node_modules
 **/dist
 **/coverage
 .git
-.env
-.env.*
-!.env.example
+# Patterns here match from the context root, unlike .gitignore; **/ also catches apps/api/.env.
+**/.env
+**/.env.*
+!**/.env.example
 apps/api/public/explorer/vendor

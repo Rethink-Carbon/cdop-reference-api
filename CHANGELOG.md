@@ -39,6 +39,7 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 
 ### Fixed
 
+- Images built from a working copy shipped the developer's `apps/api/.env` as `/app/.env`: `.dockerignore` excluded `.env` files only at the repository root. They are now excluded at any depth. Images built in CI, from a clean checkout, never held one.
 - The Docker image held a second copy of `public/`, `openapi/` and `schemas/` inside each (`/app/public/public` and so on): `pnpm deploy` already copies the API package's directories, and the Dockerfile copied them again. Each now appears once, and the build fails if `public/` or `openapi/` is missing.
 - On the hosted demo, collection `self`, `next` and `first` links, and a project's `units` self link, were `http://`: they were copied from the request, which reaches the API over plain HTTP behind Traefik. Browsers on the HTTPS pages block them as mixed content, so paging failed in HAL Explorer. They are now built from `PUBLIC_BASE_URL`, like every other link.
 - `/v2/units` and `/v2/issuances` stopped after their first page, and any collection sorted by `modified_at` or `created_at` could skip rows. Cursors carried timestamps to the millisecond while Postgres keeps microseconds, so rows sharing the cursor row's millisecond matched neither side of the comparison. Timestamp sort keys now sort and compare at millisecond precision.
