@@ -23,6 +23,8 @@ export function openApiConfig(deps: AppDeps) {
         "Every response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.",
         "",
         "**[Open the visual explorer](/atlas/)**: every project and registry account on a map, with status histories, issuances, units, documents and charts. It is built only on the public endpoints documented here.",
+        "",
+        "Licences of the third-party code and data this service serves, including this page: [/licenses](/licenses).",
       ].join("\n"),
       license: { name: "MIT", url: "https://opensource.org/licenses/MIT" },
       contact: { name: "Rethink Carbon", url: "https://rethinkcarbon.co.uk" },

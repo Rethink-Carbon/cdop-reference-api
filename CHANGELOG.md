@@ -27,9 +27,14 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 - `/atlas`, a visual explorer linked from the `/docs` introduction and the root: projects and registry accounts on a Mapbox map, drill-throughs into a project's status history, issuances, units, documents and CDOP documents (with their conformance), unit blocks and accounts, flow lines from projects to the countries of the accounts holding their units, and charts of projects by standard and stage and of units by vintage and status. It is a HAL client of the public API and lists the calls behind each view. The map needs a public token in `MAPBOX_API_KEY`; Mapbox GL JS loads from Mapbox's CDN with Subresource Integrity, under a Content-Security-Policy scoped to that page (ADR 0010).
 - Project index rows carry `centroid`, and `GET /v2/projects` accepts `developer_account_id`, which the account resource's `cdop:projects` link already used.
 - MCP at `/mcp`: 12 read tools, 2 prompts, and the schemas, OpenAPI document and feedback register as resources.
+- `THIRD-PARTY-NOTICES.md`, served at `/licenses` and linked from the `/docs` introduction: the MIT licence texts for Scalar, HAL Explorer and the vendored CDOP schemas, and a note on Mapbox GL JS. `/docs/scalar.js` starts with Scalar's copyright notice and `/explorer/` names HAL Explorer's author and licence; neither upstream build carried its notice, and the `/docs` credits no longer name Scalar.
 - `X-CDOP-Conformance` cites the register entry behind every validation error (`src/http/conformance.ts`), for example `invalid; errors=4; ref=CDOP-FB-005,CDOP-FB-020,CDOP-FB-028`.
 - Tests: generator determinism and invariants up to the full mix; conformance of every seeded project through every pod in both modes, failing on any error no register entry explains; HTTP behaviour through `app.request()` against a seeded database (skipped when none is reachable); the upstream examples recorded as expected failures.
 - Register entries `CDOP-FB-028` (the UK codes are missing from the program and methodology enums) and `CDOP-FB-029` (`unit_level[]` requires an accreditation and a compliance eligibility on every entry), both found by the conformance sweep.
+
+### Changed
+
+- Scalar is now 1.74.0 (from 1.72.3). 1.74 shows "Generate SDK" buttons on local hosts that open a sales dialog for Scalar's hosted products, with a Cal.com booking embed and an upload of the spec to Scalar's API, and no setting turns them off. The API pins that check off when it serves the bundle (ADR 0009).
 
 ### Fixed
 

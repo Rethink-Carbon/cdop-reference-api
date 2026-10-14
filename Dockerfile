@@ -32,6 +32,8 @@ COPY --from=build /out/api /app
 # /rels/* pages, and the MCP rel and feedback resources, are read from these at run time.
 COPY docs /app/docs
 COPY SCHEMA-FEEDBACK.md /app/SCHEMA-FEEDBACK.md
+# Licence texts for the third-party code and data the service serves, at /licenses.
+COPY THIRD-PARTY-NOTICES.md /app/THIRD-PARTY-NOTICES.md
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \

@@ -44,9 +44,14 @@ function scalarBundlePath(): string {
 // here both credit Rethink Carbon. The patterns match where the pinned build renders them (the
 // footer twice: its component default and the reference layout's translated label), so every
 // locale changes, and the docs test fails if a Scalar upgrade changes any of them.
+//
+// Since 1.74 the bundle also shows "Generate SDK" buttons, which open a dialog that sells Scalar's
+// hosted products (a Cal.com booking embed, an upload of the spec to Scalar's API), when the page
+// runs on localhost or a .test, .example, .invalid or .localhost host. No setting turns it off, so
+// the last pattern pins that check to false; the CSP would block those calls anyway.
 const RETHINK_URL = "`https://rethinkcarbon.co.uk/`";
 const RETHINK_CREDIT = "`Powered by Rethink Carbon`";
-const SCALAR_CREDITS: Array<[RegExp, string]> = [
+const SCALAR_PATCHES: Array<[RegExp, string]> = [
   [
     /href:[^,]+,(rel:`noopener`,target:`_blank`\},)(?:` Powered by Scalar `|\w+\(\w+\(\w+\)\.translate\(`footer\.poweredByScalar`\)\))/g,
     `href:${RETHINK_URL},$1${RETHINK_CREDIT}`,
@@ -56,19 +61,27 @@ const SCALAR_CREDITS: Array<[RegExp, string]> = [
     `$1href:${RETHINK_URL}`,
   ],
   [/\w+\(\w+\(\w+\)\(`apiClient\.responseEmpty\.poweredByScalarcom`\)\)/g, RETHINK_CREDIT],
+  [/(\.enabled\?\?\w+\(\(\)=>typeof window<`u`&&)\w+\(window\.location\.href\)\)/g, "$1!1)"],
 ];
 
-// Read once, without its source map reference and with the credits swapped, and gzipped once:
-// 4.4 MB is about 1.3 MB on the wire.
+// The bundle carries no copyright notice of its own, and the credits above no longer name Scalar,
+// so the served copy starts with Scalar's notice; the full licence text is in THIRD-PARTY-NOTICES.md.
+const SCALAR_NOTICE = `/*! @scalar/api-reference | MIT License | Copyright (c) 2023-present Scalar | https://github.com/scalar/scalar
+ * Served with its source map reference removed, its "Powered by" links crediting Rethink Carbon and its
+ * localhost "Generate SDK" prompts turned off. Licence text and other third-party notices: /licenses */
+`;
+
+// Read once, with the notice added, without its source map reference and with the patches above,
+// and gzipped once: 4.6 MB is about 1.3 MB on the wire.
 type ScalarBundle = { raw: Uint8Array<ArrayBuffer>; gzipped: Uint8Array<ArrayBuffer> };
 let scalarBundle: Promise<ScalarBundle | undefined> | undefined;
 function loadScalarBundle(): Promise<ScalarBundle | undefined> {
   scalarBundle ??= readFile(scalarBundlePath(), "utf8")
     .then(async (js) => {
       const raw = Buffer.from(
-        SCALAR_CREDITS.reduce(
+        SCALAR_PATCHES.reduce(
           (out, [pattern, replacement]) => out.replace(pattern, replacement),
-          js.replace(/\n\/\/# sourceMappingURL=\S+\s*$/, ""),
+          SCALAR_NOTICE + js.replace(/\n\/\/# sourceMappingURL=\S+\s*$/, ""),
         ),
       );
       // zlib's Buffer may sit on a shared pool; copy it into its own ArrayBuffer for the response.
@@ -76,6 +89,19 @@ function loadScalarBundle(): Promise<ScalarBundle | undefined> {
     })
     .catch(() => undefined);
   return scalarBundle;
+}
+
+// Licence texts for the third-party code and data this service serves: at the repository root
+// locally and in CI, and next to dist/ in the image.
+async function readNotices(): Promise<string | undefined> {
+  for (const root of [apiRoot, path.resolve(apiRoot, "../..")]) {
+    try {
+      return await readFile(path.join(root, "THIRD-PARTY-NOTICES.md"), "utf8");
+    } catch {
+      /* next */
+    }
+  }
+  return undefined;
 }
 
 const CSP =
@@ -236,6 +262,15 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
     });
   }
 
+  app.get("/licenses", async (c) => {
+    const notices = await readNotices();
+    if (notices === undefined) return c.notFound();
+    return c.body(notices, 200, {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": "public, max-age=3600",
+    });
+  });
+
   // Scalar API reference (MIT) from the pinned bundle: no CDN, no telemetry, no hosted services.
   app.get("/docs", (c) => c.redirect("/docs/", 302));
   app.get("/docs/", (c) => c.html(withAnalytics(DOCS_HTML, deps.env)));
@@ -264,6 +299,11 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
       const html = await readFile(path.join(apiRoot, "public/explorer/vendor/index.html"), "utf8");
       return c.html(
         withAnalytics(html, deps.env)
+          // The release build carries no copyright notice; the page names its author and licence.
+          .replace(
+            /<!doctype html>/i,
+            "$&\n<!-- HAL Explorer, https://github.com/toedter/hal-explorer | MIT License | Copyright (c) Kai Toedter | Licence text and other third-party notices: /licenses -->",
+          )
           .replace(/<base href="[^"]*">/, '<base href="/explorer/">')
           // The bundle defers its stylesheet with an inline onload handler, which the CSP blocks.
           .replace(/ media="print" onload="this\.media='all'"/, ""),

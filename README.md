@@ -148,7 +148,7 @@ The schema label is derived from `UPSTREAM.json`, so re-vendoring the schema cha
 
 The running service talks to its Postgres database and nothing else. `/docs` and `/explorer` are served from the API's own origin and the browser is told to enforce that. Mapbox and operator-configured Rybbit analytics are the scoped exceptions described below.
 
-- `/docs` is Scalar (MIT): the browser bundle from `@scalar/api-reference`, pinned to an exact version in the lockfile and in `pnpm audit`, copied alone into the image. No CDN. Its font CDN, telemetry, hosted AI agent and hosted-client link are switched off, and its "Connect MCP" entry points at this API's own `/mcp` (ADR 0009).
+- `/docs` is Scalar (MIT): the browser bundle from `@scalar/api-reference`, pinned to an exact version in the lockfile and in `pnpm audit`, copied alone into the image. No CDN. Its font CDN, telemetry, hosted AI agent and hosted-client link are switched off, its "Connect MCP" entry points at this API's own `/mcp`, and its "Generate SDK" prompts on local hosts are turned off (ADR 0009). Its "Powered by" links credit Rethink Carbon; the served file starts with Scalar's copyright notice, and `/licenses` has the licence text.
 - `/explorer` is HAL Explorer (MIT), vendored. Its theme picker is hard-wired to `bootswatch.com`; the API serves the themes itself instead, so every theme is the Bootstrap build already in the bundle.
 - By default both carry `Content-Security-Policy: default-src 'self'; script-src 'self'; connect-src 'self'; ...`. A script, stylesheet, font or request to any other origin is blocked by the browser, not just absent by convention. The test suite fails if either page references another origin.
 - Install scripts run only where `pnpm-workspace.yaml` allows them (`vue-demi`, pulled in by Scalar, is denied), and the image installs with `--ignore-scripts`.
@@ -245,4 +245,4 @@ All data in this repository and on the hosted demo is synthetic. Names, places, 
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE). The CDOP schemas are vendored under their own MIT licence from the upstream repository.
+MIT. See [LICENSE](LICENSE). The CDOP schemas are vendored under their own MIT licence from the upstream repository. [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) holds the licence texts for the third-party code and data the service serves (Scalar, HAL Explorer, the CDOP schemas), and the running service serves it at `/licenses`.

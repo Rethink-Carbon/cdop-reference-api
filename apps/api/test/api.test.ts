@@ -3,7 +3,7 @@
  * first). Requests go through `app.request()`, so no port is opened. Without a reachable,
  * seeded database the suite skips rather than fails.
  */
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { schemaVersionLabel } from "@cdop/schemas";
 import { sql } from "kysely";
 import pino from "pino";
@@ -139,17 +139,52 @@ describe("HTTP API", () => {
     expect(js).not.toContain("translate(`footer.poweredByScalar`)");
     expect(js).toContain("scalar-version-number`,href:`https://rethinkcarbon.co.uk/`");
     expect(js).not.toContain("(`apiClient.responseEmpty.poweredByScalarcom`)");
+    // With the credits changed, the served copy starts with Scalar's own notice instead.
+    expect(
+      js.startsWith("/*! @scalar/api-reference | MIT License | Copyright (c) 2023-present Scalar"),
+    ).toBe(true);
+    expect(js).toContain("Licence text and other third-party notices: /licenses");
+    // The "Generate SDK" prompts that sell Scalar's hosted products on local hosts are pinned off.
+    expect(js).not.toMatch(
+      /\.enabled\?\?\w+\(\(\)=>typeof window<`u`&&\w+\(window\.location\.href\)\)/,
+    );
+    expect(js).toMatch(/\.enabled\?\?\w+\(\(\)=>typeof window<`u`&&!1\)/);
     const gzipped = await get("/docs/scalar.js", { "accept-encoding": "gzip, br" });
     expect(gzipped.headers.get("content-encoding")).toBe("gzip");
     expect((await gzipped.arrayBuffer()).byteLength).toBeLessThan(js.length / 2);
     // HAL Explorer's theme picker is hard-wired to bootswatch.com; we serve themes ourselves.
     const explorer = await (await get("/explorer/")).text();
+    expect(explorer).toContain("MIT License | Copyright (c) Kai Toedter");
     const main = /src="(main-[A-Z0-9]+\.js)"/.exec(explorer)?.[1];
     expect(main).toBeTruthy();
     expect(await (await get(`/explorer/${main}`)).text()).not.toContain("bootswatch.com");
     expect(
       (await get("/explorer/themes/cosmo/bootstrap.min.css")).headers.get("content-type"),
     ).toContain("text/css");
+  });
+
+  it("serves the third-party notices, at the versions it ships", async (ctx) => {
+    if (!app) return ctx.skip();
+    const res = await get("/licenses");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("text/plain; charset=utf-8");
+    const notices = await res.text();
+    for (const holder of [
+      "Copyright (c) 2023-present Scalar",
+      "Copyright (c) 2026 Kai Toedter",
+      "Copyright (c) 2025 spgi-lacki",
+    ])
+      expect(notices).toContain(holder);
+    // Bumping Scalar or HAL Explorer means updating THIRD-PARTY-NOTICES.md too.
+    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
+      devDependencies: Record<string, string>;
+    };
+    expect(notices).toContain(
+      `\`@scalar/api-reference\` ${pkg.devDependencies["@scalar/api-reference"]}`,
+    );
+    const fetcher = readFileSync(new URL("../scripts/fetch-explorer.mjs", import.meta.url), "utf8");
+    const halVersion = /HAL_EXPLORER_VERSION \?\? "([^"]+)"/.exec(fetcher)?.[1];
+    expect(notices).toContain(`\`toedter/hal-explorer\` ${halVersion}`);
   });
 
   it("serves its own favicon, and /docs points at it", async (ctx) => {
