@@ -668,7 +668,16 @@ function section(title, sub, ...body) {
   );
 }
 function stageChip(stage) {
-  return h("span", { class: "chip" }, dot(groupOf(stage).color), stageLabel(stage));
+  return h(
+    "span",
+    {
+      class: "chip",
+      title:
+        "Lifecycle stage: one common ladder the API uses for every registry, so projects compare across standards. The dot is the map colour.",
+    },
+    dot(groupOf(stage).color),
+    stageLabel(stage),
+  );
 }
 function unitStatusChip(u) {
   const g = unitGroupOf(u.lifecycle_state ?? u.state);
@@ -1107,7 +1116,10 @@ async function projectDetail(id, tab, ctx) {
       stageChip(p.lifecycle_stage),
       h(
         "span",
-        { class: "chip", title: "Native registry status" },
+        {
+          class: "chip",
+          title: `Registry status: the status ${p.registry?.name ?? "the registry"} itself publishes, in its own vocabulary. It can match the lifecycle stage by name or differ from it.`,
+        },
         p.registry_status?.name ?? p.registry_status?.code,
       ),
       h("span", { class: "chip" }, standardName(p.standard?.id)),
