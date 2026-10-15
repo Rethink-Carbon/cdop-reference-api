@@ -4,9 +4,9 @@ Served at `/rels/document`.
 
 **Meaning.** From a project (or a unit block) to its schema-pure CDOP documents, one link per pod. The value is an array of named links, not a single link. Pick a document by its `name`; the `profile` of each link is the URL of the JSON Schema it validates against.
 
-**Target.** `/v2/projects/{id}/cdop/{pod}` for the eleven project pods (`full-list`, `location-details`, `project-approach-details`, `disclosures`, `issuances`, `crediting-period`, `estimations`, `co-benefits`, `durability-permanence`, `project-finance`, `labels-certifications`); `/v2/units/{id}/cdop/{pod}` for `unit-description` and the per-unit `full-list`. Each response carries `ETag`, `X-CDOP-Schema-Version` and a `Link: rel="describedby"` header, and accepts `?strict=1`.
+**Target.** `/v2/projects/{id}/cdop/{pod}` for the eleven project pods (`full-list`, `location-details`, `project-approach-details`, `disclosures`, `issuances`, `crediting-period`, `estimations`, `co-benefits`, `durability-permanence`, `project-finance`, `labels-certifications`) and the three Round 2 draft pods (`registry-metadata`, `validation-metadata`, `verification-metadata`); `/v2/units/{id}/cdop/{pod}` for `unit-description` and the per-unit `full-list`. Each response carries `ETag`, `X-CDOP-Schema-Version` and a `Link: rel="describedby"` header, and accepts `?strict=1`. Round 2 draft pods are not part of CDOP v2.0: their link `title` ends "(Round 2 draft)" and their `X-CDOP-Schema-Version` starts `round2-draft` (ADR 0013). `verification-metadata` is offered only when the project has a verification event, and accepts `?verification_id=`.
 
-**Cardinality.** One array on a project (eleven links) and on a unit block (two links).
+**Cardinality.** One array on a project (fourteen links, or thirteen without a verification) and on a unit block (two links).
 
 **Example.**
 

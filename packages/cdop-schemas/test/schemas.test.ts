@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   POD_NAMES,
+  POD_ROUND,
+  ROUND2_PODS,
   buildFieldRegistry,
   enumValues,
   lintSchemas,
   loadExample,
   loadSchema,
   loadUpstream,
+  schemaVersionLabel,
   validatePayload,
 } from "../src/index.js";
 
@@ -21,10 +24,15 @@ describe("vendored CDOP schemas", () => {
     expect(Object.keys(up.files).length).toBeGreaterThan(20);
   });
 
-  it("builds a field registry with 260 upstream field ids", () => {
+  it("builds a field registry with 260 published field ids and the Round 2 drafts after them", () => {
     const registry = buildFieldRegistry();
-    const ids = new Set(registry.flatMap((f) => (f.fieldId === undefined ? [] : [f.fieldId])));
-    expect(Math.max(...ids)).toBe(260);
+    const idsOf = (round: 1 | 2): number[] =>
+      registry.flatMap((f) =>
+        f.fieldId !== undefined && f.pods.some((p) => POD_ROUND[p] === round) ? [f.fieldId] : [],
+      );
+    expect(Math.max(...idsOf(1))).toBe(260);
+    expect(Math.min(...idsOf(2))).toBe(261);
+    expect(Math.max(...idsOf(2))).toBe(330);
     expect(registry.find((f) => f.path === "project.status[].project_status")?.enum?.length).toBe(
       17,
     );
@@ -92,6 +100,29 @@ describe("vendored CDOP schemas", () => {
     ] as const;
     for (const pod of passing) {
       expect(validatePayload(pod, loadExample(pod)).valid, pod).toBe(true);
+    }
+  });
+
+  it("pins the Round 2 drafts to their own upstream branch commit, apart from main", () => {
+    const r2 = loadUpstream(2);
+    expect(r2.ref).toBe("R2P-FT-Testing");
+    expect(r2.status).toBe("draft");
+    expect(r2.commit).toMatch(/^[0-9a-f]{40}$/);
+    expect(r2.commit).not.toBe(loadUpstream(1).commit);
+    expect(Object.keys(r2.files)).toHaveLength(6);
+    expect(schemaVersionLabel("registry-metadata")).toBe(`round2-draft+${r2.commit.slice(0, 7)}`);
+    expect(schemaVersionLabel()).toBe(`2.0+${loadUpstream(1).commit.slice(0, 7)}`);
+  });
+
+  it("validates every Round 2 draft example against its own draft schema", () => {
+    expect(ROUND2_PODS).toEqual([
+      "registry-metadata",
+      "validation-metadata",
+      "verification-metadata",
+    ]);
+    for (const pod of ROUND2_PODS) {
+      const result = validatePayload(pod, loadExample(pod));
+      expect(result.errors, pod).toEqual([]);
     }
   });
 

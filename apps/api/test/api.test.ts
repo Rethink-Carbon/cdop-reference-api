@@ -5,7 +5,7 @@
  */
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { schemaVersionLabel } from "@cdop/schemas";
+import { isPodName, schemaVersionLabel } from "@cdop/schemas";
 import { sql } from "kysely";
 import pino from "pino";
 import type { Pool } from "pg";
@@ -21,7 +21,7 @@ if (!process.env.DATABASE_URL && existsSync(".env")) process.loadEnvFile(".env")
 type App = ReturnType<typeof createApp>;
 interface Hal {
   _links: Record<string, { href: string; name?: string } & Record<string, unknown>> & {
-    "cdop:document"?: Array<{ href: string; name: string }>;
+    "cdop:document"?: Array<{ href: string; name: string; title?: string }>;
   };
   _embedded: Record<
     string,
@@ -330,12 +330,48 @@ describe("HTTP API", () => {
     for (const d of documents) {
       const res = await get(`${d.href}?strict=1`);
       expect(res.status, d.name).toBe(200);
-      expect(res.headers.get("x-cdop-schema-version")).toBe(schemaVersionLabel());
+      expect(res.headers.get("x-cdop-schema-version")).toBe(
+        schemaVersionLabel(isPodName(d.name) ? d.name : undefined),
+      );
       expect(res.headers.get("link")).toContain('rel="describedby"');
       const conformance = res.headers.get("x-cdop-conformance") ?? "";
       expect(conformance, d.name).toMatch(/^(valid|invalid; )/);
       expect(conformance, d.name).not.toContain("unexplained");
     }
+  });
+
+  it("serves the Round 2 draft pods as drafts, pinned apart from CDOP v2.0", async (ctx) => {
+    if (!app) return ctx.skip();
+    const project = await hal(
+      (await hal("/v2/projects?limit=1&lifecycle_stage=verified"))._embedded.projects?.[0]?._links
+        .self.href ?? "",
+    );
+    const links = project._links["cdop:document"] ?? [];
+    for (const name of ["registry-metadata", "validation-metadata", "verification-metadata"]) {
+      const link = links.find((d) => d.name === name);
+      expect(link?.title, name).toMatch(/\(Round 2 draft\)$/);
+      const res = await get(link?.href ?? "");
+      expect(res.status, name).toBe(200);
+      expect(res.headers.get("x-cdop-schema-version")).toMatch(/^round2-draft\+[0-9a-f]{7}$/);
+    }
+    const registry = await get(links.find((d) => d.name === "registry-metadata")?.href ?? "");
+    expect(registry.headers.get("x-cdop-conformance")).toBe("valid");
+
+    const index = await hal("/v2/schemas");
+    const drafts = index._embedded.schemas?.filter((s) => s.round === 2) ?? [];
+    expect(drafts.map((s) => s.status)).toEqual(["draft", "draft", "draft"]);
+    expect((index.round2_upstream as { ref: string }).ref).toBe("R2P-FT-Testing");
+  });
+
+  it("answers 404 for Verification Metadata on a project with no verification", async (ctx) => {
+    if (!app) return ctx.skip();
+    const listed = (await hal("/v2/projects?limit=1&lifecycle_stage=listed"))._embedded
+      .projects?.[0];
+    if (!listed) return ctx.skip();
+    const project = await hal(listed._links.self.href);
+    const names = (project._links["cdop:document"] ?? []).map((d) => d.name);
+    if (names.includes("verification-metadata")) return ctx.skip();
+    expect((await get(`/v2/projects/${listed.id}/cdop/verification-metadata`)).status).toBe(404);
   });
 
   it("agrees with itself: a document it calls valid passes POST /v2/validate", async (ctx) => {

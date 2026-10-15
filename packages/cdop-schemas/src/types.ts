@@ -36,7 +36,16 @@ export type PodName =
   | "co-benefits"
   | "durability-permanence"
   | "project-finance"
-  | "labels-certifications";
+  | "labels-certifications"
+  | "registry-metadata"
+  | "validation-metadata"
+  | "verification-metadata";
+
+/**
+ * 1 = the published schema on upstream `main`. 2 = a Round 2 draft pod, vendored from an upstream
+ * test branch and pinned separately (UPSTREAM-ROUND2.json). Drafts are not part of CDOP v2.0.
+ */
+export type SchemaRound = 1 | 2;
 
 export interface FieldRecord {
   /** Dotted path with [] for array items, e.g. `project.status[].project_status` */
@@ -72,4 +81,8 @@ export interface UpstreamPin {
   fetched_at: string;
   paths: Record<string, string>;
   files: Record<string, string>;
+  /** Round 2 pins only: which round, its status, and the only upstream file names vendored. */
+  round?: SchemaRound;
+  status?: "draft";
+  include?: string[];
 }

@@ -1,5 +1,5 @@
 import type { Linker, Link } from "../hal.js";
-import { POD_NAMES, SCHEMA_FILES } from "@cdop/schemas";
+import { POD_NAMES, POD_ROUND, POD_TITLES, SCHEMA_FILES } from "@cdop/schemas";
 
 export const iso = (d: Date | string | null | undefined): string | undefined => {
   if (d === null || d === undefined) return undefined;
@@ -22,6 +22,11 @@ export function schemaLink(linker: Linker, pod: keyof typeof SCHEMA_FILES): Link
   return { href: linker.url(`/v2/schemas/${SCHEMA_FILES[pod]}`), type: "application/schema+json" };
 }
 
+/** Link title for a pod; Round 2 drafts say so, since they are not part of CDOP v2.0. */
+export function podTitle(pod: keyof typeof SCHEMA_FILES): string {
+  return POD_ROUND[pod] === 2 ? `${POD_TITLES[pod]} (Round 2 draft)` : POD_TITLES[pod];
+}
+
 /** The `cdop:document` named-link array for a project or unit. */
 export function documentLinks(
   linker: Linker,
@@ -30,6 +35,7 @@ export function documentLinks(
 ): Link[] {
   return pods.map((pod) => ({
     name: pod,
+    title: podTitle(pod),
     href: linker.url(`${basePath}/cdop/${pod}`),
     profile: linker.url(`/v2/schemas/${SCHEMA_FILES[pod]}`),
     type: "application/json",

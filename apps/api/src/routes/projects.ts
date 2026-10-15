@@ -1,7 +1,7 @@
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { createRoute } from "@hono/zod-openapi";
 import { mount } from "../http/mount.js";
-import { isPodName, POD_NAMES, SCHEMA_FILES } from "@cdop/schemas";
+import { isPodName, POD_NAMES, POD_ROUND, SCHEMA_FILES, schemaVersionLabel } from "@cdop/schemas";
 import type { AppEnv } from "../app-env.js";
 import type { AppDeps } from "../http/context.js";
 import {
@@ -23,6 +23,7 @@ import * as facets from "../http/render/facets.js";
 import { renderUnitIndex } from "../http/render/unit.js";
 import { contextForAggregates } from "../http/aggregate-context.js";
 import { buildPodDocument, validateDocument } from "../domain/projection/cdop.js";
+import { selectVerification } from "../domain/projection/round2.js";
 import { projectTemplates } from "../http/templates.js";
 import { hal } from "../http/hal.js";
 import { conformanceHeader } from "../http/conformance.js";
@@ -392,7 +393,7 @@ export function registerProjectRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): 
       tags: ["CDOP documents"],
       summary: "CDOP document for a project",
       description:
-        "A schema-pure document validating against the named CDOP pod. `unit`/`vintage` sections use the block given by `unit_id` (default: most recent). `strict=1` fills required-but-unpublished fields with flagged placeholders. Conformance is reported in the X-CDOP-Conformance header.",
+        "A schema-pure document validating against the named CDOP pod. `unit`/`vintage` sections use the block given by `unit_id` (default: most recent). `strict=1` fills required-but-unpublished fields with flagged placeholders. Conformance is reported in the X-CDOP-Conformance header.\n\n`registry-metadata`, `validation-metadata` and `verification-metadata` are Round 2 draft pods, vendored from the upstream `R2P-FT-Testing` branch and not part of CDOP v2.0; their X-CDOP-Schema-Version starts `round2-draft`. `verification-metadata` describes one verification event, chosen by `verification_id` (default: the latest completed), and is 404 for a project with no verification.",
       request: {
         params: z.object({
           id: z.string().openapi({ param: { name: "id", in: "path" } }),
@@ -400,7 +401,11 @@ export function registerProjectRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): 
             .enum(POD_NAMES as [string, ...string[]])
             .openapi({ param: { name: "pod", in: "path" } }),
         }),
-        query: z.object({ unit_id: z.string().optional(), strict: z.string().optional() }),
+        query: z.object({
+          unit_id: z.string().optional(),
+          verification_id: z.string().optional(),
+          strict: z.string().optional(),
+        }),
       },
       responses: {
         200: {
@@ -421,20 +426,29 @@ export function registerProjectRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): 
       const agg = await getProjectAggregate(deps.db, id);
       const ctx = await contextForAggregates(deps, [agg]);
       const q = input.query;
+      if (pod === "verification-metadata" && !selectVerification(agg, q.verification_id))
+        throw new ProblemError(
+          "not-found",
+          q.verification_id
+            ? `Project ${id} has no verification ${q.verification_id}`
+            : `Project ${id} has no verification event, so it has no Verification Metadata document`,
+        );
       const result = buildPodDocument(agg, ctx, pod, {
         unitId: q.unit_id,
+        verificationId: q.verification_id,
         strict: q.strict === "1" || q.strict === "true",
       });
       const validation = validateDocument(pod, result.document);
       const etag = strongEtag(
-        `${await currentVersion(deps, id)}-${pod}-${q.unit_id ?? ""}-${q.strict ?? ""}`,
+        `${await currentVersion(deps, id)}-${pod}-${q.unit_id ?? ""}-${q.verification_id ?? ""}-${q.strict ?? ""}`,
       );
       const nm = notModified(c, etag);
       if (nm) return nm;
       return json(c, result.document, 200, {
         etag,
         link: `<${linker.url(`/v2/schemas/${SCHEMA_FILES[pod]}`)}>; rel="describedby"; type="application/schema+json", <${linker.url(`/v2/projects/${id}`)}>; rel="up"`,
-        "x-cdop-schema-version": deps.schemaVersion,
+        "x-cdop-schema-version":
+          POD_ROUND[pod] === 2 ? schemaVersionLabel(pod) : deps.schemaVersion,
         "x-cdop-conformance": conformanceHeader(validation, result),
       });
     },

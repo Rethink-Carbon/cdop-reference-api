@@ -1,0 +1,30 @@
+{
+  "repo": "Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol",
+  "ref": "R2P-FT-Testing",
+  "commit": "39ac5351e8ca7ecdbc91bbb733188ea226bc21cb",
+  "commit_date": "2026-10-13T16:11:35Z",
+  "schema_version": "round2-draft",
+  "fetched_at": "2026-10-15T00:00:00Z",
+  "round": 2,
+  "status": "draft",
+  "include": [
+    "Registry_Metadata.schema.json",
+    "Validation_Metadata.schema.json",
+    "Verification_Metadata.schema.json",
+    "registry_metadata.json",
+    "validation_metadata.json",
+    "verification_metadata.json"
+  ],
+  "paths": {
+    "schemas/round2": "json_schema",
+    "examples/round2": "examples"
+  },
+  "files": {
+    "examples/round2/registry_metadata.json": "0794bff38bb814a317e5baa93db9637c747243ada5f3d17aa72413890290197e",
+    "examples/round2/validation_metadata.json": "0814c0bc57909d96241481a1cf11aa83f7c9fc102526dd5c4309d1260c17bb2e",
+    "examples/round2/verification_metadata.json": "8150dd3791341bdcfe7ab2c33475c368615eb3609a53d45af7d0f194d77d3198",
+    "schemas/round2/Registry_Metadata.schema.json": "510b1aafcb13b112f44014e5d7a0503441f317a4ff45488b5a323f7fedd17833",
+    "schemas/round2/Validation_Metadata.schema.json": "9bd61ed53b6a3f3106aea461b80c6e183693b35ee2ff69a1fa2085bf9580c02c",
+    "schemas/round2/Verification_Metadata.schema.json": "a17432ca22409dbdb397a8355ea5bf3c333c397bdbe5efeff22c5692f2173889"
+  }
+}

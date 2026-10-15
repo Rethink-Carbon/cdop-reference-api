@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import pino from "pino";
 import { Kysely, PostgresDialect } from "kysely";
 import pg from "pg";
-import { POD_NAMES, SCHEMA_FILES, loadSchema, schemaVersionLabel } from "@cdop/schemas";
+import { POD_NAMES, POD_ROUND, SCHEMA_FILES, loadSchema, schemaVersionLabel } from "@cdop/schemas";
 import { createApp } from "../src/app.js";
 import { openApiConfig } from "../src/http/openapi.js";
 import { loadEnv } from "../src/env.js";
@@ -52,7 +52,8 @@ for (const pod of POD_NAMES) {
   const schema = { ...loadSchema(pod) } as Record<string, unknown>;
   delete schema.$schema;
   delete schema.$id;
-  doc.components.schemas[`cdop.v2.${SCHEMA_FILES[pod].replace(".schema.json", "")}`] = schema;
+  const prefix = POD_ROUND[pod] === 2 ? "cdop.round2" : "cdop.v2";
+  doc.components.schemas[`${prefix}.${SCHEMA_FILES[pod].replace(".schema.json", "")}`] = schema;
 }
 const text = JSON.stringify(doc, null, 2) + "\n";
 if (process.argv.includes("--check")) {

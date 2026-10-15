@@ -10,6 +10,8 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 
 ### Added
 
+- Round 2 draft pods: Registry Metadata, Validation Metadata and Verification Metadata, vendored with their examples from the upstream `R2P-FT-Testing` branch at `39ac535` and pinned in `UPSTREAM-ROUND2.json` (ADR 0013). Served at `/v2/projects/{id}/cdop/{registry-metadata|validation-metadata|verification-metadata}` with `X-CDOP-Schema-Version: round2-draft+39ac535`, listed as drafts in `/v2/schemas`, titled "(Round 2 draft)" in `cdop:document` links, embedded as `cdop.round2.*` in OpenAPI, and available to the MCP tools. `cdop:sync` and `cdop:drift` take `--round2`. The conformance suite sweeps the three pods for every seeded project, and register entries `CDOP-FB-030` to `CDOP-FB-041` record the drafts' gaps.
+
 - Repository scaffold: pnpm workspace, Node 24, TypeScript strict, ESLint with type-checked rules, Prettier, commitlint and husky, `commit-and-tag-version`.
 - `packages/cdop-schemas`: CDOP v2.0 schemas and examples vendored at upstream commit `eff6ca3` with per-file SHA-256 pins (`UPSTREAM.json`); field registry with `x-cdop-*` annotations; enum lookup; Ajv 2020-12 validator with the `x-cdop-*` vocabulary; schema lint; `verify`, `sync`, `drift` commands.
 - SQL migrations 0001 to 0008 in `supabase/migrations/` (schema and helpers, vocabulary, parties, project core, assessment, ledger, documents and commercial, events and infrastructure), runnable by the in-repo runner, `supabase start` and `supabase db push`.

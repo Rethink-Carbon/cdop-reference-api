@@ -18,6 +18,26 @@ function missingPath(e: ValidationError): string | undefined {
   return parent ? `${parent}.${property}` : property;
 }
 
+/**
+ * Round 2 drafts: a required value the projection reported as unpublished, by the entry that
+ * records why. Paths are dotted with array indices removed, as `missingPath` returns them.
+ */
+const ROUND2_UNPUBLISHED: Readonly<Record<string, string>> = {
+  "validation.date.date_validation_expiration": "CDOP-FB-035",
+  "validation.date.date_validation_planned": "CDOP-FB-035",
+  "validation.date.date_validation_requested": "CDOP-FB-035",
+  "validation.validation_event.validation_date": "CDOP-FB-035",
+  "validation.validation_event.validation_period_start_date": "CDOP-FB-035",
+  "validation.validation_event.validation_period_end_date": "CDOP-FB-035",
+  "validation_body.details.validator_name": "CDOP-FB-035",
+  "validation_body.details.validation_body_selection": "CDOP-FB-035",
+  "validation_body.details.validation_body_team_members_and_roles": "CDOP-FB-035",
+  "verification.reporting.verification_date": "CDOP-FB-035",
+  "verification.quantity.verified_quantity": "CDOP-FB-035",
+  "validation_body.details.validation_body_sectoral_scopes": "CDOP-FB-038",
+  "verification.verification_credential_issuer_id": "CDOP-FB-039",
+};
+
 const RULES: readonly Rule[] = [
   // A label is an accreditation or a compliance eligibility; the schema requires both halves.
   { ref: "CDOP-FB-029", explains: (e) => e.instancePath.startsWith("/unit/unit_level") },
@@ -38,6 +58,14 @@ const RULES: readonly Rule[] = [
       ) ||
         /^\/methodology\/versions\/\d+\/methodology$/.test(e.instancePath)),
   },
+  // Round 2 drafts require values registries do not publish (one rule per register entry).
+  ...["CDOP-FB-035", "CDOP-FB-038", "CDOP-FB-039"].map((ref): Rule => ({
+    ref,
+    explains: (e, missing) => {
+      const path = missingPath(e);
+      return path !== undefined && missing.has(path) && ROUND2_UNPUBLISHED[path] === ref;
+    },
+  })),
   // Mechanically derived `required`: only for what the projection itself reported as unpublished.
   {
     ref: "CDOP-FB-005",

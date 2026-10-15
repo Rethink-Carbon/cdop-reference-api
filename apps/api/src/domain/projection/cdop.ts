@@ -13,6 +13,7 @@
  *    Labels & Certifications) is matched by `x-cdop-field-id` and moved to the pod's path.
  */
 import {
+  POD_ROUND,
   SCHEMA_FILES,
   buildFieldRegistry,
   loadSchema,
@@ -23,13 +24,16 @@ import {
 } from "@cdop/schemas";
 import type { ProjectAggregate, UnitBlock } from "../../seed/aggregate.js";
 import { SDG_NAMES } from "../../seed/vocab.js";
-import type { ProjectionContext } from "./context.js";
+import { documentUrl, geoFileUrl, type ProjectionContext } from "./context.js";
+import { buildRound2Document } from "./round2.js";
 
 export interface ProjectionOptions {
   /** Which block to render as `unit`/`vintage` (default: most recently issued active/pending block). */
   unitId?: string | undefined;
   /** Fill required-but-unavailable fields with flagged placeholders so the document validates. */
   strict?: boolean | undefined;
+  /** Round 2 Verification Metadata: which verification event (default: the latest completed). */
+  verificationId?: string | undefined;
 }
 
 export interface ProjectionResult {
@@ -62,13 +66,7 @@ function unitLevelValue(value: string): string {
   return value.startsWith("CORSIA ") ? value.replace(" approved ", " scope ") : value;
 }
 
-export function documentUrl(ctx: ProjectionContext, projectId: string, documentId: string): string {
-  return `${ctx.baseUrl}/v2/projects/${projectId}/documents/${documentId}/content`;
-}
-
-export function geoFileUrl(ctx: ProjectionContext, projectId: string, fileId: string): string {
-  return `${ctx.baseUrl}/v2/projects/${projectId}/geolocation-files/${fileId}/content`;
-}
+export { documentUrl, geoFileUrl };
 
 function pickBlock(agg: ProjectAggregate, unitId: string | undefined): UnitBlock | undefined {
   if (unitId) return agg.blocks.find((b) => b.id === unitId);
@@ -856,13 +854,17 @@ function setPath(doc: Record<string, unknown>, keys: string[], value: unknown): 
   cur[keys[keys.length - 1] as string] = value;
 }
 
-/** Build the document for any pod: Full List first, then prune to the pod's own structure. */
+/**
+ * Build the document for any pod. Round 1 pods: Full List first, then prune to the pod's own
+ * structure. Round 2 draft pods are not subsets of Full List and have their own builders.
+ */
 export function buildPodDocument(
   agg: ProjectAggregate,
   ctx: ProjectionContext,
   pod: PodName,
   opts: ProjectionOptions = {},
 ): ProjectionResult {
+  if (POD_ROUND[pod] === 2) return buildRound2Document(agg, ctx, pod, opts);
   const full = buildFullList(agg, ctx, opts);
   if (pod === "full-list") return full;
   const schema = loadSchema(pod);

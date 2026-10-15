@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { loadUpstream, packageRoot } from "./index.js";
-import type { UpstreamPin } from "./types.js";
+import { loadUpstream, packageRoot, upstreamFileName } from "./index.js";
+import type { SchemaRound, UpstreamPin } from "./types.js";
 
 const RAW = "https://raw.githubusercontent.com";
 const API = "https://api.github.com";
@@ -40,25 +40,35 @@ export async function resolveCommit(
   return { sha: c.sha, date: c.commit.committer.date };
 }
 
-/** Recompute sha256 of every vendored file and compare with UPSTREAM.json. */
+/** Only the upstream files a pin vendors: everything for round 1, the `include` list for round 2. */
+function wanted(up: UpstreamPin, names: string[]): string[] {
+  return up.include ? names.filter((n) => up.include?.includes(n)) : names;
+}
+
+/** Recompute sha256 of every vendored file and compare with UPSTREAM.json and UPSTREAM-ROUND2.json. */
 export async function verifyVendored(): Promise<{ ok: boolean; mismatches: string[] }> {
-  const up = loadUpstream();
   const mismatches: string[] = [];
-  for (const [rel, expected] of Object.entries(up.files)) {
-    const body = await readFile(new URL(rel, packageRoot));
-    const actual = createHash("sha256").update(body).digest("hex");
-    if (actual !== expected) mismatches.push(rel);
+  for (const round of [1, 2] as const) {
+    for (const [rel, expected] of Object.entries(loadUpstream(round).files)) {
+      const body = await readFile(new URL(rel, packageRoot));
+      const actual = createHash("sha256").update(body).digest("hex");
+      if (actual !== expected) mismatches.push(rel);
+    }
   }
   return { ok: mismatches.length === 0, mismatches };
 }
 
-/** Re-vendor every file from upstream at `ref` and rewrite UPSTREAM.json. */
-export async function syncFromUpstream(ref = "main"): Promise<UpstreamPin> {
-  const up = loadUpstream();
-  const { sha, date } = await resolveCommit(up.repo, ref);
+/**
+ * Re-vendor a round's files from upstream at `ref` and rewrite its UPSTREAM file. Round 1
+ * defaults to `main`; round 2 to the test branch it is pinned to.
+ */
+export async function syncFromUpstream(ref?: string, round: SchemaRound = 1): Promise<UpstreamPin> {
+  const up = loadUpstream(round);
+  const target = ref ?? up.ref;
+  const { sha, date } = await resolveCommit(up.repo, target);
   const files: Record<string, string> = {};
   for (const [local, remote] of Object.entries(up.paths)) {
-    const names = await listUpstreamFiles(up.repo, sha, remote);
+    const names = wanted(up, await listUpstreamFiles(up.repo, sha, remote));
     await mkdir(new URL(`${local}/`, packageRoot), { recursive: true });
     for (const name of names) {
       const body = await fetchText(`${RAW}/${up.repo}/${sha}/${remote}/${name}`);
@@ -69,13 +79,16 @@ export async function syncFromUpstream(ref = "main"): Promise<UpstreamPin> {
   }
   const next: UpstreamPin = {
     ...up,
-    ref,
+    ref: target,
     commit: sha,
     commit_date: date,
     fetched_at: new Date().toISOString(),
     files,
   };
-  await writeFile(new URL("UPSTREAM.json", packageRoot), JSON.stringify(next, null, 2) + "\n");
+  await writeFile(
+    new URL(upstreamFileName(round), packageRoot),
+    JSON.stringify(next, null, 2) + "\n",
+  );
   return next;
 }
 
@@ -87,16 +100,16 @@ export interface DriftReport {
   removed: string[];
 }
 
-/** Compare upstream `ref` against the pinned vendored copy without writing anything. */
-export async function driftReport(ref = "main"): Promise<DriftReport> {
-  const up = loadUpstream();
-  const { sha } = await resolveCommit(up.repo, ref);
+/** Compare upstream `ref` against a round's pinned vendored copy without writing anything. */
+export async function driftReport(ref?: string, round: SchemaRound = 1): Promise<DriftReport> {
+  const up = loadUpstream(round);
+  const { sha } = await resolveCommit(up.repo, ref ?? up.ref);
   const changed: string[] = [];
   const added: string[] = [];
   const removed: string[] = [];
   const seen = new Set<string>();
   for (const [local, remote] of Object.entries(up.paths)) {
-    const names = await listUpstreamFiles(up.repo, sha, remote);
+    const names = wanted(up, await listUpstreamFiles(up.repo, sha, remote));
     for (const name of names) {
       const rel = `${local}/${name}`;
       seen.add(rel);

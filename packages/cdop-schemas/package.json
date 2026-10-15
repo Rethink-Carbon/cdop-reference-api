@@ -13,13 +13,15 @@
     },
     "./schemas/*": "./schemas/*",
     "./examples/*": "./examples/*",
-    "./upstream": "./UPSTREAM.json"
+    "./upstream": "./UPSTREAM.json",
+    "./upstream-round2": "./UPSTREAM-ROUND2.json"
   },
   "files": [
     "dist",
     "schemas",
     "examples",
-    "UPSTREAM.json"
+    "UPSTREAM.json",
+    "UPSTREAM-ROUND2.json"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

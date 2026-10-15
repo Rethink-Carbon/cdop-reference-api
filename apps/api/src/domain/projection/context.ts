@@ -62,6 +62,14 @@ export interface ProjectionContext {
     | undefined;
 }
 
+export function documentUrl(ctx: ProjectionContext, projectId: string, documentId: string): string {
+  return `${ctx.baseUrl}/v2/projects/${projectId}/documents/${documentId}/content`;
+}
+
+export function geoFileUrl(ctx: ProjectionContext, projectId: string, fileId: string): string {
+  return `${ctx.baseUrl}/v2/projects/${projectId}/geolocation-files/${fileId}/content`;
+}
+
 /** Context backed by the static vocabulary plus an in-memory Dataset (seed fixtures, tests). */
 export function contextFromDataset(ds: Dataset, baseUrl: string): ProjectionContext {
   const orgs = new Map(ds.organisations.map((o) => [o.id, o]));
