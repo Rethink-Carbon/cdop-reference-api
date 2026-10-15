@@ -373,6 +373,31 @@ describe("HTTP API", () => {
     expect((index.round2_upstream as { ref: string }).ref).toBe("R2P-FT-Testing");
   });
 
+  it("repeats a CDOP document's schema and conformance headers on 304", async (ctx) => {
+    if (!app) return ctx.skip();
+    const project = await hal(
+      (await hal("/v2/projects?limit=1&lifecycle_stage=verified"))._embedded.projects?.[0]?._links
+        .self.href ?? "",
+    );
+    const links = project._links["cdop:document"] ?? [];
+    // A cache merges the 304's headers into its stored copy, so a 304 that fell back to the
+    // app-wide v2.0 label relabelled cached Round 2 pods as v2.0 in the Atlas.
+    for (const name of ["registry-metadata", "validation-metadata", "full-list"]) {
+      const href = links.find((d) => d.name === name)?.href ?? "";
+      const full = await get(href);
+      const etag = full.headers.get("etag") ?? "";
+      const schemaVersion = full.headers.get("x-cdop-schema-version") ?? "";
+      expect(etag, name).toContain(schemaVersion);
+      const cached = await get(href, { "if-none-match": etag });
+      expect(cached.status, name).toBe(304);
+      expect(cached.headers.get("etag"), name).toBe(etag);
+      expect(cached.headers.get("x-cdop-schema-version"), name).toBe(schemaVersion);
+      expect(cached.headers.get("x-cdop-conformance"), name).toBe(
+        full.headers.get("x-cdop-conformance"),
+      );
+    }
+  });
+
   it("answers 404 for Verification Metadata on a project with no verification", async (ctx) => {
     if (!app) return ctx.skip();
     const listed = (await hal("/v2/projects?limit=1&lifecycle_stage=listed"))._embedded

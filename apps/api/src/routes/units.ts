@@ -280,15 +280,15 @@ export function registerUnitRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): voi
       const strict = input.query.strict === "1";
       const result = buildPodDocument(agg, ctx, pod, { unitId: block.id, strict });
       const validation = validateDocument(pod, result.document);
-      const etag = strongEtag(`${version}-${pod}-${strict ? "s" : ""}`);
-      const nm = notModified(c, etag);
-      if (nm) return nm;
-      return json(c, result.document, 200, {
-        etag,
+      const etag = strongEtag(`${version}-${pod}-${strict ? "s" : ""}-${deps.schemaVersion}`);
+      const headers = {
         link: `<${linker.url(`/v2/schemas/${SCHEMA_FILES[pod]}`)}>; rel="describedby"; type="application/schema+json", <${linker.url(`/v2/units/${id}`)}>; rel="up"`,
         "x-cdop-schema-version": deps.schemaVersion,
         "x-cdop-conformance": conformanceHeader(validation, result),
-      });
+      };
+      const nm = notModified(c, etag, headers);
+      if (nm) return nm;
+      return json(c, result.document, 200, { etag, ...headers });
     },
   );
 

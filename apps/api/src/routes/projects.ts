@@ -439,18 +439,19 @@ export function registerProjectRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): 
         strict: q.strict === "1" || q.strict === "true",
       });
       const validation = validateDocument(pod, result.document);
+      const schemaVersion = POD_ROUND[pod] === 2 ? schemaVersionLabel(pod) : deps.schemaVersion;
+      // The schema label is part of the ETag so re-vendoring a schema invalidates cached copies.
       const etag = strongEtag(
-        `${await currentVersion(deps, id)}-${pod}-${q.unit_id ?? ""}-${q.verification_id ?? ""}-${q.strict ?? ""}`,
+        `${await currentVersion(deps, id)}-${pod}-${q.unit_id ?? ""}-${q.verification_id ?? ""}-${q.strict ?? ""}-${schemaVersion}`,
       );
-      const nm = notModified(c, etag);
-      if (nm) return nm;
-      return json(c, result.document, 200, {
-        etag,
+      const headers = {
         link: `<${linker.url(`/v2/schemas/${SCHEMA_FILES[pod]}`)}>; rel="describedby"; type="application/schema+json", <${linker.url(`/v2/projects/${id}`)}>; rel="up"`,
-        "x-cdop-schema-version":
-          POD_ROUND[pod] === 2 ? schemaVersionLabel(pod) : deps.schemaVersion,
+        "x-cdop-schema-version": schemaVersion,
         "x-cdop-conformance": conformanceHeader(validation, result),
-      });
+      };
+      const nm = notModified(c, etag, headers);
+      if (nm) return nm;
+      return json(c, result.document, 200, { etag, ...headers });
     },
   );
 
