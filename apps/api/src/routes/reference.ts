@@ -3,9 +3,12 @@ import { createRoute } from "@hono/zod-openapi";
 import { mount } from "../http/mount.js";
 import {
   POD_NAMES,
+  POD_ROUND,
   POD_TITLES,
   SCHEMA_FILES,
   isPodName,
+  schemaVersionLabel,
+  vendoredSchemaPath,
   listEnums,
   loadSchemaText,
   loadUpstream,
@@ -156,12 +159,16 @@ export function registerReferenceRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps)
     }),
     (c, _input) => {
       const up = loadUpstream();
+      const r2 = loadUpstream(2);
       const items = POD_NAMES.map((pod) => ({
         pod,
         title: POD_TITLES[pod],
         file: SCHEMA_FILES[pod],
+        round: POD_ROUND[pod],
+        status: POD_ROUND[pod] === 2 ? "draft" : "published",
+        schema_version: schemaVersionLabel(pod),
         href: linker.url(`/v2/schemas/${SCHEMA_FILES[pod]}`),
-        sha256: up.files[`schemas/v2/${SCHEMA_FILES[pod]}`],
+        sha256: loadUpstream(POD_ROUND[pod]).files[vendoredSchemaPath(pod)],
       }));
       return halJson(
         c,
@@ -173,6 +180,14 @@ export function registerReferenceRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps)
               commit: up.commit,
               commit_date: up.commit_date,
               url: `https://github.com/${up.repo}/tree/${up.commit}/json_schema`,
+            },
+            round2_upstream: {
+              repo: r2.repo,
+              ref: r2.ref,
+              commit: r2.commit,
+              commit_date: r2.commit_date,
+              status: r2.status,
+              url: `https://github.com/${r2.repo}/tree/${r2.commit}/json_schema`,
             },
             fields: buildFieldRegistry().length,
           },
@@ -212,7 +227,8 @@ export function registerReferenceRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps)
       return c.body(text, 200, {
         "content-type": "application/schema+json; charset=utf-8",
         "cache-control": "public, max-age=3600",
-        "x-cdop-schema-version": deps.schemaVersion,
+        "x-cdop-schema-version":
+          POD_ROUND[pod] === 2 ? schemaVersionLabel(pod) : deps.schemaVersion,
       });
     },
   );
@@ -262,16 +278,17 @@ export function registerReferenceRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps)
         throw new ProblemError("validation-failed", "Body must be JSON");
       }
       const result = validatePayload(pod, payload);
+      const schemaVersion = POD_ROUND[pod] === 2 ? schemaVersionLabel(pod) : deps.schemaVersion;
       return json(
         c,
         {
           valid: result.valid,
           schema: SCHEMA_FILES[pod],
-          schema_version: deps.schemaVersion,
+          schema_version: schemaVersion,
           errors: result.errors,
         },
         200,
-        { "x-cdop-schema-version": deps.schemaVersion },
+        { "x-cdop-schema-version": schemaVersion },
       );
     },
   );

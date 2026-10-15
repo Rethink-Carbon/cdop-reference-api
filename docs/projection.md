@@ -94,6 +94,18 @@ By default a section with no data is omitted. The document is then honest but ma
 | Dates                                          | `*_on` columns as `YYYY-MM-DD`; timestamps as RFC 3339 UTC.                                                                                                                                                                       |
 | Enum strings                                   | Exactly the vendored strings, including known typos.                                                                                                                                                                              |
 
+## Round 2 draft pods
+
+Registry Metadata, Validation Metadata and Verification Metadata are Round 2 drafts from the upstream `R2P-FT-Testing` branch (ADR 0013), not part of CDOP v2.0. They are not subsets of Full List, so `apps/api/src/domain/projection/round2.ts` builds each one directly from the aggregate. Field ids are the drafts' own (261 to 330).
+
+| Pod (`/v2/projects/{id}/cdop/{pod}`) | Schema file (`schemas/round2/`)     | Source                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `registry-metadata`                  | `Registry_Metadata.schema.json`     | `registry` and `crediting_program` vocabulary (identifier = 1-based position, CDOP-FB-032), the registry deep link, `registered_on` else `listed_on` (269), `modified_at` as a date (270). `original[]` repeats the current registry (CDOP-FB-033).                                                                                                      |
+| `validation-metadata`                | `Validation_Metadata.schema.json`   | `validation_event` rows in sequence order: `validation.validation_event[]`, with `date[]` and `report[]` index-aligned to it (CDOP-FB-034); the current `crediting_period`; stages and stage status derived from the latest validation's status; one `validation_body.details[]` per validation body. Sectoral scope from the methodology (CDOP-FB-038). |
+| `verification-metadata`              | `Verification_Metadata.schema.json` | One `verification_event` row: the latest completed, or `?verification_id=`. Verified quantity is gross minus leakage, buffer and uncertainty deductions; the uncertainty margin is sent as a percentage (CDOP-FB-040); audit status from the event's status and opinion. 404 when the project has no verification.                                       |
+
+Required values the dataset does not hold are reported as missing, and `X-CDOP-Conformance` cites `CDOP-FB-035` (validation dates, validator name, body selection, team members; the outcome of a verification in progress), `CDOP-FB-038` (no sectoral scope fits) or `CDOP-FB-039` (the verification credential DID). `?strict=1` fills only the text fields with `Not published`; it never fills a date, a quantity or a scope.
+
 ## Verifying the projection
 
 ```bash

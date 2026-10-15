@@ -5,6 +5,9 @@ import type { AppDeps } from "./context.js";
 const upstream = loadUpstream();
 const CDOP_REPO_URL = `https://github.com/${upstream.repo}`;
 const CDOP_SCHEMA_TREE_URL = `${CDOP_REPO_URL}/tree/${upstream.commit}/${upstream.paths["schemas/v2"] ?? ""}`;
+// The Round 2 draft pods, pinned separately to the upstream test branch they were published on.
+const round2 = loadUpstream(2);
+const ROUND2_TREE_URL = `${CDOP_REPO_URL}/tree/${round2.commit}/${round2.paths["schemas/round2"] ?? ""}`;
 
 export function openApiConfig(deps: AppDeps) {
   return {
@@ -19,6 +22,8 @@ export function openApiConfig(deps: AppDeps) {
         `Built and run by [Rethink Carbon](https://rethinkcarbon.co.uk). It implements the [Carbon Data Open Protocol](${CDOP_REPO_URL}), the open, multi-stakeholder schema that standardises data about carbon crediting projects and carbon credits.`,
         "",
         `Embedded CDOP schema version: **[${deps.schemaVersion}](${CDOP_SCHEMA_TREE_URL})** (vendored verbatim from the [CDOP repository](${CDOP_REPO_URL}) under \`components.schemas.cdop.v2.*\`).`,
+        "",
+        `Round 2 draft pods (Registry, Validation and Verification Metadata): **[${round2.schema_version}+${round2.commit.slice(0, 7)}](${ROUND2_TREE_URL})**, vendored verbatim from the upstream \`${round2.ref}\` branch under \`components.schemas.cdop.round2.*\`. They are drafts under test, not part of CDOP v2.0.`,
         "",
         "Every response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.",
         "",

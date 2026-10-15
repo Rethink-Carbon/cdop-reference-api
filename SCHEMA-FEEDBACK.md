@@ -8,6 +8,8 @@ The register is served by the API at `/rels/feedback` and to MCP clients as the 
 
 **Snapshot.** Entries are written against the vendored schema at upstream commit `eff6ca3d634fc4032d9873cc2c423487c8f34a1b` (16 September 2026), schema version 2.0. File paths are relative to `packages/cdop-schemas/`. Field ids are the `x-cdop-field-id` values from the schema.
 
+**Round 2 drafts.** Entries `CDOP-FB-030` onwards cover the three Round 2 "fast track" draft pods (Registry Metadata, Validation Metadata, Verification Metadata). They are not on `main`: they are vendored from the upstream `R2P-FT-Testing` branch at commit `39ac5351e8ca7ecdbc91bbb733188ea226bc21cb` (13 October 2026), pinned in `UPSTREAM-ROUND2.json` and served with `X-CDOP-Schema-Version: round2-draft+39ac535`. Their file paths are relative to `packages/cdop-schemas/schemas/round2/`. Many repeat points Rethink Carbon sent Sebastian Weeks on 1 September 2026 against the 27 August drafts; those are marked `raised upstream`. Fixed since then, and not entered: the space in `"validation _id"` (see `CDOP-FB-001`), the enumerated lists now present in the JSON for validation stages, stage status, sectoral scopes, claim type, unit of measure and audit status, and the upper-case enum values (`CARBON_REMOVAL`), now sentence case.
+
 **Numbering.** Entries are `CDOP-FB-nnn`, sequential, never reused, never deleted. `CDOP-FB-001` is the historical item Rethink Carbon reported before this repository existed; new entries follow it. Entries change status; they do not disappear.
 
 **Categories.**
@@ -58,6 +60,18 @@ The register is served by the API at `/rels/feedback` and to MCP clients as the 
 | CDOP-FB-027 | api-gap   | n/a                                                                                                  | No `modified_at`, version, deletion, pagination, change-feed or link conventions                                   |
 | CDOP-FB-028 | defect    | `crediting_program.crediting_program[].crediting_program_name`, `methodology.versions[].methodology` | The UK codes are in the standard enum but missing from the program and methodology enums                           |
 | CDOP-FB-029 | defect    | `unit.unit_level[]`                                                                                  | Every unit label must be an accreditation and a compliance eligibility at once; CORSIA phases are spelled two ways |
+| CDOP-FB-030 | defect    | Round 2 field ids 261 to 325                                                                         | Two Round 2 branches give the same field ids to different fields                                                   |
+| CDOP-FB-031 | ambiguity | `Registry_Metadata`, `Validation_Metadata`                                                           | No project identifier: the records cannot be joined to their project                                               |
+| CDOP-FB-032 | ambiguity | `registry.identification[]`, `registry.program[]`                                                    | Integer registry and program ids, and free-text names where Round 1 has enums                                      |
+| CDOP-FB-033 | ambiguity | `registry.original[]`, `creation_date`, `update_date`                                                | Registry history arrays and dates are underspecified                                                               |
+| CDOP-FB-034 | ambiguity | `validation.*[]`, `verification.*[]`                                                                 | Sibling arrays with no key to their validation or verification event                                               |
+| CDOP-FB-035 | ambiguity | `validation.date[]`, `validation_body.details[]`, `verification.*`                                   | Required values that registries do not publish, or that do not exist yet                                           |
+| CDOP-FB-036 | ambiguity | `project.validation_status`, `project.validation_stage[]`                                            | Validation status modelled three ways                                                                              |
+| CDOP-FB-037 | ambiguity | `validation.crediting_period[]`, `validation_type`, report links                                     | Round 2 restates Round 1 fields under new ids, names and vocabularies                                              |
+| CDOP-FB-038 | defect    | `validation_body.details[].validation_body_sectoral_scopes`                                          | The sectoral scope list is the CDM list: no scope for REDD+, IFM, wetlands, peat or biochar                        |
+| CDOP-FB-039 | ambiguity | `verification.verification_credential_issuer_id`                                                     | A decentralised identifier is required on every verification                                                       |
+| CDOP-FB-040 | ambiguity | `verification.quantity[]`, `verification.deductions[]`                                               | Verified quantity: unit, uncertainty basis and period are ambiguous                                                |
+| CDOP-FB-041 | defect    | Round 2 annotations                                                                                  | Round 2 drops annotations Round 1 carries, and one cardinality contradicts `required`                              |
 
 ## Upstream watch
 
@@ -88,12 +102,12 @@ Two unmerged branches by Sebastian Weeks carry proposed schema changes, with no 
 | CDOP-FB-026 | `additionalProperties: true` rises from 141 objects to 159 (`R2P-ST-Testing`) and 187 (`R2P-FT-Testing`).                                                                                                                                                                                                                                                                                                             |
 | Others      | No change on either branch to 002, 006 to 010, 012, 013, 017, 019, 020, 022, 024, 025, 027 to 029. The `full_list.json` examples fill `compliance_market_id` with a value rather than relaxing it (020). New fields spell the annotations one way, but the existing inconsistencies remain (007); `R2P-FT-Testing`'s 70 new fields carry no `x-cdop-mutability` at all.                                               |
 
-**Raise before either branch merges.** These are not numbered entries yet, because the files are not on `main`:
+**Raise before either branch merges.** The `R2P-FT-Testing` pods are now vendored as Round 2 drafts (entries `CDOP-FB-030` to `CDOP-FB-041`); the points below concern the branches as a whole:
 
-1. **Field id collision.** Both branches allocate ids from 261 independently. 56 ids, 261 to 325, name different fields on each (261 is `financial_additionality_project_cost_breakdown` on one and `registry_identifier` on the other). Merging both breaks the one id, one field rule that field ids exist for. The generator check proposed in CDOP-FB-021 would catch it.
-2. **`R2P-FT-Testing` is stale.** Its generated JSON predates `main`'s 1 September changes, so merging the JSON as it stands would undo the `Labels_Certifications` rename and bring back the one-value `country_subdivision_code` enum that `main` removed. It needs a rebase and regeneration from the current workbook.
+1. **Field id collision.** Now `CDOP-FB-030`. Both branches allocate ids from 261 independently. 56 ids, 261 to 325, name different fields on each (261 is `financial_additionality_project_cost_breakdown` on one and `registry_identifier` on the other). Merging both breaks the one id, one field rule that field ids exist for. The generator check proposed in CDOP-FB-021 would catch it.
+2. **`R2P-FT-Testing` is stale.** Its generated JSON predates `main`'s 1 September changes, so merging the JSON as it stands would undo the `Labels_Certifications` rename and bring back the one-value `country_subdivision_code` enum that `main` removed. It needs a rebase and regeneration from the current workbook. This is why the API vendors only the branch's three new schema files and their examples, not its `Full_List`, `Project_Approach_Details` or `Estimations`.
 3. **Additionality groups require every field.** Each entry of each group requires all its fields, including alternative tests: a `financial_additionality[]` entry must give simple cost analysis, investment comparison and benchmark results together. This is the CDOP-FB-029 shape again. Several names repeat their group (`common_practice_common_practice_documentation`, `counterfactual_scenario_counterfactual_scenarios`, `regulatory_additionality_regulatory_additionality_determination_method`).
-4. **Breaking enum change.** `R2P-FT-Testing` replaces the four `validation_type` values (`Validation of Project Design Document` and three others) with `Project validation` and `Program validation`, and makes `project.validation_status` required, so every existing Full List document would fail.
+4. **Breaking enum change.** Recorded for the Round 2 pod as `CDOP-FB-037`. `R2P-FT-Testing` replaces the four `validation_type` values (`Validation of Project Design Document` and three others) with `Project validation` and `Program validation`, and makes `project.validation_status` required, so every existing Full List document would fail.
 
 ---
 
@@ -853,3 +867,247 @@ The same CORSIA phases are also spelled differently at the two levels:
 **What the reference API does.** Emits one entry per label with only the half that applies: the accreditation fields for an accreditation (`CCP`), the eligibility fields for a compliance label (the CORSIA phases). Such an entry fails `required`, and `X-CDOP-Conformance` cites this entry. The API will not fill the other half, because a fabricated CCP label on a unit is a false quality claim, not a harmless placeholder. It maps the label's standard-level CORSIA wording to the unit-level wording on output.
 
 **Proposal.** Split the entry into two arrays (`unit_level_accreditation[]`, `unit_level_compliance[]`), or require only the discriminating field of each half. Make expiry optional. Use one spelling for the CORSIA phases at every level.
+
+---
+
+## CDOP-FB-030: Two Round 2 branches give the same field ids to different fields
+
+|                   |                                                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | Round 2 drafts: `Registry_Metadata`, `Validation_Metadata`, `Verification_Metadata` (261 to 330); `Additionality` on `R2P-ST-Testing` |
+| Category          | defect                                                                                                                                |
+| Status            | open, not yet raised upstream                                                                                                         |
+
+**Observation.** The fast track pods on `R2P-FT-Testing` number their fields from 261 (`registry_identifier`) to 330 (`is_current`). The Additionality draft on `R2P-ST-Testing` also numbers from 261 (`financial_additionality_project_cost_breakdown`). 56 ids, 261 to 325, name a different field on each branch.
+
+**Impact.** A field id exists to identify one field across pods, files and versions. Merging both branches would give 56 ids two meanings, and a client keyed on ids (as this API's relocation of field 242 is, see CDOP-FB-021) would join unrelated fields.
+
+**What the reference API does.** Vendors only the fast track pods, so its field registry has one field per id. It does not vendor the Additionality draft.
+
+**Proposal.** Allocate field ids centrally in the source workbook before a pod is drafted, and add a generator check that fails when one id names two paths.
+
+---
+
+## CDOP-FB-031: No project identifier in Registry Metadata or Validation Metadata
+
+|                   |                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| File / field path | `Registry_Metadata.schema.json` (261 to 270), `Validation_Metadata.schema.json` (271 to 306) |
+| Category          | ambiguity                                                                                    |
+| Status            | raised upstream                                                                              |
+
+**Observation.** Neither schema has a project identifier. `Validation_Metadata` has a `project` entity, but it holds only `validation_stage[]`, `date[]` and `validation_status`. `Verification_Metadata` does carry one, `verification.verification_project_id` (310).
+
+**Impact.** A Registry Metadata or Validation Metadata document received on its own cannot be joined to the project it describes. Inside a Full List the context supplies it; as a standalone pod document nothing does.
+
+**What the reference API does.** Serves each document at `/v2/projects/{id}/cdop/{pod}` with a `Link: <…/v2/projects/{id}>; rel="up"` header, so the join is carried by HTTP, not by the document.
+
+**Proposal.** Add `project_identifier` (the CDOP URN, see CDOP-FB-010) to both pods, as Verification Metadata already does.
+
+---
+
+## CDOP-FB-032: Integer registry and program ids, and free-text names where Round 1 has enums
+
+|                   |                                                                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `registry.identification[]` (261, 262), `registry.original[]` (264, 265), `registry.program[]` (267, 268) in `Registry_Metadata` |
+| Category          | ambiguity                                                                                                                        |
+| Status            | raised upstream                                                                                                                  |
+
+**Observation.** The three identifiers are integers and the names are free text:
+
+```json
+"registry_identifier": { "type": "integer", "x-cdop-field-id": 261, "x-cdop-cardinality": "1..1" }
+"registry_name": { "type": "string", "x-cdop-field-id": 262, "x-cdop-cardinality": "1..1" }
+```
+
+Round 1 already has vocabularies for both concepts: `registry.current_registry` (83) is a 35-value enum and `crediting_program_name` (44) a 43-value enum. Round 2 uses neither.
+
+**Impact.** Registry-assigned identifiers are strings in practice (`VCS-4721`), and an unscoped integer cannot carry them. With free-text names, one adopter writes `Verra` and another `Verra VCS`, and the documents do not join. The same registry gets a controlled name in one pod and a free one in the next.
+
+**What the reference API does.** Emits the registry and program names from its vocabulary, which matches the Round 1 enums. For the integer ids it emits the 1-based position of the registry or program in its own vocabulary, as it does for other integer ids (CDOP-FB-011). The slug (`verra`, `ukl`) is in the project resource's `registry` and `crediting_program` objects.
+
+**Proposal.** Type every identifier as a string. Reuse the Round 1 registry and program enums for `registry_name`, `original_registry_name` and `program_name`, or publish one registry and program reference list both rounds use.
+
+---
+
+## CDOP-FB-033: Registry history arrays and dates are underspecified
+
+|                   |                                                                                                                      |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `registry.identification[]`, `registry.original[]`, `registry.program[]`, `creation_date` (269), `update_date` (270) |
+| Category          | ambiguity                                                                                                            |
+| Status            | raised upstream                                                                                                      |
+
+**Observation.** `identification`, `original` and `program` are arrays, and `original` is required. Fields 261 to 263 share one description ("Describes the current registry, that contains the information about the project, and units"), and the program descriptions read "the proejct is following for the implementationunits". `creation_date` is "Date that the project was first registered"; `update_date` is typed `format: date`.
+
+**Impact.** The arrays could mean several current registries at once or a transfer history; with no dates or order, neither reading works. Most projects never change registry, so the required `original` block repeats `identification`. "First registered" could mean first listing, registration on the original registry, or registration on the current one, and registries record these as separate dates months apart. A date-only `update_date` cannot serve as a synchronisation watermark: two changes on one day are indistinguishable.
+
+**What the reference API does.** Emits one entry in each array. `original` repeats the current registry, because no project in the dataset has changed registry. `creation_date` is the registration date, else the first listing date. `update_date` is the date part of the project's `modified_at`; the full timestamp is on the HAL resource.
+
+**Proposal.** Make `identification` and `program` single objects. Make `original` optional, meaning "only if different from the current registry", or turn it into a dated history. Name the dates for the events they record (`listed_on`, `registered_on`), and make `update_date` `format: date-time`. Give each field its own description.
+
+---
+
+## CDOP-FB-034: Sibling arrays with no key to their validation or verification event
+
+|                   |                                                                                                                                                                  |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `validation.date[]`, `validation.report[]`, `validation.stage[]`, `validation.validation_event[]`, `validation_body.details[]`; the arrays inside `verification` |
+| Category          | ambiguity                                                                                                                                                        |
+| Status            | raised upstream                                                                                                                                                  |
+
+**Observation.** Validation Metadata splits one validation event across five sibling arrays. Only `validation_event[]` carries `validation_id`; `date[]`, `report[]`, `stage[]` and `validation_body.details[]` carry nothing that says which event they belong to. Verification Metadata does the same inside one verification: `details[]`, `reporting[]`, `quantity[]`, `standard[]`, `deductions[]` and `status[]` are arrays with no key.
+
+**Impact.** This is CDOP-FB-016 again. As soon as a project has two validations, a reader cannot tell which report, which dates and which body belong to which event. Verification Metadata describes one verification, so its arrays have no stated meaning: two `quantity[]` entries could be two units of measure, two periods, or a correction.
+
+**What the reference API does.** Emits one `date[]` and one `report[]` entry per validation event, in the same order as `validation_event[]`, so position is the only key. It emits one entry in each Verification Metadata array. The conformance suite asserts the alignment.
+
+**Proposal.** Nest the dates, report, stages and body inside each `validation_event[]` entry. In Verification Metadata, make the single-valued groups objects.
+
+---
+
+## CDOP-FB-035: Required values that registries do not publish, or that do not exist yet
+
+|                   |                                                                                                                                                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `validation.date[]` (277 to 279), `validation.validation_event[]` (296, 298, 299), `validation_body.details[]` (292, 294, 295), `verification.reporting[].verification_date` (314), `verification.quantity[].verified_quantity` (315) |
+| Category          | ambiguity                                                                                                                                                                                                                             |
+| Status            | raised upstream                                                                                                                                                                                                                       |
+
+**Observation.** Each `validation.date[]` entry requires the requested, planned and expiry dates. Each body requires `validator_name`, `validation_body_selection` ("Describe how the validation body was selected") and `validation_body_team_members_and_roles`, the last marked Public and asking for `FIRST NAME - LAST NAME, ROLE` in one string. A validation event requires `validation_date` and both period dates even when `validation_is_planned` is `true`. A verification requires `verification_date` and `verified_quantity`, although its status may be `Pending review (Audit currently in progress)`.
+
+**Impact.** Registries publish the validation body, the report and the decision date. They do not publish who was on the audit team, how the body was chosen, or when the validation was requested, so a feed built from public registry data cannot satisfy the schema. Named individuals in a required Public field is a data protection problem for UK and EU adopters. A planned validation has no outcome date yet, and a verification in progress has no verified quantity. On the full dataset of 370 projects, every one of the 279 projects with a validation fails Validation Metadata on this entry (232 lack an expiry date; all lack the three body fields).
+
+**What the reference API does.** Emits what the source data holds: requested is the submission date, planned is the site-visit start, expiry is the validation deadline where the registry sets one (the Woodland Carbon Code's three-year window). It reports the rest as missing, and `X-CDOP-Conformance` cites this entry. `?strict=1` fills the three body text fields with `Not published`, flagged in the header. It never fills a date or a quantity. It never invents a validator's name.
+
+**Proposal.** Keep a small required core (event id, type, date, body name) and make everything else optional. Make the team an optional array of `{ name, role }` objects, and reconsider marking it Public. Make the outcome fields of an event conditional on its status.
+
+---
+
+## CDOP-FB-036: Validation status modelled three ways
+
+|                   |                                                                                                                                                       |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `project.validation_status` (305), `project.validation_stage[].current_validation_stage_status` (275), `validation.stage[].validation_stages[]` (304) |
+| Category          | ambiguity                                                                                                                                             |
+| Status            | raised upstream                                                                                                                                       |
+
+**Observation.** A required boolean `project.validation_status` ("Indicate whether the project has been validated"), a three-value stage status (`Not started`, `In progress`, `Completed`) on the current stage, and a list of the stages reached.
+
+**Impact.** The boolean cannot say what matters in practice: under validation, changes requested, rejected, expired. A rejected validation is `Completed` at its last stage, with `validation_status: false`, which reads the same as one not yet started. Round 1's `project_status` (CDOP-FB-013) is a fourth place validation state appears.
+
+**What the reference API does.** Derives all three from one validation status per event (`planned`, `submitted`, `in_review`, `changes_requested`, `completed`, `rejected`, `expired`, `withdrawn`), which the HAL resource exposes.
+
+**Proposal.** One validation status enum per event, with values such as `not started`, `in progress`, `changes requested`, `validated`, `rejected`, `expired`, and drop the boolean.
+
+---
+
+## CDOP-FB-037: Round 2 restates Round 1 fields under new ids, names and vocabularies
+
+|                   |                                                                                                                                                                                                                                                                 |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `validation.crediting_period[]` (271 to 273), `validation.validation_event[].validation_type` (288), `validation_body.details[].validation_body_name` (291), `verification.verification_report_url[]` (319), `verification.reporting[].verification_date` (314) |
+| Category          | ambiguity                                                                                                                                                                                                                                                       |
+| Status            | raised upstream                                                                                                                                                                                                                                                 |
+
+**Observation.** Round 2 repeats concepts Round 1 already defines:
+
+| Round 2                                                                 | Round 1                                                                                                  |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `validation.crediting_period[].current_crediting_period_*` (271 to 273) | `validation.validation[].current_crediting_period_*` (155 to 157), same key names                        |
+| `validation_type`: `Project validation`, `Program validation`           | `validation.event[].validation_type`: four other values, such as `Validation of Project Design Document` |
+| `validation_body.details[].validation_body_name` (291)                  | `validation.validation_body_name` (84)                                                                   |
+| `verification_report_url[]` (319), `1..*`                               | `project.audits[].verification_report_url` (91), `1..1`                                                  |
+| `verification_date` (314)                                               | `issuance.issuance[].date_of_verification` (96)                                                          |
+| `verification_buffer_pool_deduction_quantity` (327)                     | `project.buffer_pool[]` (Durability & Permanence)                                                        |
+
+**Impact.** The same fact gets two field ids, two shapes and, for `validation_type`, two incompatible vocabularies under one key name. When two pods disagree, nothing says which is authoritative. On `R2P-FT-Testing` the new `validation_type` enum also replaces the Round 1 one in Full List, which would break every existing Full List document.
+
+**What the reference API does.** Emits both from the same records, so they agree here. Every validation in the dataset is of a project, so Round 2 `validation_type` is always `Project validation`; Round 1 keeps its own values.
+
+**Proposal.** Reference the Round 1 field instead of restating it, or state which pod owns each concept. Keep one `validation_type` vocabulary. A cross-pod field registry (one row per concept, with its id and every path it appears at) would catch this class of drift.
+
+---
+
+## CDOP-FB-038: The sectoral scope list is the CDM list: no scope for REDD+, IFM, wetlands, peat or biochar
+
+|                   |                                                                     |
+| ----------------- | ------------------------------------------------------------------- |
+| File / field path | `validation_body.details[].validation_body_sectoral_scopes[]` (293) |
+| Category          | defect                                                              |
+| Status            | open, not yet raised upstream                                       |
+
+**Observation.** The enum is the 15 sectoral scopes of the Clean Development Mechanism, from `1. Energy industries (renewable - / non-renewable sources)` to `15. Agriculture`. The only land-use scopes are `14. Afforestation and reforestation` and `15. Agriculture`. The field is required, with at least one value.
+
+**Impact.** A validation body accredited for REDD+, improved forest management, tidal wetland or peatland restoration, or biochar has no scope to name. These are scopes that the voluntary standards accredit for (Verra's AFOLU scope covers all the land-use ones). On the full dataset, 130 of 279 validated projects cannot state a scope: VCS REDD+ and blue carbon, ACR improved forest management, Peatland Code and Puro biochar projects.
+
+**What the reference API does.** Maps afforestation, reforestation and agroforestry methodologies to scope 14 and agricultural land management to scope 15. For the rest it emits no scope rather than a wrong one, and `X-CDOP-Conformance` cites this entry.
+
+**Proposal.** Use the scopes the voluntary programs accredit for (for example Verra's sectoral scopes, which include AFOLU), or let the field reference the program's own scope list.
+
+---
+
+## CDOP-FB-039: A decentralised identifier is required on every verification
+
+|                   |                                                                                                                                                       |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `verification.verification_credential_issuer_id` (320), `verification_cryptographic_proof_type` (321), `verification_digital_signature_payload` (322) |
+| Category          | ambiguity                                                                                                                                             |
+| Status            | raised upstream                                                                                                                                       |
+
+**Observation.**
+
+```json
+"verification_credential_issuer_id": { "type": "string", "x-cdop-field-id": 320, "x-cdop-cardinality": "1..1" }
+```
+
+It is described as "The decentralized identifier (DID) of the entity issuing the digital verification token", and it is required. The proof type and signature payload beside it are optional.
+
+**Impact.** Almost no registry or validation and verification body issues verifiable credentials today, so every conventional verification record fails. On the full dataset, all 135 projects with a verification fail Verification Metadata on this field.
+
+**What the reference API does.** Reports the field missing, and `X-CDOP-Conformance` cites this entry. `?strict=1` fills it with `Not published`, flagged in the header, and the document then validates for every completed verification. It does not invent a DID.
+
+**Proposal.** Group the three fields into one optional `digital_credential` object.
+
+---
+
+## CDOP-FB-040: Verified quantity: unit, uncertainty basis and period are ambiguous
+
+|                   |                                                                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| File / field path | `verification.quantity[]` (315, 316), `verification.deductions[]` (323 to 327), `verification.details[].verification_claim_type` (309) |
+| Category          | ambiguity                                                                                                                              |
+| Status            | raised upstream                                                                                                                        |
+
+**Observation.** `verification_quantity_uom` mixes dimensions (`tCO2e`, `kgCO2e`, `MWh`, `m3_biogas`, `ha`, `kg_plastic`) with nothing tying it to `verification_claim_type`, and has no `tCO2`. The leakage and buffer deduction quantities do not state their unit. `verification_uncertainty_deduction_margin` is "Percentage or absolute deduction applied for this specific reporting period for uncertainty". `verified_quantity` is for the reporting period; nothing records the cumulative total, although the Issuances pod distinguishes batch and cumulative volumes.
+
+**Impact.** A reader cannot interpret an uncertainty margin of `5` without knowing whether it is 5 % or 5 tonnes. In ex-ante markets such as the Woodland Carbon Code, buyers ask how much of the predicted volume has been verified to date, which needs the cumulative figure.
+
+**What the reference API does.** Always sends the uncertainty margin as a percentage of the gross verified quantity, and states the deductions in the unit of `verified_quantity`. `verified_quantity` is net of leakage, buffer and uncertainty deductions. The database keeps a cumulative verified quantity per verification, which the verification resource will expose (milestone M2).
+
+**Proposal.** Pick one basis for the uncertainty margin (percentage) or add a basis field. State that deductions share the unit of the verified quantity. Add a cumulative verified quantity, as Issuances has a cumulative issued volume.
+
+---
+
+## CDOP-FB-041: Round 2 drops annotations Round 1 carries, and one cardinality contradicts `required`
+
+|                   |                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| File / field path | every Round 2 field; `verification.status[].is_current` (330); `verification_audit_checkpoint_status` (328) |
+| Category          | defect                                                                                                      |
+| Status            | raised upstream                                                                                             |
+
+**Observation.** No Round 2 field carries `x-cdop-mutability`. Verification Metadata fields also carry no `x-cdop-data-source`, `x-cdop-public-private` or `x-cdop-pre-issuance-inclusion`, which Registry and Validation Metadata do. `is_current` is required but annotated optional:
+
+```json
+"is_current": { "type": "boolean", "x-cdop-field-id": 330, "x-cdop-cardinality": "0..1" }
+```
+
+with `"required": ["is_current"]` on its object. The audit status description still lists `PASS, PASS_WITH_RESERVATIONS, FAIL`, while the enum values are now `Pass (Fully compliant with zero reserves)` and so on, each value carrying its own definition in brackets.
+
+**Impact.** Mutability is what a client needs to know before caching a registry or status field. A reader cannot tell whether verification data is public. The cardinality annotation and the `required` list disagree, so one of them is wrong. Codes that embed their definitions break when the wording is edited.
+
+**What the reference API does.** Nothing to work around: it validates against `required` and ignores the annotations. `pnpm cdop:lint` covers the Round 2 files with the same checks as Round 1.
+
+**Proposal.** A shared style guide for all pods, enforced by the lint step proposed in CDOP-FB-007: every field carries the same annotation set, cardinality is generated from `required` (or the reverse), and enum values are short codes with definitions in a separate column.

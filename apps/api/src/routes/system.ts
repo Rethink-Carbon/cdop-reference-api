@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sql } from "kysely";
 import { POD_NAMES, SCHEMA_FILES } from "@cdop/schemas";
+import { podTitle } from "../http/render/common.js";
 import type { AppEnv } from "../app-env.js";
 import type { AppDeps } from "../http/context.js";
 import { HalResource, halResponse, z } from "../http/schemas.js";
@@ -82,6 +83,7 @@ export function registerSystemRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): v
         [linker.rel("feedback")]: linker.link("/rels/feedback", { type: "text/html" }),
         [linker.rel("document")]: POD_NAMES.map((pod) => ({
           name: pod,
+          title: podTitle(pod),
           href: linker.url(`/v2/schemas/${SCHEMA_FILES[pod]}`),
           type: "application/schema+json",
         })),

@@ -1,4 +1,4 @@
-import { POD_NAMES, type PodName } from "@cdop/schemas";
+import { POD_NAMES, ROUND2_PODS, type PodName } from "@cdop/schemas";
 import { describe, expect, it } from "vitest";
 import { buildPodDocument, validateDocument } from "../src/domain/projection/cdop.js";
 import { contextFromDataset } from "../src/domain/projection/context.js";
@@ -21,7 +21,16 @@ const CLEAN_PODS: PodName[] = [
   "project-finance",
 ];
 /** Register entries allowed to explain a failure. Anything else is a bug in this API. */
-const KNOWN = ["CDOP-FB-005", "CDOP-FB-020", "CDOP-FB-028", "CDOP-FB-029"];
+const KNOWN = [
+  "CDOP-FB-005",
+  "CDOP-FB-020",
+  "CDOP-FB-028",
+  "CDOP-FB-029",
+  // Round 2 drafts: unpublished required values, the CDM sectoral scopes, the required DID.
+  "CDOP-FB-035",
+  "CDOP-FB-038",
+  "CDOP-FB-039",
+];
 
 function sweep(strict: boolean): Array<{
   project: string;
@@ -35,6 +44,8 @@ function sweep(strict: boolean): Array<{
   for (const p of ds.projects) {
     for (const pod of POD_NAMES) {
       if (pod === "unit-description" && p.blocks.length === 0 && !strict) continue;
+      // Verification Metadata describes a verification event; without one there is no document.
+      if (pod === "verification-metadata" && p.verifications.length === 0) continue;
       const result = buildPodDocument(p, ctx, pod, { strict });
       const c = explainConformance(validateDocument(pod, result.document), result.missing);
       rows.push({
@@ -90,7 +101,86 @@ describe.each([
       const full = rows.filter((r) => r.pod === "full-list");
       expect(full.every((r) => !r.valid && r.refs.includes("CDOP-FB-020"))).toBe(true);
     });
+
+    it("validates Verification Metadata for every verified project once the DID is a placeholder", () => {
+      const ver = rows.filter((r) => r.pod === "verification-metadata");
+      expect(ver.length).toBeGreaterThan(0);
+      expect(ver.filter((r) => !r.valid).map((r) => r.project)).toEqual([]);
+    });
+
+    it("validates Validation Metadata for every UK project, whose registry publishes the validation deadline", () => {
+      const uk = rows.filter((r) => r.pod === "validation-metadata" && r.standard === "wcc");
+      expect(uk.filter((r) => !r.valid).map((r) => `${r.project} ${r.refs.join(",")}`)).toEqual([]);
+    });
   }
+
+  it("validates Registry Metadata for every project", () => {
+    const reg = rows.filter((r) => r.pod === "registry-metadata");
+    expect(reg.filter((r) => !r.valid).map((r) => r.project)).toEqual([]);
+  });
+
+  it("fails the Round 2 drafts only on the Round 2 register entries", () => {
+    for (const r of rows.filter((x) => ROUND2_PODS.includes(x.pod)))
+      for (const ref of r.refs)
+        expect(["CDOP-FB-035", "CDOP-FB-038", "CDOP-FB-039"]).toContain(ref);
+  });
+});
+
+describe("Round 2 draft pods", () => {
+  it("leaves the sectoral scope out only where the CDM list has none (CDOP-FB-038)", () => {
+    for (const p of ds.projects) {
+      const result = buildPodDocument(p, ctx, "validation-metadata");
+      const doc = result.document as {
+        validation_body?: { details?: Array<{ validation_body_sectoral_scopes?: string[] }> };
+      };
+      for (const body of doc.validation_body?.details ?? []) {
+        const scoped = body.validation_body_sectoral_scopes !== undefined;
+        expect(
+          scoped ||
+            result.missing.includes("validation_body.details.validation_body_sectoral_scopes"),
+        ).toBe(true);
+        if (["pc", "puro", "acr"].includes(p.standard_id)) expect(scoped, p.id).toBe(false);
+      }
+    }
+  });
+
+  it("keeps validation dates, reports and events index-aligned (CDOP-FB-034)", () => {
+    for (const p of ds.projects) {
+      const doc = buildPodDocument(p, ctx, "validation-metadata").document as {
+        validation: { date?: unknown[]; validation_event?: unknown[]; report?: unknown[] };
+      };
+      const n = p.validations.length;
+      expect(doc.validation.validation_event?.length ?? 0).toBe(n);
+      expect(doc.validation.date?.length ?? 0).toBe(n);
+      expect(doc.validation.report?.length ?? 0).toBe(n);
+    }
+  });
+
+  it("describes the chosen verification event and states the deductions it nets off", () => {
+    const p = ds.projects.find(
+      (x) => x.verifications.filter((v) => v.status === "completed").length > 1,
+    );
+    expect(p).toBeDefined();
+    if (!p) return;
+    const first = p.verifications.find((v) => v.status === "completed");
+    const doc = buildPodDocument(p, ctx, "verification-metadata", { verificationId: first?.id })
+      .document as {
+      verification: {
+        verification_id: string;
+        quantity: Array<{ verified_quantity: number }>;
+        deductions: Array<Record<string, number>>;
+      };
+    };
+    expect(doc.verification.verification_id).toBe(first?.id);
+    const d = doc.verification.deductions[0] ?? {};
+    expect(doc.verification.quantity[0]?.verified_quantity).toBeCloseTo(
+      (first?.gross_verified_quantity ?? 0) -
+        (d.verification_leakage_deduction_quantity ?? 0) -
+        (d.verification_buffer_pool_deduction_quantity ?? 0) -
+        (first?.uncertainty_deduction ?? 0),
+      2,
+    );
+  });
 });
 
 describe("standard-level accreditation, field 242 (CDOP-FB-021)", () => {

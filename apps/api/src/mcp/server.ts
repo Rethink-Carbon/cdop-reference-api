@@ -12,7 +12,10 @@ import {
 import { z } from "zod";
 import {
   POD_NAMES,
+  POD_ROUND,
+  ROUND2_PODS,
   SCHEMA_FILES,
+  schemaVersionLabel,
   buildFieldRegistry,
   enumValues,
   listEnums,
@@ -197,10 +200,13 @@ export function buildMcpServer(
       description:
         "Schema-pure CDOP document for a project (or a unit block) plus the Ajv conformance result. Pods: " +
         POD_NAMES.join(", ") +
-        ".",
+        ". " +
+        ROUND2_PODS.join(", ") +
+        " are Round 2 draft pods from an upstream test branch, not part of CDOP v2.0; verification-metadata describes one verification event (verification_id, default the latest completed).",
       inputSchema: z.object({
         project_id: z.string().optional(),
         unit_id: z.string().optional(),
+        verification_id: z.string().optional(),
         pod: z.enum(POD_NAMES as [string, ...string[]]).default("full-list"),
         strict: z
           .boolean()
@@ -208,7 +214,7 @@ export function buildMcpServer(
           .describe("Fill required-but-unpublished fields with flagged placeholders"),
       }),
     },
-    async ({ project_id, unit_id, pod, strict }) => {
+    async ({ project_id, unit_id, verification_id, pod, strict }) => {
       if (!project_id && !unit_id) return errorResult("Provide project_id or unit_id");
       const pathname = unit_id
         ? `/v2/units/${unit_id}/cdop/${pod}`
@@ -216,13 +222,15 @@ export function buildMcpServer(
       const { status, body, headers } = await call(pathname, {
         strict: strict ? "1" : undefined,
         unit_id: unit_id ? undefined : undefined,
+        verification_id: unit_id ? undefined : verification_id,
       });
       if (status !== 200) return errorResult(`HTTP ${status}`, { body });
       const conformance = isPodName(pod) ? validatePayload(pod, body) : undefined;
       return text({
         pod,
         schema: SCHEMA_FILES[pod as keyof typeof SCHEMA_FILES],
-        schema_version: deps.schemaVersion,
+        schema_version:
+          isPodName(pod) && POD_ROUND[pod] === 2 ? schemaVersionLabel(pod) : deps.schemaVersion,
         conformance: conformance
           ? {
               valid: conformance.valid,
@@ -419,7 +427,7 @@ export function buildMcpServer(
       const result = validatePayload(pod, payload);
       return text({
         pod,
-        schema_version: deps.schemaVersion,
+        schema_version: POD_ROUND[pod] === 2 ? schemaVersionLabel(pod) : deps.schemaVersion,
         valid: result.valid,
         errors: result.errors.slice(0, 50),
         data_truncated: result.errors.length > 50,

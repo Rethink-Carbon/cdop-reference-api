@@ -59,7 +59,14 @@ export function projectLinks(linker: Linker, id: string, agg?: ProjectAggregate)
     [linker.rel("documents")]: linker.link(`${base}/documents`),
     [linker.rel("geolocation-files")]: linker.link(`${base}/geolocation-files`),
     [linker.rel("milestones")]: linker.link(`${base}/milestones`),
-    [linker.rel("document")]: documentLinks(linker, base, PROJECT_PODS),
+    // Verification Metadata describes a verification event; a project without one has none.
+    [linker.rel("document")]: documentLinks(
+      linker,
+      base,
+      agg && agg.verifications.length === 0
+        ? PROJECT_PODS.filter((p) => p !== "verification-metadata")
+        : PROJECT_PODS,
+    ),
     [linker.rel("events")]: linker.link("/v2/changes", undefined, { project_id: id }),
     monitor: linker.link("/v2/events", { type: "text/event-stream" }, { project_id: id }),
     [linker.rel("state-machine")]: linker.link(`/v2/state-machines/project`, undefined, {

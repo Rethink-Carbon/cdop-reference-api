@@ -3,15 +3,20 @@ import { driftReport, syncFromUpstream, verifyVendored } from "./sync.js";
 import { loadUpstream } from "./index.js";
 
 const [cmd, ...args] = process.argv.slice(2);
+/** `--round2` points sync and drift at the Round 2 draft pin (UPSTREAM-ROUND2.json). */
+const round = args.includes("--round2") ? 2 : 1;
+const positional = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--ref");
 
 async function main(): Promise<number> {
   switch (cmd) {
     case "verify": {
       const r = await verifyVendored();
-      const up = loadUpstream();
+      const up = loadUpstream(1);
+      const r2 = loadUpstream(2);
       if (r.ok) {
         console.log(
-          `OK: ${Object.keys(up.files).length} vendored files match upstream ${up.repo}@${up.commit.slice(0, 7)}`,
+          `OK: ${Object.keys(up.files).length} vendored files match upstream ${up.repo}@${up.commit.slice(0, 7)}; ` +
+            `${Object.keys(r2.files).length} Round 2 draft files match ${r2.ref}@${r2.commit.slice(0, 7)}`,
         );
         return 0;
       }
@@ -34,15 +39,15 @@ async function main(): Promise<number> {
     }
     case "sync": {
       const refIdx = args.indexOf("--ref");
-      const ref = refIdx >= 0 ? args[refIdx + 1] : "main";
-      const pin = await syncFromUpstream(ref);
+      const ref = refIdx >= 0 ? args[refIdx + 1] : undefined;
+      const pin = await syncFromUpstream(ref, round);
       console.log(
         `vendored ${Object.keys(pin.files).length} files from ${pin.repo}@${pin.commit.slice(0, 7)}`,
       );
       return 0;
     }
     case "drift": {
-      const r = await driftReport(args[0] ?? "main");
+      const r = await driftReport(positional[0], round);
       const drifted = r.changed.length + r.added.length + r.removed.length > 0;
       console.log(JSON.stringify(r, null, 2));
       if (drifted) {
@@ -56,7 +61,7 @@ async function main(): Promise<number> {
     }
     default:
       console.error(
-        "usage: cli <verify|lint [--json]|sync [--ref x]|drift [ref] [--fail-on-drift]>",
+        "usage: cli <verify|lint [--json]|sync [--ref x] [--round2]|drift [ref] [--round2] [--fail-on-drift]>",
       );
       return 1;
   }
