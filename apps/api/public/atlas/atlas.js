@@ -1315,9 +1315,14 @@ async function projectDetail(id, tab, ctx) {
       pods.map(async (pod) => {
         try {
           const { status, headers } = await getHeaders(pod.href);
-          return { pod, status, conformance: headers.get("x-cdop-conformance") ?? "" };
+          return {
+            pod,
+            status,
+            conformance: headers.get("x-cdop-conformance") ?? "",
+            schema: headers.get("x-cdop-schema-version") ?? "",
+          };
         } catch (err) {
-          return { pod, status: 0, conformance: err.message };
+          return { pod, status: 0, conformance: err.message, schema: "" };
         }
       }),
     );
@@ -1331,17 +1336,30 @@ async function projectDetail(id, tab, ctx) {
       );
     body = section(
       "CDOP documents",
-      "Each pod is a schema-pure CDOP document for this project. The API validates it against the vendored CDOP v2.0 schema and reports the result in X-CDOP-Conformance, citing the schema feedback register entry behind each error.",
+      "Each pod is a schema-pure CDOP document for this project. The API validates it against the vendored schema named in the Schema column and reports the result in X-CDOP-Conformance, citing the schema feedback register entry behind each error. Round 2 drafts are the TWG's fast track pods, taken from an upstream test branch: they are not part of CDOP v2.0.",
       h(
         "div",
         { class: "table-wrap" },
         dataTable(
-          [{ label: "Pod" }, { label: "Result" }, { label: "Register entries" }],
-          results.map(({ pod, status, conformance }) => {
+          [
+            { label: "Pod" },
+            { label: "Schema", nowrap: true },
+            { label: "Result" },
+            { label: "Register entries" },
+          ],
+          results.map(({ pod, status, conformance, schema }) => {
             const valid = conformance.startsWith("valid");
             const detail = parse(conformance);
+            const draft = schema.startsWith("round2-draft");
             return [
-              external(local(pod.href), pod.name),
+              [
+                external(
+                  local(pod.href),
+                  (pod.title ?? pod.name).replace(/ \(Round 2 draft\)$/, ""),
+                ),
+                draft ? [" ", h("span", { class: "chip" }, "Round 2 draft")] : "",
+              ],
+              schema,
               status !== 200
                 ? h("span", { class: "bad" }, `HTTP ${status}`)
                 : valid
