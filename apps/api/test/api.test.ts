@@ -132,6 +132,16 @@ describe("HTTP API", () => {
     ).toContain("text/css");
   });
 
+  it("gives no docs element the id of Zudoku's app shell", async (ctx) => {
+    if (!app) return ctx.skip();
+    // Zudoku anchors each schema by its lower-cased name and styles #root with min-height: 100vh,
+    // so a schema named "Root" rendered as one screen-high heading.
+    for (const page of ["/docs/api/~schemas", "/docs/api/root"]) {
+      const html = await (await get(page)).text();
+      expect(html.match(/id="root"/g) ?? [], page).toHaveLength(1);
+    }
+  });
+
   it("serves the Zudoku docs with only their own inline scripts, pointed at this origin", async (ctx) => {
     if (!app) return ctx.skip();
     for (const page of ["/docs/", "/docs/api", "/docs/api/mcp", "/docs/guides/hateoas-tour"]) {

@@ -59,7 +59,7 @@
   },
   "components": {
     "schemas": {
-      "Root": {
+      "ApiRoot": {
         "type": "object",
         "properties": {
           "_links": {
@@ -16907,7 +16907,7 @@
             "content": {
               "application/hal+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/ApiRoot"
                 }
               }
             }

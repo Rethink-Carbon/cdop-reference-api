@@ -58,7 +58,12 @@ export function registerSystemRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): v
       tags: ["Root"],
       summary: "API root (HAL)",
       responses: {
-        200: halResponse(HalResource("Root", "Entry point with links to every collection"), "Root"),
+        200: halResponse(
+          // Not "Root": the docs site anchors each schema by its lower-cased name, and Zudoku styles
+          // #root (its app shell) with min-height: 100vh.
+          HalResource("ApiRoot", "Entry point with links to every collection"),
+          "Root",
+        ),
       },
     }),
     (c, _input) => {
