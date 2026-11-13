@@ -1,0 +1,438 @@
+{
+  "reviewed_on": "2026-11-13",
+  "source_commit": "daab3d58d7b7b01cc26ca849f652194b111a35eb",
+  "sources": [
+    {
+      "schema": "Additionality.schema.json",
+      "schema_sha256": "0856ceb51d2e2a77ebe7a9c27f868717accb3f76a6465829c8b52990139ebd84",
+      "example": "additionality.json",
+      "example_sha256": "d0afe9a1ef702cc1cd0e6d8b84a6c9105e19c89fb26b1ab86b1cc925562d7c63",
+      "valid": true,
+      "errors": [],
+      "undeclared_fields": []
+    },
+    {
+      "schema": "Full_List.schema.json",
+      "schema_sha256": "0ad190ade34b16edcb201faa0c459e46108c6b7acf6f282c9d84a6768c1d4b21",
+      "example": "full_list.json",
+      "example_sha256": "a9b68c38a58870f442775257104885abf3c6fccf68a2f287a2f713addcd73438",
+      "valid": true,
+      "errors": [],
+      "undeclared_fields": [
+        "/project/project_status",
+        "/project/project_status_reason",
+        "/project/project_crediting_period_type",
+        "/project/maximum_cumulative_crediting_duration",
+        "/project/maximum_number_of_crediting_periods",
+        "/project/current_crediting_period_duration",
+        "/project/general_additionality",
+        "/project/financial_additionality",
+        "/project/barriers",
+        "/project/common_practice",
+        "/project/counterfactual_scenario",
+        "/project/performance_additionality",
+        "/project/regulatory_additionality",
+        "/project/lockin_risk",
+        "/validation/validation_id",
+        "/validation/current_crediting_period_start_date",
+        "/validation/current_crediting_period_end_date",
+        "/validation/current_crediting_period_number",
+        "/validation/validation_type",
+        "/unit/metric",
+        "/unit/retirement_beneficiary",
+        "/unit/retirement_detail",
+        "/unit/serial_number",
+        "/unit/source_serial_number",
+        "/unit/type",
+        "/estimations/estimation_id",
+        "/estimations/estimation_event_date",
+        "/estimations/estimation_status",
+        "/estimations/estimated_status_reason",
+        "/estimations/vintage_year",
+        "/estimations/estimated_vintage_emissions_mitigation",
+        "/estimations/estimated_monitoring_period_start_date",
+        "/estimations/estimated_monitoring_period_end_date",
+        "/estimations/estimated_issuance_date"
+      ]
+    }
+  ],
+  "required": [
+    "additionality_project_id"
+  ],
+  "fields": 57,
+  "private_fields": [
+    "financial_additionality_project_cost_breakdown",
+    "financial_additionality_project_revenue_breakdown",
+    "financial_additionality_financial_indicator",
+    "financial_additionality_financial_benchmark_calculations",
+    "financial_additionality_investment_analysis_approach",
+    "financial_additionality_investment_comparison_calculations",
+    "financial_additionality_financial_benchmark_results",
+    "financial_additionality_investment_comparison_results",
+    "financial_additionality_sensitivity_analysis_results",
+    "financial_additionality_sensitivity_analysis_documentation",
+    "financial_additionality_simple_cost_analysis_details",
+    "financial_additionality_simple_cost_analysis_documentation"
+  ],
+  "collisions": [
+    {
+      "schema": "v2/Full_List.schema.json",
+      "fields": [
+        {
+          "id": 256,
+          "additionality_path": "additionality.additionality_project_id",
+          "other_path": "unit.unit_level[].unit_level_accreditation_id"
+        },
+        {
+          "id": 257,
+          "additionality_path": "additionality.financial_additionality_project_cost_breakdown",
+          "other_path": "unit.unit_level[].unit_level_accreditation_website"
+        },
+        {
+          "id": 258,
+          "additionality_path": "additionality.financial_additionality_project_revenue_breakdown",
+          "other_path": "unit.unit_level[].unit_level_compliance_eligibility"
+        },
+        {
+          "id": 259,
+          "additionality_path": "additionality.financial_additionality_financial_indicator",
+          "other_path": "unit.unit_level[].unit_level_compliance_approval_date"
+        },
+        {
+          "id": 260,
+          "additionality_path": "additionality.financial_additionality_financial_benchmark_calculations",
+          "other_path": "unit.unit_level[].unit_level_compliance_potential_eligibility"
+        }
+      ]
+    },
+    {
+      "schema": "round2/Registry_Metadata.schema.json",
+      "fields": [
+        {
+          "id": 261,
+          "additionality_path": "additionality.financial_additionality_investment_analysis_approach",
+          "other_path": "registry.identification[].registry_identifier"
+        },
+        {
+          "id": 262,
+          "additionality_path": "additionality.financial_additionality_investment_comparison_calculations",
+          "other_path": "registry.identification[].registry_name"
+        },
+        {
+          "id": 263,
+          "additionality_path": "additionality.financial_additionality_financial_benchmark_results",
+          "other_path": "registry.identification[].registry_link"
+        },
+        {
+          "id": 264,
+          "additionality_path": "additionality.financial_additionality_investment_comparison_results",
+          "other_path": "registry.original[].original_registry_identifier"
+        },
+        {
+          "id": 265,
+          "additionality_path": "additionality.financial_additionality_sensitivity_analysis_results",
+          "other_path": "registry.original[].original_registry_name"
+        },
+        {
+          "id": 266,
+          "additionality_path": "additionality.financial_additionality_sensitivity_analysis_documentation",
+          "other_path": "registry.original[].original_registry_link"
+        },
+        {
+          "id": 267,
+          "additionality_path": "additionality.financial_additionality_simple_cost_analysis_details",
+          "other_path": "registry.program[].program_identifier"
+        },
+        {
+          "id": 268,
+          "additionality_path": "additionality.financial_additionality_simple_cost_analysis_documentation",
+          "other_path": "registry.program[].program_name"
+        },
+        {
+          "id": 269,
+          "additionality_path": "additionality.barriers_alternative_scenario_barrier_details",
+          "other_path": "registry.creation_date"
+        },
+        {
+          "id": 270,
+          "additionality_path": "additionality.barriers_barrier_demonstration",
+          "other_path": "registry.update_date"
+        }
+      ]
+    },
+    {
+      "schema": "round2/Validation_Metadata.schema.json",
+      "fields": [
+        {
+          "id": 271,
+          "additionality_path": "additionality.barriers_chosen_barrier_explanation_and_results",
+          "other_path": "validation.crediting_period[].current_crediting_period_end_date"
+        },
+        {
+          "id": 272,
+          "additionality_path": "additionality.barriers_implementation_barriers",
+          "other_path": "validation.crediting_period[].current_crediting_period_number"
+        },
+        {
+          "id": 273,
+          "additionality_path": "additionality.barriers_other_additionality_approach_name",
+          "other_path": "validation.crediting_period[].current_crediting_period_start_date"
+        },
+        {
+          "id": 274,
+          "additionality_path": "additionality.barriers_other_barrier_types",
+          "other_path": "project.validation_stage[].current_validation_stage"
+        },
+        {
+          "id": 275,
+          "additionality_path": "additionality.common_practice_common_practice_documentation",
+          "other_path": "project.validation_stage[].current_validation_stage_status"
+        },
+        {
+          "id": 276,
+          "additionality_path": "additionality.common_practice_common_practice_test_details",
+          "other_path": "project.date[].date_previous_validation"
+        },
+        {
+          "id": 277,
+          "additionality_path": "additionality.common_practice_first_of_kind_details",
+          "other_path": "validation.date[].date_validation_expiration"
+        },
+        {
+          "id": 278,
+          "additionality_path": "additionality.common_practice_first_of_kind",
+          "other_path": "validation.date[].date_validation_planned"
+        },
+        {
+          "id": 279,
+          "additionality_path": "additionality.common_practice_first_of_kind_documentation",
+          "other_path": "validation.date[].date_validation_requested"
+        },
+        {
+          "id": 280,
+          "additionality_path": "additionality.common_practice_passes_common_practice_test",
+          "other_path": "validation.lca[].lca_completed"
+        },
+        {
+          "id": 281,
+          "additionality_path": "additionality.common_practice_market_penetration_threshold",
+          "other_path": "validation.lca[].lca_emissions_quantification"
+        },
+        {
+          "id": 282,
+          "additionality_path": "additionality.counterfactual_scenario_counterfactual_scenario_results",
+          "other_path": "validation.lca[].lca_link"
+        },
+        {
+          "id": 283,
+          "additionality_path": "additionality.counterfactual_scenario_counterfactual_scenario_documentation",
+          "other_path": "validation.lca[].lca_repository"
+        },
+        {
+          "id": 284,
+          "additionality_path": "additionality.counterfactual_scenario_counterfactual_scenarios",
+          "other_path": "validation.lca[].lca_results"
+        },
+        {
+          "id": 285,
+          "additionality_path": "additionality.counterfactual_scenario_exceeds_emissions_benchmark",
+          "other_path": "validation.lca[].lca_system_boundary_figure"
+        },
+        {
+          "id": 286,
+          "additionality_path": "additionality.counterfactual_scenario_alternative_scenario_barrier_documentation",
+          "other_path": "validation.lca[].lca_system_boundary_overview"
+        },
+        {
+          "id": 287,
+          "additionality_path": "additionality.financial_additionality_carbon_finance_dependency_demonstration",
+          "other_path": "validation.validation_event[].validation_id"
+        },
+        {
+          "id": 288,
+          "additionality_path": "additionality.financial_additionality_sensitivity_analysis",
+          "other_path": "validation.validation_event[].validation_type"
+        },
+        {
+          "id": 289,
+          "additionality_path": "additionality.financial_additionality_low_capex_relative_to_opex",
+          "other_path": "validation_body.details[].validation_body_accreditation"
+        },
+        {
+          "id": 290,
+          "additionality_path": "additionality.financial_additionality_direct_result_of_carbon_finance",
+          "other_path": "validation_body.details[].validation_body_id"
+        },
+        {
+          "id": 300,
+          "additionality_path": "additionality.financial_additionality_financial_benchmark_approach",
+          "other_path": "validation.report[].validation_report_link"
+        },
+        {
+          "id": 301,
+          "additionality_path": "additionality.financial_additionality_carbon_revenue_decisive_for_barrier",
+          "other_path": "validation.report[].validation_report_summary"
+        },
+        {
+          "id": 302,
+          "additionality_path": "additionality.general_additionality_approaches_used",
+          "other_path": "validation.stage[].validation_stage_description"
+        },
+        {
+          "id": 303,
+          "additionality_path": "additionality.general_credits_considered_before_start_date",
+          "other_path": "validation.stage[].validation_stage_document_link"
+        },
+        {
+          "id": 304,
+          "additionality_path": "additionality.general_standardized_additionality_results",
+          "other_path": "validation.stage[].validation_stages"
+        },
+        {
+          "id": 305,
+          "additionality_path": "additionality.general_prior_consideration_details",
+          "other_path": "project.validation_status"
+        },
+        {
+          "id": 306,
+          "additionality_path": "additionality.general_prior_consideration_evidence",
+          "other_path": "validation.report[].validation_report_version"
+        }
+      ]
+    },
+    {
+      "schema": "round2/Verification_Metadata.schema.json",
+      "fields": [
+        {
+          "id": 307,
+          "additionality_path": "additionality.general_other_additionality_evidence",
+          "other_path": "verification.verification_id"
+        },
+        {
+          "id": 308,
+          "additionality_path": "additionality.general_uses_other_standardized_approach",
+          "other_path": "verification.verification_vvb_id"
+        },
+        {
+          "id": 309,
+          "additionality_path": "additionality.lockin_risk_applicable_activities_technologies",
+          "other_path": "verification.details[].verification_claim_type"
+        },
+        {
+          "id": 310,
+          "additionality_path": "additionality.performance_additionality_performance_based_additionality_results",
+          "other_path": "verification.verification_project_id"
+        },
+        {
+          "id": 311,
+          "additionality_path": "additionality.performance_additionality_performance_based_additionality_evidence",
+          "other_path": "verification.details[].verification_description"
+        },
+        {
+          "id": 312,
+          "additionality_path": "additionality.regulatory_additionality_regulatory_surplus_justification",
+          "other_path": "verification.reporting[].verification_reporting_period_start"
+        },
+        {
+          "id": 313,
+          "additionality_path": "additionality.regulatory_additionality_legal_regulatory_additionality_documentation",
+          "other_path": "verification.reporting[].verification_reporting_period_end"
+        },
+        {
+          "id": 314,
+          "additionality_path": "additionality.regulatory_additionality_exceeds_legal_requirements",
+          "other_path": "verification.reporting[].verification_date"
+        },
+        {
+          "id": 315,
+          "additionality_path": "additionality.lockin_risk_country_ltleds_compatibility",
+          "other_path": "verification.quantity[].verified_quantity"
+        },
+        {
+          "id": 316,
+          "additionality_path": "additionality.lockin_risk_project_scale",
+          "other_path": "verification.quantity[].verification_quantity_uom"
+        },
+        {
+          "id": 317,
+          "additionality_path": "additionality.lockin_risk_technology_emissions_intensity",
+          "other_path": "verification.standard[].verification_applied_standard"
+        },
+        {
+          "id": 318,
+          "additionality_path": "additionality.performance_additionality_performance_indicator_description",
+          "other_path": "verification.standard[].verification_applied_methodology_protocol"
+        },
+        {
+          "id": 319,
+          "additionality_path": "additionality.performance_additionality_performance_threshold_description",
+          "other_path": "verification.verification_report_url"
+        },
+        {
+          "id": 320,
+          "additionality_path": "additionality.performance_additionality_performance_threshold_validity_period",
+          "other_path": "verification.verification_credential_issuer_id"
+        },
+        {
+          "id": 321,
+          "additionality_path": "additionality.regulatory_additionality_regulatory_additionality_determination_method",
+          "other_path": "verification.verification_cryptographic_proof_type"
+        }
+      ]
+    }
+  ],
+  "probes": {
+    "identifier_only": {
+      "valid": true,
+      "errors": []
+    },
+    "missing_identifier": {
+      "valid": false,
+      "errors": [
+        {
+          "instancePath": "/additionality",
+          "schemaPath": "#/properties/additionality/required",
+          "keyword": "required",
+          "params": {
+            "missingProperty": "additionality_project_id"
+          },
+          "message": "must have required property 'additionality_project_id'"
+        }
+      ]
+    },
+    "empty_identifier": {
+      "valid": true,
+      "errors": []
+    },
+    "undeclared_property": {
+      "valid": true,
+      "errors": []
+    },
+    "regulatory_claim_without_evidence": {
+      "valid": true,
+      "errors": []
+    },
+    "benchmark_selected_without_details": {
+      "valid": true,
+      "errors": []
+    },
+    "incorrect_boolean_type": {
+      "valid": false,
+      "errors": [
+        {
+          "instancePath": "/additionality/common_practice_first_of_kind",
+          "schemaPath": "#/properties/additionality/properties/common_practice_first_of_kind/type",
+          "keyword": "type",
+          "params": {
+            "type": "boolean"
+          },
+          "message": "must be boolean"
+        }
+      ]
+    },
+    "without_private_financial_information": {
+      "valid": true,
+      "errors": []
+    }
+  }
+}

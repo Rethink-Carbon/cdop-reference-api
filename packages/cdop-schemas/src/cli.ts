@@ -4,7 +4,11 @@ import { loadUpstream } from "./index.js";
 
 const [cmd, ...args] = process.argv.slice(2);
 /** `--round2` points sync and drift at the Round 2 draft pin (UPSTREAM-ROUND2.json). */
-const round = args.includes("--round2") ? 2 : 1;
+const round = args.includes("--additionality")
+  ? "additionality"
+  : args.includes("--round2")
+    ? 2
+    : 1;
 const positional = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--ref");
 
 async function main(): Promise<number> {
@@ -13,10 +17,12 @@ async function main(): Promise<number> {
       const r = await verifyVendored();
       const up = loadUpstream(1);
       const r2 = loadUpstream(2);
+      const add = loadUpstream("additionality");
       if (r.ok) {
         console.log(
           `OK: ${Object.keys(up.files).length} vendored files match upstream ${up.repo}@${up.commit.slice(0, 7)}; ` +
-            `${Object.keys(r2.files).length} Round 2 draft files match ${r2.ref}@${r2.commit.slice(0, 7)}`,
+            `${Object.keys(r2.files).length} Round 2 draft files match ${r2.ref}@${r2.commit.slice(0, 7)}; ` +
+            `${Object.keys(add.files).length} Additionality files match ${add.ref}@${add.commit.slice(0, 7)}`,
         );
         return 0;
       }
@@ -61,7 +67,7 @@ async function main(): Promise<number> {
     }
     default:
       console.error(
-        "usage: cli <verify|lint [--json]|sync [--ref x] [--round2]|drift [ref] [--round2] [--fail-on-drift]>",
+        "usage: cli <verify|lint [--json]|sync [--ref x] [--round2 | --additionality]|drift [ref] [--round2 | --additionality] [--fail-on-drift]>",
       );
       return 1;
   }

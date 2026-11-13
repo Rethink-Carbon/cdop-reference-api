@@ -1,0 +1,19 @@
+{
+  "repo": "Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol",
+  "ref": "R2P-ST-Testing",
+  "commit": "daab3d58d7b7b01cc26ca849f652194b111a35eb",
+  "commit_date": "2026-10-26T20:23:45Z",
+  "schema_version": "round2-draft-additionality",
+  "fetched_at": "2026-11-13T10:34:34.244001+00:00",
+  "round": 2,
+  "status": "draft",
+  "include": ["Additionality.schema.json", "additionality.json"],
+  "paths": {
+    "schemas/additionality": "json_schema",
+    "examples/additionality": "examples"
+  },
+  "files": {
+    "schemas/additionality/Additionality.schema.json": "0856ceb51d2e2a77ebe7a9c27f868717accb3f76a6465829c8b52990139ebd84",
+    "examples/additionality/additionality.json": "d0afe9a1ef702cc1cd0e6d8b84a6c9105e19c89fb26b1ab86b1cc925562d7c63"
+  }
+}

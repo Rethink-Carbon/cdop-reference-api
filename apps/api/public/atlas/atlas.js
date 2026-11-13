@@ -1349,7 +1349,16 @@ async function projectDetail(id, tab, ctx) {
       );
     body = section(
       "CDOP documents",
-      "Each pod is a schema-pure CDOP document for this project. The API validates it against the vendored schema named in the Schema column and reports the result in X-CDOP-Conformance, citing the schema feedback register entry behind each error. Round 2 drafts are the TWG's fast track pods, taken from an upstream test branch: they are not part of the published CDOP release.",
+      "Each pod is a schema-pure CDOP document for this project. The API validates it against the vendored schema named in the Schema column and reports the result in X-CDOP-Conformance, citing the schema feedback register entry behind each error. Round 2 drafts include the fast track metadata pods and the separately pinned standard track Additionality proposal. They are not part of the published CDOP release.",
+      h(
+        "p",
+        {},
+        "Additionality: project exports contain only known project facts; no assessment has been performed. ",
+        external("/docs/guides/additionality-review", "Read the review"),
+        " or inspect the ",
+        external("/v2/drafts/additionality/example", "upstream hypothetical worked example"),
+        ".",
+      ),
       h(
         "div",
         { class: "table-wrap" },
@@ -1376,7 +1385,11 @@ async function projectDetail(id, tab, ctx) {
               status !== 200
                 ? h("span", { class: "bad" }, `HTTP ${status}`)
                 : valid
-                  ? h("span", { class: "ok" }, "✓ valid")
+                  ? h(
+                      "span",
+                      { class: "ok" },
+                      pod.name === "additionality" ? "✓ schema valid · not assessed" : "✓ valid",
+                    )
                   : h(
                       "span",
                       { class: "bad" },

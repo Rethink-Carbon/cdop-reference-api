@@ -10,6 +10,8 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 
 ### Added
 
+- Separately pinned standard-track Additionality draft (`daab3d5`): schema, hypothetical worked example, validator, project documents, Atlas row and TWG review guide. Project exports contain known facts only; schema validity is explicitly distinguished from an additionality assessment. Published and fast-track schema pins are unchanged.
+
 - Versioned TWG proposal 0.1.0 for FB-010 and FB-012–015, with stable demo project identity across registry transfers, separate lifecycle/hold/native status, issuance preconditions and ordered audit histories. Includes HAL/raw JSON/schema/validation routes, an Atlas version selector, deterministic WCC/Peatland/VCS/transfer fixtures and regression checks.
 - Reproducible review of the October 26 Registry and November 6 Verification attachments, with draft feedback and a VAE recommendation in `docs/reviews/round2-2026-11-13.md`.
 

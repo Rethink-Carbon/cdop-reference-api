@@ -19,6 +19,7 @@ import type { ProjectAggregate, UnitBlock } from "../../seed/aggregate.js";
 import { SDG_NAMES } from "../../seed/vocab.js";
 import { documentUrl, geoFileUrl, type ProjectionContext } from "./context.js";
 import { buildRound2Document } from "./round2.js";
+import { buildAdditionality } from "./additionality.js";
 
 export interface ProjectionOptions {
   /** Which block to render as `unit`/`vintage` (default: most recently issued active/pending block). */
@@ -851,6 +852,7 @@ export function buildPodDocument(
   pod: PodName,
   opts: ProjectionOptions = {},
 ): ProjectionResult {
+  if (pod === "additionality") return buildAdditionality(agg);
   if (POD_ROUND[pod] === 2) return buildRound2Document(agg, ctx, pod, opts);
   const full = buildFullList(agg, ctx, opts);
   if (pod === "full-list") return full;

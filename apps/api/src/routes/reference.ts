@@ -11,7 +11,9 @@ import {
   vendoredSchemaPath,
   listEnums,
   loadSchemaText,
+  loadExample,
   loadUpstream,
+  schemaSource,
   buildFieldRegistry,
   validatePayload,
 } from "@cdop/schemas";
@@ -49,6 +51,29 @@ const STATIC_LISTS: Record<string, () => unknown[]> = {
 
 export function registerReferenceRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): void {
   const { linker } = deps;
+
+  mount(
+    app,
+    createRoute({
+      method: "get",
+      path: "/v2/drafts/additionality/example",
+      tags: ["CDOP documents"],
+      summary: "Upstream hypothetical Additionality example (draft)",
+      description:
+        "The complete synthetic worked example supplied with the standard-track draft. It is not evidence about a real project or an additionality assessment. Includes hypothetical private financial fields for schema review only.",
+      responses: {
+        200: {
+          description: "Hypothetical upstream example, schema-valid but not assessed",
+          content: { "application/json": { schema: z.record(z.string(), z.unknown()) } },
+        },
+      },
+    }),
+    (c) =>
+      json(c, loadExample("additionality"), 200, {
+        "x-cdop-schema-version": schemaVersionLabel("additionality"),
+        link: `<${linker.url(`/v2/schemas/${SCHEMA_FILES.additionality}`)}>; rel="describedby"`,
+      }),
+  );
 
   mount(
     app,
@@ -160,15 +185,17 @@ export function registerReferenceRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps)
     (c, _input) => {
       const up = loadUpstream();
       const r2 = loadUpstream(2);
+      const additionality = loadUpstream("additionality");
       const items = POD_NAMES.map((pod) => ({
         pod,
         title: POD_TITLES[pod],
         file: SCHEMA_FILES[pod],
         round: POD_ROUND[pod],
+        source: schemaSource(pod),
         status: POD_ROUND[pod] === 2 ? "draft" : "published",
         schema_version: schemaVersionLabel(pod),
         href: linker.url(`/v2/schemas/${SCHEMA_FILES[pod]}`),
-        sha256: loadUpstream(POD_ROUND[pod]).files[vendoredSchemaPath(pod)],
+        sha256: loadUpstream(schemaSource(pod)).files[vendoredSchemaPath(pod)],
       }));
       return halJson(
         c,
@@ -188,6 +215,14 @@ export function registerReferenceRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps)
               commit_date: r2.commit_date,
               status: r2.status,
               url: `https://github.com/${r2.repo}/tree/${r2.commit}/json_schema`,
+            },
+            additionality_upstream: {
+              repo: additionality.repo,
+              ref: additionality.ref,
+              commit: additionality.commit,
+              commit_date: additionality.commit_date,
+              status: additionality.status,
+              url: `https://github.com/${additionality.repo}/tree/${additionality.commit}/json_schema`,
             },
             fields: buildFieldRegistry().length,
           },

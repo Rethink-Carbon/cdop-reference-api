@@ -19,6 +19,7 @@ const CLEAN_PODS: PodName[] = [
   "co-benefits",
   "durability-permanence",
   "project-finance",
+  "additionality",
 ];
 /** Register entries allowed to explain a failure. Anything else is a bug in this API. */
 const KNOWN = [
@@ -222,5 +223,37 @@ describe("unit-level labels (CDOP-FB-029)", () => {
       }
     }
     expect(corsiaOnly).toBeGreaterThan(0);
+  });
+});
+
+describe("Additionality exports", () => {
+  it("exports only known project facts for every standard, without inferring an assessment", () => {
+    for (const project of ds.projects) {
+      const result = buildPodDocument(project, ctx, "additionality");
+      const draft = result.document.additionality as Record<string, unknown>;
+      expect(draft.additionality_project_id).toBe(project.project_identifier);
+      expect(
+        Object.keys(draft).filter(
+          (k) => !["additionality_project_id", "lockin_risk_project_scale"].includes(k),
+        ),
+      ).toEqual([]);
+      expect(validateDocument("additionality", result.document).valid, project.id).toBe(true);
+      expect(result.placeholders).toEqual([]);
+      expect(buildPodDocument(project, ctx, "additionality", { strict: true })).toEqual(result);
+      expect(buildPodDocument(project, ctx, "full-list").document).not.toHaveProperty(
+        "additionality",
+      );
+    }
+  });
+
+  it("omits unavailable scale and does not interpret generic documents as assessment evidence", () => {
+    const first = ds.projects[0];
+    if (!first) throw new Error("Expected a seeded project");
+    const project = structuredClone(first);
+    delete project.area_ha;
+    delete project.duration_years;
+    expect(buildPodDocument(project, ctx, "additionality").document).toEqual({
+      additionality: { additionality_project_id: project.project_identifier },
+    });
   });
 });

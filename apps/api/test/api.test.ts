@@ -397,8 +397,36 @@ describe("HTTP API", () => {
 
     const index = await hal("/v2/schemas");
     const drafts = index._embedded.schemas?.filter((s) => s.round === 2) ?? [];
-    expect(drafts.map((s) => s.status)).toEqual(["draft", "draft", "draft"]);
+    expect(drafts.map((s) => s.status)).toEqual(["draft", "draft", "draft", "draft"]);
     expect((index.round2_upstream as { ref: string }).ref).toBe("R2P-FT-Testing");
+  });
+
+  it("serves the independently pinned Additionality schema and hypothetical example", async (ctx) => {
+    if (!app) return ctx.skip();
+    const index = await hal("/v2/schemas");
+    expect((index.additionality_upstream as { ref: string }).ref).toBe("R2P-ST-Testing");
+    const entry = index._embedded.schemas?.find((s) => s.pod === "additionality");
+    expect(entry?.source).toBe("additionality");
+    expect(entry?.schema_version).toBe(schemaVersionLabel("additionality"));
+    expect(entry?.sha256).toBe("0856ceb51d2e2a77ebe7a9c27f868717accb3f76a6465829c8b52990139ebd84");
+    for (const url of [
+      "/v2/schemas/Additionality.schema.json",
+      "/v2/drafts/additionality/example",
+    ]) {
+      const response = await get(url);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("x-cdop-schema-version")).toBe(
+        schemaVersionLabel("additionality"),
+      );
+    }
+    const example: unknown = await (await get("/v2/drafts/additionality/example")).json();
+    const validated = await app.request(`${BASE}/v2/validate?schema=additionality`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(example),
+    });
+    expect(validated.status).toBe(200);
+    expect(((await validated.json()) as { valid: boolean }).valid).toBe(true);
   });
 
   it("repeats a CDOP document's schema and conformance headers on 304", async (ctx) => {
@@ -410,7 +438,7 @@ describe("HTTP API", () => {
     const links = project._links["cdop:document"] ?? [];
     // A cache merges the 304's headers into its stored copy, so a 304 that fell back to the
     // app-wide v2.0 label relabelled cached Round 2 pods as v2.0 in the Atlas.
-    for (const name of ["registry-metadata", "validation-metadata", "full-list"]) {
+    for (const name of ["registry-metadata", "validation-metadata", "additionality", "full-list"]) {
       const href = links.find((d) => d.name === name)?.href ?? "";
       const full = await get(href);
       const etag = full.headers.get("etag") ?? "";
