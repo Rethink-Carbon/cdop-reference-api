@@ -8,6 +8,8 @@ The register is served by the API at `/rels/feedback` and to MCP clients as the 
 
 **Implementation snapshot.** Original observations and the "What the reference API does" sections are written against the vendored schema at upstream commit `eff6ca3d634fc4032d9873cc2c423487c8f34a1b` (16 September 2026), schema version 2.0. File paths are relative to `packages/cdop-schemas/`. Field ids are the `x-cdop-field-id` values from the schema. Dated rechecks preserve the evidence at each review. The 20 October audit did not change the pins. On 13 November the published pin and projection were upgraded to v2.1.0 (`363b194`); the Round 2 pin remains unchanged. Original observations below are historical unless a newer recheck says otherwise.
 
+**Additionality update, 13 November.** The latest standard-track draft is now separately pinned and served for review. Only its project reference is mandatory; the earlier all-fields-required concern is resolved. Field ID collisions remain (030), and validation does not ensure assessment evidence (042). See the [review](docs/additionality-review.md).
+
 **Round 2 drafts.** Entries `CDOP-FB-030` onwards cover the three Round 2 "fast track" draft pods (Registry Metadata, Validation Metadata, Verification Metadata). They are not on `main`: they are vendored from the upstream `R2P-FT-Testing` branch at commit `39ac5351e8ca7ecdbc91bbb733188ea226bc21cb` (13 October 2026), pinned in `UPSTREAM-ROUND2.json` and served with `X-CDOP-Schema-Version: round2-draft+39ac535`. Their file paths are relative to `packages/cdop-schemas/schemas/round2/`. Many repeat points Rethink Carbon sent Sebastian Weeks on 1 September 2026 against the 27 August drafts; those are marked `raised upstream`. Earlier fixes include the malformed validation identifier key (historically recorded as `_id`, also described as `"validation _id"` in the earlier introduction; see `CDOP-FB-001`), the enumerated lists now present in the JSON for validation stages, stage status, sectoral scopes, claim type, unit of measure and audit status, and the upper-case enum values (`CARBON_REMOVAL`), now sentence case.
 
 **Numbering.** Entries are `CDOP-FB-nnn`, sequential, never reused, never deleted. `CDOP-FB-001` is the historical item Rethink Carbon reported before this repository existed; new entries follow it. Entries change status; they do not disappear.
@@ -72,6 +74,7 @@ The register is served by the API at `/rels/feedback` and to MCP clients as the 
 | CDOP-FB-039 | ambiguity | `verification.verification_credential_issuer_id`                                                     | A decentralised identifier is required on every verification                                                       | addressed in Verification drafts |
 | CDOP-FB-040 | ambiguity | `verification.quantity[]`, `verification.deductions[]`                                               | Verified quantity: unit, uncertainty basis and period are ambiguous                                                | partly addressed in new draft    |
 | CDOP-FB-041 | defect    | Round 2 annotations                                                                                  | Round 2 drops annotations Round 1 carries, and one cardinality contradicts `required`                              | raised upstream                  |
+| CDOP-FB-042 | design    | Additionality evidence                                                                               | Schema validity does not establish assessment completeness                                                         | open, not yet raised upstream    |
 
 ## November implementation and draft review
 
@@ -960,7 +963,7 @@ The same CORSIA phases are also spelled differently at the two levels:
 
 ---
 
-## CDOP-FB-030: Two Round 2 branches give the same field ids to different fields
+## CDOP-FB-030: Draft field ids collide with other draft and published fields
 
 |                   |                                                                                                                                       |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -974,7 +977,9 @@ The same CORSIA phases are also spelled differently at the two levels:
 
 **Impact.** A field id exists to identify one field across pods, files and versions. Merging both branches would give 56 ids two meanings, and a client keyed on ids (as this API's relocation of field 242 is, see CDOP-FB-021) would join unrelated fields.
 
-**What the reference API does.** Vendors only the fast track pods, so its field registry has one field per id. It does not vendor the Additionality draft.
+**Recheck (13 November 2026).** The 27 October Additionality attachments match standard-track commit `daab3d5` (26 October). The revised 57-field draft collides with five published v2.1.0 fields and 52 fast-track fields (10 Registry, 27 Validation, 15 Verification). This now also conflicts with published IDs. The older 20 October findings above describe the previous draft.
+
+**What the reference API does.** Vendors Additionality separately in `UPSTREAM-ADDITIONALITY.json`, without adopting the standard-track Full List. The path-based field registry retains both meanings; consumers must qualify numeric IDs with the pinned schema and property path. See the [Additionality review](docs/additionality-review.md).
 
 **Proposal.** Allocate field ids centrally in the source workbook before a pod is drafted, and add a generator check that fails when one id names two paths.
 
@@ -1239,3 +1244,12 @@ with `"required": ["is_current"]` on its object. The audit status description st
 **What the reference API does.** Nothing to work around: it validates against `required` and ignores the annotations. `pnpm cdop:lint` covers the Round 2 files with the same checks as Round 1.
 
 **Proposal.** A shared style guide for all pods, enforced by the lint step proposed in CDOP-FB-007: every field carries the same annotation set, cardinality is generated from `required` (or the reverse), and enum values are short codes with definitions in a separate column.
+
+## CDOP-FB-042: Additionality validation does not establish assessment completeness
+
+- Source: standard-track `daab3d58d7b7b01cc26ca849f652194b111a35eb`, reviewed 13 November 2026.
+- Status: open, not yet raised upstream.
+
+Only `additionality_project_id` is required in the latest flat 57-field draft. That resolves the previous concern about requiring every alternative test and allows private financial fields to be omitted. However, the schema accepts an empty identifier, unknown properties, a regulatory claim without evidence and a selected financial benchmark approach without benchmark details. A boolean given as a string correctly fails. Both upstream examples validate, but 34 paths in the standard-track Full List example are undeclared.
+
+Agree applicability and conditional evidence requirements, a non-empty cross-registry project identifier convention, typed financial values and evidence/assessment provenance. Retain the distinction between structural validation, completeness and a substantive additionality decision. The reference API vendors the standalone draft unchanged, exports known facts only and labels schema-valid documents as not assessed. The [Additionality review](docs/additionality-review.md) links to the reproducible results and hypothetical worked example.

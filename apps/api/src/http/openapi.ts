@@ -9,6 +9,8 @@ const CDOP_SCHEMA_TREE_URL = `${CDOP_REPO_URL}/tree/${upstream.commit}/${upstrea
 const round2 = loadUpstream(2);
 const ROUND2_TREE_URL = `${CDOP_REPO_URL}/tree/${round2.commit}/${round2.paths["schemas/round2"] ?? ""}`;
 
+const additionality = loadUpstream("additionality");
+
 export function openApiConfig(deps: AppDeps) {
   return {
     openapi: "3.1.0",
@@ -23,7 +25,9 @@ export function openApiConfig(deps: AppDeps) {
         "",
         `Embedded CDOP schema version: **[${deps.schemaVersion}](${CDOP_SCHEMA_TREE_URL})** (vendored verbatim from the [CDOP repository](${CDOP_REPO_URL}) under \`components.schemas.cdop.v2.*\`).`,
         "",
-        `Round 2 draft pods (Registry, Validation and Verification Metadata): **[${round2.schema_version}+${round2.commit.slice(0, 7)}](${ROUND2_TREE_URL})**, vendored verbatim from the upstream \`${round2.ref}\` branch under \`components.schemas.cdop.round2.*\`. They are drafts under test, not part of CDOP v2.0.`,
+        `Round 2 draft pods (Registry, Validation and Verification Metadata): **[${round2.schema_version}+${round2.commit.slice(0, 7)}](${ROUND2_TREE_URL})**, vendored verbatim from the upstream \`${round2.ref}\` branch under \`components.schemas.cdop.round2.*\`. They are drafts under test, not part of published CDOP v2.1.0.`,
+        "",
+        `Additionality standard-track draft: **${additionality.schema_version}+${additionality.commit.slice(0, 7)}**, separately pinned to [${additionality.ref}](${CDOP_REPO_URL}/tree/${additionality.commit}). Project documents contain known facts only; schema validity is not an additionality assessment. The published Full List is unchanged. [Review and worked example](/docs/guides/additionality-review).`,
         "",
         "Every response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.",
         "",

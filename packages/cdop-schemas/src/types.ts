@@ -39,13 +39,16 @@ export type PodName =
   | "labels-certifications"
   | "registry-metadata"
   | "validation-metadata"
-  | "verification-metadata";
+  | "verification-metadata"
+  | "additionality";
 
 /**
  * 1 = the published schema on upstream `main`. 2 = a Round 2 draft pod, vendored from an upstream
  * test branch and pinned separately (UPSTREAM-ROUND2.json). Drafts are not part of CDOP v2.0.
  */
 export type SchemaRound = 1 | 2;
+/** Source pins are independent of publication rounds: Round 2 has separate test branches. */
+export type SchemaSource = SchemaRound | "additionality";
 
 export interface FieldRecord {
   /** Dotted path with [] for array items, e.g. `project.status[].project_status` */

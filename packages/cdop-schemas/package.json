@@ -14,14 +14,16 @@
     "./schemas/*": "./schemas/*",
     "./examples/*": "./examples/*",
     "./upstream": "./UPSTREAM.json",
-    "./upstream-round2": "./UPSTREAM-ROUND2.json"
+    "./upstream-round2": "./UPSTREAM-ROUND2.json",
+    "./upstream-additionality": "./UPSTREAM-ADDITIONALITY.json"
   },
   "files": [
     "dist",
     "schemas",
     "examples",
     "UPSTREAM.json",
-    "UPSTREAM-ROUND2.json"
+    "UPSTREAM-ROUND2.json",
+    "UPSTREAM-ADDITIONALITY.json"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
-import type { JsonSchema, PodName, SchemaRound, UpstreamPin } from "./types.js";
+import type { JsonSchema, PodName, SchemaRound, SchemaSource, UpstreamPin } from "./types.js";
 
-export type { JsonSchema, PodName, FieldRecord, SchemaRound, UpstreamPin } from "./types.js";
+export type {
+  JsonSchema,
+  PodName,
+  FieldRecord,
+  SchemaRound,
+  SchemaSource,
+  UpstreamPin,
+} from "./types.js";
 export { buildFieldRegistry, fieldsOf, enumValues, listEnums } from "./registry.js";
 export {
   validatePayload,
@@ -27,6 +34,7 @@ export const SCHEMA_FILES: Record<PodName, string> = {
   "registry-metadata": "Registry_Metadata.schema.json",
   "validation-metadata": "Validation_Metadata.schema.json",
   "verification-metadata": "Verification_Metadata.schema.json",
+  additionality: "Additionality.schema.json",
 };
 
 export const EXAMPLE_FILES: Partial<Record<PodName, string>> = {
@@ -45,6 +53,7 @@ export const EXAMPLE_FILES: Partial<Record<PodName, string>> = {
   "registry-metadata": "registry_metadata.json",
   "validation-metadata": "validation_metadata.json",
   "verification-metadata": "verification_metadata.json",
+  additionality: "additionality.json",
 };
 
 /** Which round each pod belongs to. Round 2 pods are drafts from an upstream test branch. */
@@ -64,6 +73,7 @@ export const POD_ROUND: Record<PodName, SchemaRound> = {
   "registry-metadata": 2,
   "validation-metadata": 2,
   "verification-metadata": 2,
+  additionality: 2,
 };
 
 export const POD_NAMES = Object.keys(SCHEMA_FILES) as PodName[];
@@ -87,6 +97,7 @@ export const POD_TITLES: Record<PodName, string> = {
   "registry-metadata": "Registry Metadata",
   "validation-metadata": "Validation Metadata",
   "verification-metadata": "Verification Metadata",
+  additionality: "Additionality",
 };
 
 export function isPodName(value: string): value is PodName {
@@ -99,13 +110,15 @@ export const examplesDir = new URL("examples/v2/", packageRoot);
 export const round2SchemasDir = new URL("schemas/round2/", packageRoot);
 export const round2ExamplesDir = new URL("examples/round2/", packageRoot);
 
-const UPSTREAM_FILES: Record<SchemaRound, string> = {
+const UPSTREAM_FILES: Record<SchemaSource, string> = {
   1: "UPSTREAM.json",
   2: "UPSTREAM-ROUND2.json",
+  additionality: "UPSTREAM-ADDITIONALITY.json",
 };
 
 /** Package-relative path of a pod's vendored schema, as keyed in its UPSTREAM file. */
 export function vendoredSchemaPath(pod: PodName): string {
+  if (pod === "additionality") return `schemas/additionality/${SCHEMA_FILES[pod]}`;
   return `${POD_ROUND[pod] === 2 ? "schemas/round2" : "schemas/v2"}/${SCHEMA_FILES[pod]}`;
 }
 
@@ -130,18 +143,23 @@ export function loadSchemaText(pod: PodName): string {
 export function loadExample(pod: PodName): unknown {
   const file = EXAMPLE_FILES[pod];
   if (!file) throw new Error(`no upstream example for ${pod}`);
-  const dir = POD_ROUND[pod] === 2 ? round2ExamplesDir : examplesDir;
+  const dir =
+    pod === "additionality"
+      ? new URL("examples/additionality/", packageRoot)
+      : POD_ROUND[pod] === 2
+        ? round2ExamplesDir
+        : examplesDir;
   return JSON.parse(readFileSync(new URL(file, dir), "utf8")) as unknown;
 }
 
 /** The upstream pin for a round: `main` for round 1, the Round 2 test branch for round 2. */
-export function loadUpstream(round: SchemaRound = 1): UpstreamPin {
+export function loadUpstream(round: SchemaSource = 1): UpstreamPin {
   return JSON.parse(
     readFileSync(new URL(UPSTREAM_FILES[round], packageRoot), "utf8"),
   ) as UpstreamPin;
 }
 
-export function upstreamFileName(round: SchemaRound): string {
+export function upstreamFileName(round: SchemaSource): string {
   return UPSTREAM_FILES[round];
 }
 
@@ -150,6 +168,11 @@ export function upstreamFileName(round: SchemaRound): string {
  * "round2-draft+39ac535" for a Round 2 pod.
  */
 export function schemaVersionLabel(pod?: PodName): string {
-  const up = loadUpstream(pod ? POD_ROUND[pod] : 1);
+  const up = loadUpstream(pod ? schemaSource(pod) : 1);
   return `${up.schema_version}+${up.commit.slice(0, 7)}`;
+}
+
+/** Numeric field IDs are only meaningful within the pinned schema source and field path. */
+export function schemaSource(pod: PodName): SchemaSource {
+  return pod === "additionality" ? "additionality" : POD_ROUND[pod];
 }

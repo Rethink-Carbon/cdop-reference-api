@@ -202,7 +202,7 @@ export function buildMcpServer(
         POD_NAMES.join(", ") +
         ". " +
         ROUND2_PODS.join(", ") +
-        " are Round 2 draft pods from an upstream test branch, not part of CDOP v2.0; verification-metadata describes one verification event (verification_id, default the latest completed).",
+        " are Round 2 draft pods from separately pinned upstream test branches, not part of published CDOP. Additionality contains known project facts only; schema validity is not an assessment; verification-metadata describes one verification event (verification_id, default the latest completed).",
       inputSchema: z.object({
         project_id: z.string().optional(),
         unit_id: z.string().optional(),

@@ -29,7 +29,10 @@ describe("vendored CDOP schemas", () => {
     const registry = buildFieldRegistry();
     const idsOf = (round: 1 | 2): number[] =>
       registry.flatMap((f) =>
-        f.fieldId !== undefined && f.pods.some((p) => POD_ROUND[p] === round) ? [f.fieldId] : [],
+        f.fieldId !== undefined &&
+        f.pods.some((p) => p !== "additionality" && POD_ROUND[p] === round)
+          ? [f.fieldId]
+          : [],
       );
     expect(Math.max(...idsOf(1))).toBe(260);
     expect(Math.min(...idsOf(2))).toBe(261);
@@ -107,11 +110,52 @@ describe("vendored CDOP schemas", () => {
       "registry-metadata",
       "validation-metadata",
       "verification-metadata",
+      "additionality",
     ]);
     for (const pod of ROUND2_PODS) {
       const result = validatePayload(pod, loadExample(pod));
       expect(result.errors, pod).toEqual([]);
     }
+  });
+
+  it("pins Additionality independently and keeps colliding field IDs separate by path", () => {
+    const up = loadUpstream("additionality");
+    expect(up.ref).toBe("R2P-ST-Testing");
+    expect(up.status).toBe("draft");
+    expect(Object.keys(up.files)).toHaveLength(2);
+    expect(schemaVersionLabel("additionality")).toBe(
+      `round2-draft-additionality+${up.commit.slice(0, 7)}`,
+    );
+    const sameId = buildFieldRegistry().filter((f) => f.fieldId === 256);
+    expect(sameId.some((f) => f.pods.includes("full-list"))).toBe(true);
+    expect(
+      sameId.some(
+        (f) =>
+          f.path === "additionality.additionality_project_id" && f.pods.includes("additionality"),
+      ),
+    ).toBe(true);
+    expect(new Set(sameId.map((f) => f.path)).size).toBeGreaterThan(1);
+  });
+
+  it("requires only the Additionality project reference and checks boolean types", () => {
+    expect(
+      validatePayload("additionality", { additionality: { additionality_project_id: "demo" } })
+        .valid,
+    ).toBe(true);
+    expect(validatePayload("additionality", { additionality: {} }).valid).toBe(false);
+    expect(
+      validatePayload("additionality", {
+        additionality: { additionality_project_id: "demo", common_practice_first_of_kind: "yes" },
+      }).valid,
+    ).toBe(false);
+    const schema = loadSchema("additionality").properties?.additionality;
+    const example = structuredClone(loadExample("additionality")) as {
+      additionality: Record<string, unknown>;
+    };
+    for (const [key, field] of Object.entries(schema?.properties ?? {})) {
+      if (field["x-cdop-public-private"] === "Private") delete example.additionality[key];
+    }
+    expect(validatePayload("additionality", example).valid).toBe(true);
   });
 
   it("published schemas have no malformed property keys (CDOP-FB-002/003)", () => {

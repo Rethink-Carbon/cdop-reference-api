@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { loadUpstream, packageRoot, upstreamFileName } from "./index.js";
-import type { SchemaRound, UpstreamPin } from "./types.js";
+import type { SchemaSource, UpstreamPin } from "./types.js";
 
 const RAW = "https://raw.githubusercontent.com";
 const API = "https://api.github.com";
@@ -48,7 +48,7 @@ function wanted(up: UpstreamPin, names: string[]): string[] {
 /** Recompute sha256 of every vendored file and compare with UPSTREAM.json and UPSTREAM-ROUND2.json. */
 export async function verifyVendored(): Promise<{ ok: boolean; mismatches: string[] }> {
   const mismatches: string[] = [];
-  for (const round of [1, 2] as const) {
+  for (const round of [1, 2, "additionality"] as const) {
     for (const [rel, expected] of Object.entries(loadUpstream(round).files)) {
       const body = await readFile(new URL(rel, packageRoot));
       const actual = createHash("sha256").update(body).digest("hex");
@@ -62,7 +62,10 @@ export async function verifyVendored(): Promise<{ ok: boolean; mismatches: strin
  * Re-vendor a round's files from upstream at `ref` and rewrite its UPSTREAM file. Round 1
  * defaults to `main`; round 2 to the test branch it is pinned to.
  */
-export async function syncFromUpstream(ref?: string, round: SchemaRound = 1): Promise<UpstreamPin> {
+export async function syncFromUpstream(
+  ref?: string,
+  round: SchemaSource = 1,
+): Promise<UpstreamPin> {
   const up = loadUpstream(round);
   const target = ref ?? up.ref;
   const { sha, date } = await resolveCommit(up.repo, target);
@@ -105,7 +108,7 @@ export interface DriftReport {
 }
 
 /** Compare upstream `ref` against a round's pinned vendored copy without writing anything. */
-export async function driftReport(ref?: string, round: SchemaRound = 1): Promise<DriftReport> {
+export async function driftReport(ref?: string, round: SchemaSource = 1): Promise<DriftReport> {
   const up = loadUpstream(round);
   const { sha } = await resolveCommit(up.repo, ref ?? up.ref);
   const changed: string[] = [];
