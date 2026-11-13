@@ -12,15 +12,23 @@ const GUIDES = {
   "hateoas-tour": "docs/hateoas-tour.md",
   "api-profile": "docs/api-profile.md",
   projection: "docs/projection.md",
+  "twg-proposal": "docs/twg-proposal.md",
   mcp: "docs/mcp.md",
   "schema-feedback": "SCHEMA-FEEDBACK.md",
 };
 mkdirSync(out, { recursive: true });
 for (const [slug, source] of Object.entries(GUIDES)) {
-  const md = readFileSync(path.join(repo, source), "utf8").replace(
-    /\]\((hateoas-tour|api-profile|projection|mcp)\.md(#[^)]*)?\)/g,
-    "](./$1$2)",
-  );
+  const md = readFileSync(path.join(repo, source), "utf8")
+    .replace(
+      /\]\((hateoas-tour|api-profile|projection|mcp|twg-proposal)\.md(#[^)]*)?\)/g,
+      "](./$1$2)",
+    )
+    .replace(/\]\(docs\/twg-proposal\.md\)/g, "](./twg-proposal)")
+    // Reply drafts stay in the repository, outside the public guide navigation.
+    .replace(
+      /\[([^\]]+)\]\(docs\/reviews\/round2-2026-11-13\.md\)/g,
+      "$1 (repository file: `docs/reviews/round2-2026-11-13.md`)",
+    );
   writeFileSync(path.join(out, `${slug}.md`), md);
 }
 const publicDir = path.resolve(here, "../public");

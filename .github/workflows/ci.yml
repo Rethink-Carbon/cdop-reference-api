@@ -52,6 +52,8 @@ jobs:
       - name: Migrate + seed the test database
         run: pnpm db:migrate && pnpm seed -- --counts wcc=8,pc=6,vcs=6,gs4gg=2,acr=2,plan-vivo=2,puro=2
       - run: pnpm test
+      - name: Worked proposal fixtures match the generator
+        run: pnpm proposals:check
       - name: OpenAPI artefact is up to date
         run: pnpm openapi:check
       - name: Spectral lint

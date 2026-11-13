@@ -28,7 +28,7 @@ curl -s -D - -o /dev/null "$BASE/v2" | grep -iE '^x-(cdop|api)-'
 ```
 
 ```
-X-CDOP-Schema-Version: 2.0+eff6ca3
+X-CDOP-Schema-Version: 2.1.0+363b194
 X-API-Version: 0.1.0
 ```
 
@@ -116,7 +116,7 @@ curl -s -D - "$FULL" -o full-list.json | grep -iE '^(etag|link|x-cdop-schema-ver
 ```
 ETag: "v7"
 Link: <http://localhost:3000/v2/schemas/Full_List.schema.json>; rel="describedby"; type="application/schema+json"
-X-CDOP-Schema-Version: 2.0+eff6ca3
+X-CDOP-Schema-Version: 2.1.0+363b194
 ```
 
 Validate it:
@@ -131,7 +131,7 @@ A project without financial agreements fails the upstream `required` list by des
 curl -s -D - -o /dev/null "$FULL?strict=1" | grep -i '^x-cdop-conformance'
 ```
 
-Now try one of the upstream examples, which do not validate (`CDOP-FB-004`):
+Now try an upstream example. All twelve v2.1.0 examples validate (FB-004 is fixed):
 
 ```bash
 curl -s -X POST "$BASE/v2/validate?schema=unit-description" -H 'content-type: application/json' \

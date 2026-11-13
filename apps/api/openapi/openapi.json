@@ -4,7 +4,7 @@
     "title": "CDOP reference API",
     "version": "0.1.0",
     "summary": "Reference implementation of an API for the Carbon Data Open Protocol (CDOP)",
-    "description": "HAL + HAL-FORMS hypermedia over the CDOP v2 entity model, with schema-pure CDOP documents per pod, a CloudEvents stream and an MCP server.\n\nBuilt and run by [Rethink Carbon](https://rethinkcarbon.co.uk). It implements the [Carbon Data Open Protocol](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol), the open, multi-stakeholder schema that standardises data about carbon crediting projects and carbon credits.\n\nEmbedded CDOP schema version: **[2.0+eff6ca3](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/eff6ca3d634fc4032d9873cc2c423487c8f34a1b/json_schema)** (vendored verbatim from the [CDOP repository](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol) under `components.schemas.cdop.v2.*`).\n\nRound 2 draft pods (Registry, Validation and Verification Metadata): **[round2-draft+39ac535](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/39ac5351e8ca7ecdbc91bbb733188ea226bc21cb/json_schema)**, vendored verbatim from the upstream `R2P-FT-Testing` branch under `components.schemas.cdop.round2.*`. They are drafts under test, not part of CDOP v2.0.\n\nEvery response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.\n\n**[Open the visual explorer](/atlas/)**: every project and registry account on a map, with status histories, issuances, units, documents and charts. It is built only on the public endpoints documented here.\n\nLicences of the third-party code and data this service serves, including this page: [/licenses](/licenses).",
+    "description": "HAL + HAL-FORMS hypermedia over the CDOP v2 entity model, with schema-pure CDOP documents per pod, a CloudEvents stream and an MCP server.\n\nBuilt and run by [Rethink Carbon](https://rethinkcarbon.co.uk). It implements the [Carbon Data Open Protocol](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol), the open, multi-stakeholder schema that standardises data about carbon crediting projects and carbon credits.\n\nEmbedded CDOP schema version: **[2.1.0+363b194](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/363b1944f949eb45b5dd5a22aed576621a27678b/json_schema)** (vendored verbatim from the [CDOP repository](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol) under `components.schemas.cdop.v2.*`).\n\nRound 2 draft pods (Registry, Validation and Verification Metadata): **[round2-draft+39ac535](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/39ac5351e8ca7ecdbc91bbb733188ea226bc21cb/json_schema)**, vendored verbatim from the upstream `R2P-FT-Testing` branch under `components.schemas.cdop.round2.*`. They are drafts under test, not part of CDOP v2.0.\n\nEvery response carries `X-API-Version` and `X-CDOP-Schema-Version`; the API major (`/v2`) is independent of the schema version.\n\n**[Open the visual explorer](/atlas/)**: every project and registry account on a map, with status histories, issuances, units, documents and charts. It is built only on the public endpoints documented here.\n\nLicences of the third-party code and data this service serves, including this page: [/licenses](/licenses).",
     "license": {
       "name": "MIT",
       "url": "https://opensource.org/licenses/MIT"
@@ -31,6 +31,10 @@
     {
       "name": "Project facets",
       "description": "Sub-resources of a project"
+    },
+    {
+      "name": "Proposals",
+      "description": "Versioned Rethink proposals for TWG review; separate from published CDOP"
     },
     {
       "name": "CDOP documents",
@@ -1035,6 +1039,75 @@
         ],
         "additionalProperties": {},
         "description": "Transition table"
+      },
+      "ProposalIndex": {
+        "type": "object",
+        "properties": {
+          "_links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "_embedded": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "_templates": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/HalFormsTemplate"
+            }
+          }
+        },
+        "required": [
+          "_links"
+        ],
+        "additionalProperties": {},
+        "description": "Experimental profiles"
+      },
+      "ProposalProfile": {
+        "type": "object",
+        "properties": {
+          "_links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "_embedded": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "_templates": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/HalFormsTemplate"
+            }
+          }
+        },
+        "required": [
+          "_links"
+        ],
+        "additionalProperties": {},
+        "description": "Review profile"
+      },
+      "ProjectProposal": {
+        "type": "object",
+        "properties": {
+          "_links": {
+            "$ref": "#/components/schemas/Links"
+          },
+          "_embedded": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "_templates": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/HalFormsTemplate"
+            }
+          }
+        },
+        "required": [
+          "_links"
+        ],
+        "additionalProperties": {},
+        "description": "Proposed document and validation"
       },
       "cdop.v2.Full_List": {
         "title": "Full List",
@@ -2730,17 +2803,7 @@
                       "x-cdop-public-private": "Public",
                       "x-cdop-schema": "CDOP",
                       "x-cdop-field-path": "project.crediting_period[].maximum_number_of_crediting_periods"
-                    }
-                  },
-                  "required": []
-                }
-              },
-              "crediting period": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "properties": {
+                    },
                     "current_crediting_period_duration": {
                       "type": "integer",
                       "description": "The specific duration (in years) of a single crediting period granted to the project under the applicable methodology and Carbon Crediting Program. For projects with a fixed project crediting period type, this field is equal to the maximum total crediting duration.",
@@ -2751,7 +2814,7 @@
                       "x-cdop-mutability": "Immutable",
                       "x-cdop-public-private": "Public",
                       "x-cdop-schema": "CDOP",
-                      "x-cdop-field-path": "project.crediting period[].current_crediting_period_duration"
+                      "x-cdop-field-path": "project.crediting_period[].current_crediting_period_duration"
                     }
                   },
                   "required": []
@@ -2994,14 +3057,14 @@
                   "description": "The project's ID within the compliance scheme, if applicable.",
                   "x-cdop-field-id": 243,
                   "x-cdop-pre-issuance-inclusion": "Yes",
-                  "x-cdop-cardinality": "1..*",
+                  "x-cdop-cardinality": "0..*",
                   "x-cdop-data-source": "Market Regulators",
                   "x-cdop-mutability": "Mutable",
                   "x-cdop-public-private": "Public",
                   "x-cdop-schema": "CDOP",
                   "x-cdop-field-path": "project.compliance_market_id"
                 },
-                "minItems": 1
+                "minItems": 0
               },
               "other": {
                 "type": "array",
@@ -3242,7 +3305,6 @@
             "required": [
               "carbon_credit_ownership_attestation",
               "carbon_credit_ownership_documentation",
-              "compliance_market_id",
               "current_registry_project_id",
               "declaring_entity_name",
               "estimated_total_years",
@@ -5443,7 +5505,7 @@
                         "Peatland Code",
                         "Plan Vivo Standard",
                         "Puro Standard",
-                        "Verificed Carbon Standard (VCS)",
+                        "Verified Carbon Standard (VCS)",
                         "Woodland Carbon Code"
                       ],
                       "x-cdop-field-id": 46,
@@ -5494,6 +5556,25 @@
                 "x-cdop-public-private": "Public",
                 "x-cdop-schema": "CDOP",
                 "x-cdop-field-path": "crediting_program.current_standard_version"
+              },
+              "carbon_standard_level_accreditation": {
+                "type": "string",
+                "description": "Project's crediting standard accreditation",
+                "enum": [
+                  "ICVCM",
+                  "CORSIA First Phase approved (2024-2026)",
+                  "CORSIA Second Phase approved (2027-2029)",
+                  "CORSIA Second Phase approved (2030-2032)",
+                  "CORSIA Second Phase approved (2033-2035)"
+                ],
+                "x-cdop-field-id": 242,
+                "x-cdop-pre-issuance-inclusion": "Yes",
+                "x-cdop-cardinality": "0..1",
+                "x-cdop-data-source": "Demand-side integrity standards",
+                "x-cdop-mutability": "Mutable",
+                "x-cdop-public-private": "Public",
+                "x-cdop-schema": "CDOP",
+                "x-cdop-field-path": "crediting_program.carbon_standard_level_accreditation"
               }
             },
             "required": []
@@ -6831,25 +6912,26 @@
                       "x-cdop-public-private": "Public",
                       "x-cdop-schema": "CDOP",
                       "x-cdop-field-path": "unit.credit_block[].block_end"
+                    },
+                    "block_start": {
+                      "type": "integer",
+                      "description": "Number indicating the first unit within a credit block",
+                      "x-cdop-field-id": 152,
+                      "x-cdop-pre-issuance-inclusion": "No",
+                      "x-cdop-cardinality": "1..1",
+                      "x-cdop-data-source": "Carbon Crediting Program/ Standard Setters",
+                      "x-cdop-mutability": "mutable",
+                      "x-cdop-public-private": "Public",
+                      "x-cdop-schema": "CDOP",
+                      "x-cdop-field-path": "unit.credit_block[].block_start"
                     }
                   },
                   "required": [
                     "block_end",
+                    "block_start",
                     "quantity"
                   ]
                 }
-              },
-              "credit_blockblock_start": {
-                "type": "integer",
-                "description": "Number indicating the first unit within a credit block",
-                "x-cdop-field-id": 152,
-                "x-cdop-pre-issuance-inclusion": "No",
-                "x-cdop-cardinality": "1..1",
-                "x-cdop-data-source": "Carbon Crediting Program/ Standard Setters",
-                "x-cdop-mutability": "mutable",
-                "x-cdop-public-private": "Public",
-                "x-cdop-schema": "CDOP",
-                "x-cdop-field-path": "unit.credit_block[]block_start"
               },
               "expected_carbon_credit_price": {
                 "type": "number",
@@ -7090,7 +7172,6 @@
               }
             },
             "required": [
-              "credit_blockblock_start",
               "owner_account_id"
             ]
           },
@@ -7400,7 +7481,7 @@
                       "x-cdop-schema": "CDOP",
                       "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_impact"
                     },
-                    "overview_of_the_projects_approach_to_ track_and_quantify": {
+                    "overview_of_the_projects_approach_to_track_and_quantify": {
                       "type": "string",
                       "description": "Description of the measuring and monitoring plan for the selected co-benefit",
                       "x-cdop-field-id": 181,
@@ -7410,7 +7491,7 @@
                       "x-cdop-mutability": "Mutable",
                       "x-cdop-public-private": "Public",
                       "x-cdop-schema": "CDOP",
-                      "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_approach_to_ track_and_quantify"
+                      "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_approach_to_track_and_quantify"
                     },
                     "indicator_id": {
                       "type": "string",
@@ -8262,32 +8343,6 @@
             "required": [
               "agreement_type"
             ]
-          },
-          "carbon_crediting_standard": {
-            "type": "object",
-            "additionalProperties": true,
-            "properties": {
-              "carbon_standard_level_accreditation": {
-                "type": "string",
-                "description": "Project's crediting standard accreditation",
-                "enum": [
-                  "ICVCM",
-                  "CORSIA First Phase approved (2024-2026)",
-                  "CORSIA Second Phase approved (2027-2029)",
-                  "CORSIA Second Phase approved (2030-2032)",
-                  "CORSIA Second Phase approved (2033-2035)"
-                ],
-                "x-cdop-field-id": 242,
-                "x-cdop-pre-issuance-inclusion": "Yes",
-                "x-cdop-cardinality": "0..1",
-                "x-cdop-data-source": "Demand-side integrity standards",
-                "x-cdop-mutability": "Mutable",
-                "x-cdop-public-private": "Public",
-                "x-cdop-schema": "CDOP",
-                "x-cdop-field-path": "carbon_crediting_standard.carbon_standard_level_accreditation"
-              }
-            },
-            "required": []
           }
         },
         "required": [
@@ -10770,7 +10825,7 @@
                         "Peatland Code",
                         "Plan Vivo Standard",
                         "Puro Standard",
-                        "Verificed Carbon Standard (VCS)",
+                        "Verified Carbon Standard (VCS)",
                         "Woodland Carbon Code"
                       ],
                       "x-cdop-field-id": 46,
@@ -13961,7 +14016,7 @@
                       "x-cdop-schema": "CDOP",
                       "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_impact"
                     },
-                    "overview_of_the_projects_approach_to_ track_and_quantify": {
+                    "overview_of_the_projects_approach_to_track_and_quantify": {
                       "type": "string",
                       "description": "Description of the measuring and monitoring plan for the selected co-benefit",
                       "x-cdop-field-id": 181,
@@ -13971,7 +14026,7 @@
                       "x-cdop-mutability": "Mutable",
                       "x-cdop-public-private": "Public",
                       "x-cdop-schema": "CDOP",
-                      "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_approach_to_ track_and_quantify"
+                      "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_approach_to_track_and_quantify"
                     },
                     "indicator_id": {
                       "type": "string",
@@ -15319,14 +15374,14 @@
                   "description": "The project's ID within the compliance scheme, if applicable.",
                   "x-cdop-field-id": 243,
                   "x-cdop-pre-issuance-inclusion": "Yes",
-                  "x-cdop-cardinality": "1..*",
+                  "x-cdop-cardinality": "0..*",
                   "x-cdop-data-source": "Market Regulators",
                   "x-cdop-mutability": "Mutable",
                   "x-cdop-public-private": "Public",
                   "x-cdop-schema": "CDOP",
                   "x-cdop-field-path": "project.compliance_market_id"
                 },
-                "minItems": 1
+                "minItems": 0
               },
               "other": {
                 "type": "array",
@@ -15564,9 +15619,7 @@
                 }
               }
             },
-            "required": [
-              "compliance_market_id"
-            ]
+            "required": []
           },
           "unit": {
             "type": "object",
@@ -20013,6 +20066,439 @@
         "responses": {
           "303": {
             "description": "See Other → the resource"
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/proposals": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Rethink proposals for TWG review",
+        "responses": {
+          "200": {
+            "description": "Profiles",
+            "content": {
+              "application/hal+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalIndex"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/proposals/{version}": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Proposal scope and worked examples",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "version",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile",
+            "content": {
+              "application/hal+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/proposals/{version}/schema": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Proposal JSON Schema",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "version",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON Schema 2020-12",
+            "content": {
+              "application/schema+json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/proposals/{version}/validate": {
+      "post": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Validate proposal shape, references and state-history continuity",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "version",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Experimental proposal JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/proposals/{version}/examples/{name}": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Worked synthetic example with validation results",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "version",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "wcc",
+                "pc",
+                "vcs",
+                "registry-transfer"
+              ]
+            },
+            "required": true,
+            "name": "name",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Experimental proposal JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/projects/{id}/proposals/{version}": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Explore a project's proposal and published format",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "version",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project proposal",
+            "content": {
+              "application/hal+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectProposal"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified"
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/projects/{id}/proposals/{version}/document": {
+      "get": {
+        "tags": [
+          "Proposals"
+        ],
+        "summary": "Project in the proposal format",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "version",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Experimental proposal JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified"
           },
           "400": {
             "description": "Bad request",

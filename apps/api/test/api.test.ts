@@ -350,7 +350,35 @@ describe("HTTP API", () => {
     }
   });
 
-  it("serves the Round 2 draft pods as drafts, pinned apart from CDOP v2.0", async (ctx) => {
+  it("walks a database project's proposal links and preserves both versions on cache revalidation", async (ctx) => {
+    if (!app) return ctx.skip();
+    const project = await hal(
+      (await hal("/v2/projects?limit=1&lifecycle_stage=verified"))._embedded.projects?.[0]?._links
+        .self.href ?? "",
+    );
+    const href = project._links.proposal?.href ?? "";
+    expect(href).toContain("/proposals/0.1.0");
+    const proposal = await hal(href);
+    expect(proposal.validation).toEqual({ valid: true, errors: [] });
+    const doc = proposal.document as { project: { project_id: string }; profile: string };
+    expect(doc.project.project_id).toMatch(/^urn:uuid:/);
+    for (const url of [href, proposal._links.item?.href ?? ""]) {
+      const response = await get(url);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("x-cdop-schema-version")).toBe("rethink-proposal-0.1.0");
+      expect(response.headers.get("x-cdop-conformance")).toBe("valid");
+      const cached = await get(url, { "if-none-match": response.headers.get("etag") ?? "" });
+      expect(cached.status).toBe(304);
+      for (const header of ["etag", "x-cdop-schema-version", "x-cdop-conformance", "link"])
+        expect(cached.headers.get(header)).toBe(response.headers.get(header));
+    }
+    expect(await (await get(proposal._links.item?.href ?? "")).json()).toEqual(proposal.document);
+    const published = await get(proposal._links.alternate?.href ?? "");
+    expect(published.headers.get("x-cdop-schema-version")).toBe(schemaVersionLabel());
+    expect((await get(href.replace("0.1.0", "9.0.0"))).status).toBe(404);
+  });
+
+  it("serves the Round 2 draft pods as drafts, pinned apart from published CDOP", async (ctx) => {
     if (!app) return ctx.skip();
     const project = await hal(
       (await hal("/v2/projects?limit=1&lifecycle_stage=verified"))._embedded.projects?.[0]?._links

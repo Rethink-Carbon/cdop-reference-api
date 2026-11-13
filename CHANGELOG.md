@@ -10,6 +10,9 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 
 ### Added
 
+- Versioned TWG proposal 0.1.0 for FB-010 and FB-012–015, with stable demo project identity across registry transfers, separate lifecycle/hold/native status, issuance preconditions and ordered audit histories. Includes HAL/raw JSON/schema/validation routes, an Atlas version selector, deterministic WCC/Peatland/VCS/transfer fixtures and regression checks.
+- Reproducible review of the October 26 Registry and November 6 Verification attachments, with draft feedback and a VAE recommendation in `docs/reviews/round2-2026-11-13.md`.
+
 - Round 2 draft pods: Registry Metadata, Validation Metadata and Verification Metadata, vendored with their examples from the upstream `R2P-FT-Testing` branch at `39ac535` and pinned in `UPSTREAM-ROUND2.json` (ADR 0013). Served at `/v2/projects/{id}/cdop/{registry-metadata|validation-metadata|verification-metadata}` with `X-CDOP-Schema-Version: round2-draft+39ac535`, listed as drafts in `/v2/schemas`, titled "(Round 2 draft)" in `cdop:document` links, embedded as `cdop.round2.*` in OpenAPI, and available to the MCP tools. `cdop:sync` and `cdop:drift` take `--round2`. The conformance suite sweeps the three pods for every seeded project, and register entries `CDOP-FB-030` to `CDOP-FB-041` record the drafts' gaps.
 
 - Repository scaffold: pnpm workspace, Node 24, TypeScript strict, ESLint with type-checked rules, Prettier, commitlint and husky, `commit-and-tag-version`.
@@ -35,6 +38,8 @@ Milestone M1: a shareable, read-only reference API over a synthetic dataset.
 - Register entries `CDOP-FB-028` (the UK codes are missing from the program and methodology enums) and `CDOP-FB-029` (`unit_level[]` requires an accreditation and a compliance eligibility on every entry), both found by the conformance sweep.
 
 ### Changed
+
+- Published schema baseline updated to CDOP v2.1.0 (`363b194`), with all twelve upstream examples validating. Removed malformed-key and misspelled VCS workarounds, moved field 242 to `crediting_program`, and omitted empty optional compliance-market membership. The separately pinned October Round 2 drafts remain explicit.
 
 - `/docs` is now a documentation site built with Zudoku (`apps/docs`, ADR 0012) in place of the Scalar API reference: the guides from `docs/` and the schema feedback register beside the API reference, with a playground, the MCP endpoint's install steps and search across both. It is served from this origin: the API removes Zudoku's preconnect to its CDN, allows each page's inline scripts by hash, and writes in its own `PUBLIC_BASE_URL`. `/docs/licenses.txt` lists the licences of the libraries the site bundles. `analytics.js` counts the site's History API page views.
 - Scalar is now 1.74.0 (from 1.72.3). 1.74 shows "Generate SDK" buttons on local hosts that open a sales dialog for Scalar's hosted products, with a Cal.com booking embed and an upload of the spec to Scalar's API, and no setting turns them off. The API pins that check off when it serves the bundle (ADR 0009).

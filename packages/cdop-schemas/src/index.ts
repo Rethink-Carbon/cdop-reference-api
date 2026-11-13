@@ -41,6 +41,7 @@ export const EXAMPLE_FILES: Partial<Record<PodName, string>> = {
   "co-benefits": "co_benefits.json",
   "durability-permanence": "durability_permanence.json",
   "project-finance": "project_finance.json",
+  "labels-certifications": "labels_certifications.json",
   "registry-metadata": "registry_metadata.json",
   "validation-metadata": "validation_metadata.json",
   "verification-metadata": "verification_metadata.json",
@@ -145,7 +146,7 @@ export function upstreamFileName(round: SchemaRound): string {
 }
 
 /**
- * Schema version plus short upstream commit: "2.0+eff6ca3" for the published schema, or
+ * Schema version plus short upstream commit: "2.1.0+363b194" for the published schema, or
  * "round2-draft+39ac535" for a Round 2 pod.
  */
 export function schemaVersionLabel(pod?: PodName): string {

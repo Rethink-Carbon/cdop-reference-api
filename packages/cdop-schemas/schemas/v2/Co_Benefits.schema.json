@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "Co_Benefits.schema.json",
+  "$id": "https://raw.githubusercontent.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/v2.1.0/json_schema/Co_Benefits.schema.json",
   "title": "Co_Benefits",
   "type": "object",
   "additionalProperties": true,
@@ -103,7 +103,7 @@
                 "x-cdop-schema": "CDOP",
                 "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_impact"
               },
-              "overview_of_the_projects_approach_to_ track_and_quantify": {
+              "overview_of_the_projects_approach_to_track_and_quantify": {
                 "type": "string",
                 "description": "Description of the measuring and monitoring plan for the selected co-benefit",
                 "x-cdop-field-id": 181,
@@ -113,7 +113,7 @@
                 "x-cdop-mutability": "Mutable",
                 "x-cdop-public-private": "Public",
                 "x-cdop-schema": "CDOP",
-                "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_approach_to_ track_and_quantify"
+                "x-cdop-field-path": "cobenefits.cobenefit_target[].overview_of_the_projects_approach_to_track_and_quantify"
               },
               "indicator_id": {
                 "type": "string",

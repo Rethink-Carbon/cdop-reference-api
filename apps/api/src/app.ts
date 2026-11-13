@@ -13,6 +13,7 @@ import { registerSystemRoutes } from "./routes/system.js";
 import { registerProjectRoutes } from "./routes/projects.js";
 import { registerUnitRoutes } from "./routes/units.js";
 import { registerAccountRoutes } from "./routes/accounts.js";
+import { registerProposalRoutes } from "./routes/proposals.js";
 import { registerReferenceRoutes } from "./routes/reference.js";
 import { registerAtlasRoutes } from "./routes/atlas.js";
 import { registerDocsRoutes } from "./routes/docs.js";
@@ -111,6 +112,7 @@ export function createApp(deps: AppDeps): OpenAPIHono<AppEnv> {
   registerUnitRoutes(app, deps);
   registerAccountRoutes(app, deps);
   registerReferenceRoutes(app, deps);
+  registerProposalRoutes(app, deps);
 
   // MCP (Streamable HTTP, stateless). Tools call this same app in-process.
   const mcp = createMcpHttpHandler(deps, (req) => Promise.resolve(app.fetch(req)));

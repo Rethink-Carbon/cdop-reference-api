@@ -23,7 +23,6 @@ const CLEAN_PODS: PodName[] = [
 /** Register entries allowed to explain a failure. Anything else is a bug in this API. */
 const KNOWN = [
   "CDOP-FB-005",
-  "CDOP-FB-020",
   "CDOP-FB-028",
   "CDOP-FB-029",
   // Round 2 drafts: unpublished required values, the CDM sectoral scopes, the required DID.
@@ -97,9 +96,10 @@ describe.each([
         expect(r.refs).toEqual(["CDOP-FB-028"]);
     });
 
-    it("fails Full List only on the recorded defects, compliance_market_id among them (CDOP-FB-020)", () => {
+    it("does not require a compliance scheme for voluntary projects (CDOP-FB-020)", () => {
       const full = rows.filter((r) => r.pod === "full-list");
-      expect(full.every((r) => !r.valid && r.refs.includes("CDOP-FB-020"))).toBe(true);
+      expect(full.some((r) => r.valid)).toBe(true);
+      expect(full.every((r) => !r.refs.includes("CDOP-FB-020"))).toBe(true);
     });
 
     it("validates Verification Metadata for every verified project once the DID is a placeholder", () => {
@@ -188,12 +188,12 @@ describe("standard-level accreditation, field 242 (CDOP-FB-021)", () => {
     let accredited = 0;
     for (const p of ds.projects) {
       const full = buildPodDocument(p, ctx, "full-list").document as {
-        carbon_crediting_standard?: { carbon_standard_level_accreditation?: string };
+        crediting_program?: { carbon_standard_level_accreditation?: string };
       };
       const labels = buildPodDocument(p, ctx, "labels-certifications").document as {
         crediting_program?: { carbon_standard_level_accreditation?: string };
       };
-      const value = full.carbon_crediting_standard?.carbon_standard_level_accreditation;
+      const value = full.crediting_program?.carbon_standard_level_accreditation;
       expect(labels.crediting_program?.carbon_standard_level_accreditation).toBe(value);
       if (value) accredited += 1;
     }

@@ -80,6 +80,7 @@ export function registerSystemRoutes(app: OpenAPIHono<AppEnv>, deps: AppDeps): v
         [linker.rel("accounts")]: linker.link("/v2/accounts"),
         [linker.rel("reference")]: linker.templated("/v2/reference{/list}"),
         [linker.rel("schema")]: linker.templated("/v2/schemas{/file}"),
+        proposals: linker.link("/v2/proposals", { title: "TWG proposal examples" }),
         [linker.rel("state-machine")]: linker.templated("/v2/state-machines{/entity}{?standard}"),
         [linker.rel("identifier")]: linker.templated("/v2/identifiers/{urn}"),
         [linker.rel("validate")]: linker.templated("/v2/validate{?schema}"),
