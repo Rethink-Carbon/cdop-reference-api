@@ -175,6 +175,7 @@ const state = {
   filters: { standard: "", stage: "", country: "", q: "" },
   accountType: "",
   unitGroup: "",
+  documentProfile: "published",
   sort: "name",
   path: "",
 };
@@ -1348,7 +1349,7 @@ async function projectDetail(id, tab, ctx) {
       );
     body = section(
       "CDOP documents",
-      "Each pod is a schema-pure CDOP document for this project. The API validates it against the vendored schema named in the Schema column and reports the result in X-CDOP-Conformance, citing the schema feedback register entry behind each error. Round 2 drafts are the TWG's fast track pods, taken from an upstream test branch: they are not part of CDOP v2.0.",
+      "Each pod is a schema-pure CDOP document for this project. The API validates it against the vendored schema named in the Schema column and reports the result in X-CDOP-Conformance, citing the schema feedback register entry behind each error. Round 2 drafts are the TWG's fast track pods, taken from an upstream test branch: they are not part of the published CDOP release.",
       h(
         "div",
         { class: "table-wrap" },
@@ -1396,6 +1397,115 @@ async function projectDetail(id, tab, ctx) {
         ),
       ),
     );
+    const publishedBody = body;
+    const content = h("div", { "aria-live": "polite" });
+    const select = h(
+      "select",
+      { id: "document-profile" },
+      h("option", { value: "published" }, "Published CDOP"),
+      h("option", { value: "0.1.0" }, "Rethink proposal 0.1.0"),
+    );
+    select.value = state.documentProfile;
+    const show = async () => {
+      state.documentProfile = select.value;
+      if (select.value === "published") {
+        content.replaceChildren(publishedBody);
+        return;
+      }
+      content.replaceChildren(h("p", {}, "Loading proposed document…"));
+      try {
+        const resource = await get(linkHref(p, "proposal"));
+        if (!ctx.current() || select.value !== "0.1.0") return;
+        const doc = resource.document;
+        const history = doc.project.status_history;
+        content.replaceChildren(
+          section(
+            "Rethink proposal 0.1.0",
+            "For TWG discussion: project identity, lifecycle, issuance and state history. This focused proposal covers FB-010 and FB-012–015.",
+            h(
+              "p",
+              { class: resource.validation.valid ? "ok" : "bad" },
+              resource.validation.valid
+                ? "✓ Proposal schema and relationship checks pass"
+                : resource.validation.errors.join("; "),
+            ),
+            h(
+              "dl",
+              {},
+              h("dt", {}, "Global project ID"),
+              h("dd", {}, doc.project.project_id),
+              h("dt", {}, "Registry project ID"),
+              h("dd", {}, doc.project.registry.registry_project_id),
+              h("dt", {}, "Lifecycle"),
+              h("dd", {}, doc.project.lifecycle_stage),
+              h("dt", {}, "On hold"),
+              h("dd", {}, doc.project.is_on_hold ? "Yes" : "No"),
+            ),
+            h(
+              "p",
+              {},
+              external(explorerHref(linkHref(p, "proposal")), "Explore proposal links"),
+              " · ",
+              external(local(linkHref(resource, "item")), "Proposal JSON"),
+              " · ",
+              external(local(linkHref(resource, "describedby")), "Proposal schema"),
+              " · ",
+              external(
+                "/v2/proposals/0.1.0/examples/registry-transfer",
+                "Registry-transfer example",
+              ),
+            ),
+            h(
+              "div",
+              { class: "table-wrap" },
+              dataTable(
+                [
+                  { label: "Sequence" },
+                  { label: "From" },
+                  { label: "To" },
+                  { label: "Actor" },
+                  { label: "Effective" },
+                  { label: "Recorded" },
+                ],
+                history.map((row) => [
+                  row.sequence,
+                  row.from_state ?? "Initial state",
+                  row.to_state,
+                  row.actor.kind,
+                  fmtStamp(row.effective_at),
+                  fmtStamp(row.recorded_at),
+                ]),
+              ),
+            ),
+            h(
+              "details",
+              {},
+              h("summary", {}, "View proposed JSON"),
+              h(
+                "pre",
+                { style: { overflow: "auto", maxHeight: "32rem" } },
+                JSON.stringify(doc, null, 2),
+              ),
+            ),
+          ),
+        );
+      } catch (err) {
+        if (ctx.current() && select.value === "0.1.0")
+          content.replaceChildren(
+            h("p", { class: "bad" }, `Could not load proposal: ${err.message}`),
+          );
+      }
+    };
+    select.addEventListener("change", () => {
+      void show();
+    });
+    body = h(
+      "div",
+      {},
+      h("p", {}, h("label", { for: "document-profile" }, "Document version "), select),
+      content,
+    );
+    await show();
   } else {
     const units = embedded(await unitsPage, "units");
     const summary = p._embedded?.summary ?? {};

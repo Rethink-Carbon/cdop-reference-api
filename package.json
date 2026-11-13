@@ -30,7 +30,9 @@
     "cdop:sync": "pnpm --filter @cdop/schemas sync",
     "cdop:drift": "pnpm --filter @cdop/schemas drift",
     "keys:new": "pnpm --filter @cdop/api keys:new",
-    "release": "commit-and-tag-version"
+    "release": "commit-and-tag-version",
+    "proposals:export": "pnpm --filter @cdop/api exec tsx scripts/export-proposals.ts",
+    "proposals:check": "pnpm --filter @cdop/api exec tsx scripts/export-proposals.ts --check"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",

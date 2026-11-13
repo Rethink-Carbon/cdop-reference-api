@@ -80,6 +80,10 @@ export async function syncFromUpstream(ref?: string, round: SchemaRound = 1): Pr
   const next: UpstreamPin = {
     ...up,
     ref: target,
+    schema_version:
+      round === 1 && /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(target)
+        ? target.slice(1)
+        : up.schema_version,
     commit: sha,
     commit_date: date,
     fetched_at: new Date().toISOString(),

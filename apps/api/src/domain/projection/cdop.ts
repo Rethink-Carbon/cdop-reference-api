@@ -3,14 +3,7 @@
  * documents are the Full List pruned to the keys that pod's schema declares, so every pod is
  * guaranteed to follow its own structure without a second mapping.
  *
- * Deviations from the schema are deliberate and numbered in SCHEMA-FEEDBACK.md:
- *  - CDOP-FB-002/003: the spaced "crediting period" group is not emitted; the mangled
- *    `credit_blockblock_start` is emitted alongside a proper `credit_block[]`.
- *  - CDOP-FB-005: `unit`/`vintage` are per-block, so a project-level Full List carries the
- *    selected block (default: most recently issued) or none; absent sections are omitted unless
- *    `strict` fills placeholders.
- *  - CDOP-FB-021: a field a pod declares at a different path from Full List (field 242 in
- *    Labels & Certifications) is matched by `x-cdop-field-id` and moved to the pod's path.
+ * The published v2.1.0 shapes are kept separate from experimental proposal documents.
  */
 import {
   POD_ROUND,
@@ -56,7 +49,7 @@ function compact<T extends Record<string, unknown>>(obj: T): T {
   }
   return obj;
 }
-const KEEP_EMPTY_ARRAYS = new Set(["compliance_market_id", "status_reason", "previous"]);
+const KEEP_EMPTY_ARRAYS = new Set(["status_reason", "previous"]);
 
 /** `unit.unit_level[].unit_level_accreditation` is a one-value enum. */
 const UNIT_LEVEL_ACCREDITATIONS = new Set(["CCP"]);
@@ -546,7 +539,6 @@ export function buildFullList(
       status: block.history.map((h) =>
         compact({ status: h.cdop_status, status_reason: h.reason, is_current: h.is_current }),
       ),
-      // Unit Description wants block_start inside the array; Full List wants the mangled key (CDOP-FB-003).
       credit_block: [
         {
           quantity: block.block_end - block.block_start + 1,
@@ -554,7 +546,6 @@ export function buildFullList(
           block_end: block.block_end,
         },
       ],
-      credit_blockblock_start: block.block_start,
       expected_carbon_credit_price: agg.finance?.expected_credit_price,
       realized_transaction_price: agg.finance?.realized_transaction_price,
       unit_level: block.labels
@@ -587,7 +578,6 @@ export function buildFullList(
       reference: [],
       status: [],
       credit_block: [],
-      credit_blockblock_start: 0,
     };
     vintage = { vintage: iso(agg.start_on ?? agg.created_at) };
   } else {
@@ -637,7 +627,7 @@ export function buildFullList(
         compact({
           cobenefits_type: t.cobenefit_type,
           overview_of_the_projects_impact: t.impact_overview,
-          "overview_of_the_projects_approach_to_ track_and_quantify": t.approach,
+          overview_of_the_projects_approach_to_track_and_quantify: t.approach,
           indicator_id: t.indicator_id,
           unit_description: t.unit_description,
           unit_type: t.unit_type,
@@ -734,10 +724,8 @@ export function buildFullList(
   }
 
   const standardLabel = ctx.label("icvcm");
-  const carbon_crediting_standard: Record<string, unknown> | undefined =
-    ["vcs", "gs4gg", "acr"].includes(agg.standard_id) && standardLabel
-      ? { carbon_standard_level_accreditation: standardLabel.cdop_enum_value }
-      : undefined;
+  if (["vcs", "gs4gg", "acr"].includes(agg.standard_id) && standardLabel)
+    crediting_program.carbon_standard_level_accreditation = standardLabel.cdop_enum_value;
 
   const document: Record<string, unknown> = {
     project,
@@ -754,7 +742,6 @@ export function buildFullList(
     ...(estimations ? { estimations } : {}),
     ...(cobenefits ? { cobenefits } : {}),
     ...(agreement ? { agreement } : {}),
-    ...(carbon_crediting_standard ? { carbon_crediting_standard } : {}),
   };
   return { pod: "full-list", document, missing, placeholders };
 }

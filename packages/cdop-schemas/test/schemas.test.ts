@@ -3,6 +3,7 @@ import {
   POD_NAMES,
   POD_ROUND,
   ROUND2_PODS,
+  ROUND1_PODS,
   buildFieldRegistry,
   enumValues,
   lintSchemas,
@@ -84,22 +85,9 @@ describe("vendored CDOP schemas", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("documents CDOP-FB-004: four upstream examples do not validate against upstream schemas", () => {
-    const failing = ["full-list", "unit-description", "co-benefits", "project-finance"] as const;
-    for (const pod of failing) {
-      expect(validatePayload(pod, loadExample(pod)).valid, pod).toBe(false);
-    }
-    const passing = [
-      "location-details",
-      "project-approach-details",
-      "disclosures",
-      "issuances",
-      "crediting-period",
-      "estimations",
-      "durability-permanence",
-    ] as const;
-    for (const pod of passing) {
-      expect(validatePayload(pod, loadExample(pod)).valid, pod).toBe(true);
+  it("validates every published v2.1.0 example (CDOP-FB-004)", () => {
+    for (const pod of ROUND1_PODS) {
+      expect(validatePayload(pod, loadExample(pod)).errors, pod).toEqual([]);
     }
   });
 
@@ -111,7 +99,7 @@ describe("vendored CDOP schemas", () => {
     expect(r2.commit).not.toBe(loadUpstream(1).commit);
     expect(Object.keys(r2.files)).toHaveLength(6);
     expect(schemaVersionLabel("registry-metadata")).toBe(`round2-draft+${r2.commit.slice(0, 7)}`);
-    expect(schemaVersionLabel()).toBe(`2.0+${loadUpstream(1).commit.slice(0, 7)}`);
+    expect(schemaVersionLabel()).toBe(`2.1.0+${loadUpstream(1).commit.slice(0, 7)}`);
   });
 
   it("validates every Round 2 draft example against its own draft schema", () => {
@@ -126,15 +114,14 @@ describe("vendored CDOP schemas", () => {
     }
   });
 
-  it("lint finds the known key defects (CDOP-FB-001/002)", () => {
-    const findings = lintSchemas();
-    const keyErrors = findings.filter((f) => f.rule === "key-format").map((f) => f.path);
-    expect(keyErrors.some((p) => p.includes("crediting period"))).toBe(true);
+  it("published schemas have no malformed property keys (CDOP-FB-002/003)", () => {
     expect(
-      keyErrors.some((p) => p.includes("overview_of_the_projects_approach_to_ track_and_quantify")),
-    ).toBe(true);
-    expect(
-      findings.some((f) => f.rule === "key-mangled" && f.path.endsWith("credit_blockblock_start")),
-    ).toBe(true);
+      lintSchemas().filter(
+        (f) =>
+          f.pod !== "all" &&
+          !ROUND2_PODS.includes(f.pod) &&
+          ["key-format", "key-mangled"].includes(f.rule),
+      ),
+    ).toEqual([]);
   });
 });

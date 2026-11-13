@@ -6,4 +6,6 @@ packages/cdop-schemas/schemas
 packages/cdop-schemas/examples
 apps/api/openapi/openapi.json
 apps/api/test/fixtures
+examples/proposals
+docs/reviews/round2-2026-11-13.json
 CHANGELOG.md

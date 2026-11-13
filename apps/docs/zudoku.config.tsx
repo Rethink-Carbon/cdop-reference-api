@@ -37,6 +37,7 @@ const config: ZudokuConfig = {
         { type: "doc", file: "guides/hateoas-tour", label: "HATEOAS tour" },
         { type: "doc", file: "guides/api-profile", label: "CDOP API profile" },
         { type: "doc", file: "guides/projection", label: "Projection map" },
+        { type: "doc", file: "guides/twg-proposal", label: "TWG proposal 0.1.0" },
         { type: "doc", file: "guides/mcp", label: "MCP server" },
         { type: "doc", file: "guides/schema-feedback", label: "Schema feedback register" },
       ],

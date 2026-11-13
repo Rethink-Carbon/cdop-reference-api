@@ -39,6 +39,10 @@ export function openApiConfig(deps: AppDeps) {
       { name: "Root", description: "Entry point and health" },
       { name: "Projects", description: "Project resources (HAL)" },
       { name: "Project facets", description: "Sub-resources of a project" },
+      {
+        name: "Proposals",
+        description: "Versioned Rethink proposals for TWG review; separate from published CDOP",
+      },
       { name: "CDOP documents", description: "Schema-pure CDOP documents and validation" },
       { name: "Units", description: "Unit blocks (credits)" },
       { name: "Issuances", description: "Issuance batches" },

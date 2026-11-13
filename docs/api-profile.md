@@ -383,7 +383,7 @@ Reads are anonymous, with a per-IP token bucket. Writes carry `Authorization: Be
 
 | Header                              | Meaning                                                           |
 | ----------------------------------- | ----------------------------------------------------------------- |
-| `X-CDOP-Schema-Version`             | `2.0+eff6ca3`: schema version plus the short upstream commit      |
+| `X-CDOP-Schema-Version`             | `2.1.0+363b194`: schema version plus the short upstream commit    |
 | `X-API-Version`                     | The API's semantic version                                        |
 | `X-CDOP-Conformance`                | On `?strict=1` documents: which placeholders were emitted and why |
 | `Link: <…>; rel="describedby"`      | The JSON Schema of a CDOP document                                |

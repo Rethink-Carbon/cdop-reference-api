@@ -41,13 +41,6 @@ const ROUND2_UNPUBLISHED: Readonly<Record<string, string>> = {
 const RULES: readonly Rule[] = [
   // A label is an accreditation or a compliance eligibility; the schema requires both halves.
   { ref: "CDOP-FB-029", explains: (e) => e.instancePath.startsWith("/unit/unit_level") },
-  // Required with minItems 1 although "if applicable".
-  {
-    ref: "CDOP-FB-020",
-    explains: (e) =>
-      e.instancePath === "/project/compliance_market_id" ||
-      missingPath(e) === "project.compliance_market_id",
-  },
   // The UK codes are missing from the crediting program and methodology enums.
   {
     ref: "CDOP-FB-028",

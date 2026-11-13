@@ -105,6 +105,7 @@ export interface StatusRecord {
   actor_kind: ActorKind;
   actor_account_id?: string;
   effective_at: Date;
+  recorded_at?: Date;
   is_current: boolean;
 }
 
@@ -332,6 +333,7 @@ export interface UnitStatusRecord {
   to_owner_account_id?: string;
   quantity?: number;
   effective_at: Date;
+  recorded_at?: Date;
   is_current: boolean;
 }
 

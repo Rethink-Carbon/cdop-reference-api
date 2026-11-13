@@ -1,0 +1,380 @@
+{
+  "reviewed_on": "2026-11-13",
+  "sources": [
+    {
+      "schema": "registry/Registry_Metadata.schema.json",
+      "schema_sha256": "e083ef54b8c39efd57fdb510107675cacc551860eb4a1248740dc40727a6160a",
+      "example": "registry/registry_metadata.json",
+      "example_sha256": "d0d6e74d7c7a0f43c22155d3ffe51cd817bf53b901061a737a3bd765b0d0cbd9",
+      "valid": true,
+      "errors": [],
+      "unvalidated_fields": []
+    },
+    {
+      "schema": "registry/Full_List.schema.json",
+      "schema_sha256": "357a4a795c834ee3951d2b9e9a57392848fc16b2fe385225dfe3d81220ed1fd2",
+      "example": "registry/full_list.json",
+      "example_sha256": "623f127d72c2d6c7afa7f513829efe2eb89e1fef67bfc99f535bc3564f5718fc",
+      "valid": false,
+      "errors": [
+        {
+          "instancePath": "/project/location/0/country_subdivision_code",
+          "keyword": "enum",
+          "message": "must be equal to one of the allowed values",
+          "params": {
+            "allowedValues": [
+              "Reference the ISO 3166-2 country subdivision code using the respective ISO standard"
+            ]
+          }
+        },
+        {
+          "instancePath": "/project/location/0/country_subdivision_name",
+          "keyword": "enum",
+          "message": "must be equal to one of the allowed values",
+          "params": {
+            "allowedValues": [
+              "Reference the ISO 3166-2 country subdivision name using the respective ISO standard"
+            ]
+          }
+        },
+        {
+          "instancePath": "/project_stakeholder/location/0/country_subdivision_name",
+          "keyword": "enum",
+          "message": "must be equal to one of the allowed values",
+          "params": {
+            "allowedValues": [
+              "Reference the ISO 3166-2 country subdivision name using the respective ISO standard"
+            ]
+          }
+        },
+        {
+          "instancePath": "/facility/location/0/country_subdivision_code",
+          "keyword": "enum",
+          "message": "must be equal to one of the allowed values",
+          "params": {
+            "allowedValues": [
+              "Reference the ISO 3166-2 country subdivision code using the respective ISO standard"
+            ]
+          }
+        },
+        {
+          "instancePath": "/facility/location/0/country_subdivision_name",
+          "keyword": "enum",
+          "message": "must be equal to one of the allowed values",
+          "params": {
+            "allowedValues": [
+              "Reference the ISO 3166-2 country subdivision name using the respective ISO standard"
+            ]
+          }
+        }
+      ],
+      "unvalidated_fields": [
+        "/project/validation_stage",
+        "/project/date",
+        "/project/validation_status",
+        "/project/project_status",
+        "/project/project_status_reason",
+        "/project/project_crediting_period_type",
+        "/project/maximum_cumulative_crediting_duration",
+        "/project/maximum_number_of_crediting_periods",
+        "/project/current_crediting_period_duration",
+        "/methodology/versions/0/methodology_name",
+        "/unit/metric",
+        "/unit/retirement_beneficiary",
+        "/unit/retirement_detail",
+        "/unit/serial_number",
+        "/unit/source_serial_number",
+        "/unit/type",
+        "/estimations/estimation_id",
+        "/estimations/estimation_event_date",
+        "/estimations/estimation_status",
+        "/estimations/estimated_status_reason",
+        "/estimations/vintage_year",
+        "/estimations/estimated_vintage_emissions_mitigation",
+        "/estimations/estimated_monitoring_period_start_date",
+        "/estimations/estimated_monitoring_period_end_date",
+        "/estimations/estimated_issuance_date"
+      ]
+    },
+    {
+      "schema": "verification/Verification_Metadata.schema VAE.json",
+      "schema_sha256": "df15fd01c42b53a6a5cb258e11bbb55faeaca5533734a9f9e1690031587d45b5",
+      "example": "verification/verification_metadata VAE.json",
+      "example_sha256": "fd774b0d8ba7d4fa5d042332edb7f16215a90ff165305bbb7b5e537917724360",
+      "valid": true,
+      "errors": [],
+      "unvalidated_fields": []
+    },
+    {
+      "schema": "verification/Full_List.schema VAE.json",
+      "schema_sha256": "5b024e9a3aad08bef0e1d08d47eae1a9b375c867129388e8648528aa99e48091",
+      "example": "verification/full_list VAE.json",
+      "example_sha256": "54ebac342e51b8cc8ae27493e5d18aa50de5020cb615755a8b9b3be27221b185",
+      "valid": true,
+      "errors": [],
+      "unvalidated_fields": [
+        "/project/validation_stage",
+        "/project/date",
+        "/project/validation_status",
+        "/project/project_status",
+        "/project/project_status_reason",
+        "/project/project_crediting_period_type",
+        "/project/maximum_cumulative_crediting_duration",
+        "/project/maximum_number_of_crediting_periods",
+        "/project/current_crediting_period_duration",
+        "/methodology/versions/0/methodology_name",
+        "/unit/metric",
+        "/unit/retirement_beneficiary",
+        "/unit/retirement_detail",
+        "/unit/serial_number",
+        "/unit/source_serial_number",
+        "/unit/type",
+        "/estimations/estimation_id",
+        "/estimations/estimation_event_date",
+        "/estimations/estimation_status",
+        "/estimations/estimated_status_reason",
+        "/estimations/vintage_year",
+        "/estimations/estimated_vintage_emissions_mitigation",
+        "/estimations/estimated_monitoring_period_start_date",
+        "/estimations/estimated_monitoring_period_end_date",
+        "/estimations/estimated_issuance_date"
+      ]
+    },
+    {
+      "schema": "verification/Verification_Metadata.schema PAE.json",
+      "schema_sha256": "ff578d51fbb5df2aa90077010a910d31d65abbfeaacd7357b0987ca755deb989",
+      "example": "verification/verification_metadata PAE.json",
+      "example_sha256": "1db0f705f07309f8a339eb9f89f31c5aac90c9d87d83d4df7db92208cc5a381a",
+      "valid": true,
+      "errors": [],
+      "unvalidated_fields": []
+    },
+    {
+      "schema": "verification/Full_List.schema PAE.json",
+      "schema_sha256": "4f7fd2b1731fc11617b4c9f023ec4aa5e0d42aa9695f14b2f08898ed36f73709",
+      "example": "verification/full_list PAE.json",
+      "example_sha256": "0414ec3591a875df2d29a0b790ac0a4fdcbc72520c059e16b769b97191d9f46b",
+      "valid": true,
+      "errors": [],
+      "unvalidated_fields": [
+        "/methodology/versions/0/methodology_name",
+        "/unit/metric",
+        "/unit/retirement_beneficiary",
+        "/unit/retirement_detail",
+        "/unit/serial_number",
+        "/unit/source_serial_number",
+        "/unit/type",
+        "/estimations/estimation_id",
+        "/estimations/estimation_event_date",
+        "/estimations/estimation_status",
+        "/estimations/estimated_status_reason",
+        "/estimations/vintage_year",
+        "/estimations/estimated_vintage_emissions_mitigation",
+        "/estimations/estimated_monitoring_period_start_date",
+        "/estimations/estimated_monitoring_period_end_date",
+        "/estimations/estimated_issuance_date"
+      ]
+    }
+  ],
+  "probes": {
+    "registry_woodland_program": {
+      "valid": false,
+      "errors": [
+        {
+          "instancePath": "/crediting_program/program_name",
+          "keyword": "enum",
+          "message": "must be equal to one of the allowed values",
+          "params": {
+            "allowedValues": [
+              "American Carbon Registry (ACR)",
+              "ACORN",
+              "Architecture for REDD+ Transactions (ART)",
+              "Asia Carbon Institute",
+              "Biocarbon Registry (BCR)",
+              "Carbon Assets Trading System (CATS)",
+              "Carbon Standards International",
+              "CDM",
+              "Cercarbono",
+              "Chile National Registry",
+              "China Certified Emission Reduction Trading System (CCER)",
+              "City Forest Credits",
+              "Climate Action Reserve (CAR)",
+              "Costa Rica National Registry",
+              "Covalent",
+              "Credible Carbon",
+              "Cultivo",
+              "ECO Natural Forest Standard",
+              "EcoRegistry",
+              "Ecosystem Restoration Standard",
+              "Global Carbon Council",
+              "Gold Standard",
+              "Inclusive Carbon Standard",
+              "International Carbon Registry",
+              "Isometric",
+              "IUCN UK Peatland Programme",
+              "Joint Crediting Mechanism",
+              "Mexico National Registry",
+              "MoorFutures",
+              "Open Earth Foundation",
+              "PACM",
+              "Pakistan National Registry",
+              "Plan Vivo",
+              "Puro.earth",
+              "Riverse",
+              "Royal Kingdom of Bhutan",
+              "RUN Carbon Crediting Program",
+              "Singapore National Registry",
+              "SOCIAL CARBON Registry",
+              "Sweden National Registry",
+              "Switzerland National Registry",
+              "Trusted Carbon",
+              "Verra"
+            ]
+          }
+        }
+      ]
+    },
+    "registry_without_registration": {
+      "valid": true,
+      "errors": []
+    },
+    "registry_two_current_registrations": {
+      "valid": true,
+      "errors": []
+    },
+    "registry_reversed_dates": {
+      "valid": true,
+      "errors": []
+    },
+    "VAE_without_digital_credentials": {
+      "valid": true,
+      "errors": []
+    },
+    "VAE_pending_without_outcomes": {
+      "valid": false,
+      "errors": [
+        {
+          "instancePath": "/verification/0",
+          "keyword": "required",
+          "message": "must have required property 'verification_date'",
+          "params": {
+            "missingProperty": "verification_date"
+          }
+        },
+        {
+          "instancePath": "/verification/0",
+          "keyword": "required",
+          "message": "must have required property 'verification_report_url'",
+          "params": {
+            "missingProperty": "verification_report_url"
+          }
+        },
+        {
+          "instancePath": "/verification/0",
+          "keyword": "required",
+          "message": "must have required property 'verified_quantity'",
+          "params": {
+            "missingProperty": "verified_quantity"
+          }
+        }
+      ]
+    },
+    "VAE_negative_quantity": {
+      "valid": true,
+      "errors": []
+    },
+    "VAE_invalid_report_url": {
+      "valid": true,
+      "errors": []
+    },
+    "VAE_duplicate_event_id": {
+      "valid": true,
+      "errors": []
+    },
+    "VAE_tCO2": {
+      "valid": false,
+      "errors": [
+        {
+          "instancePath": "/verification/0/verification_quantity_uom",
+          "keyword": "enum",
+          "message": "must be equal to one of the allowed values",
+          "params": {
+            "allowedValues": [
+              "tCO2e (Metric tonnes of CO2 equivalent)",
+              "kgCO2e (Kilograms of CO2 equivalent)",
+              "MWh (Megawatt-hours)",
+              "m3_biogas (Cubic meters of biogas)",
+              "ha (Hectares)",
+              "kg_plastic (Kilograms of plastic recovered)"
+            ]
+          }
+        }
+      ]
+    },
+    "PAE_without_digital_credentials": {
+      "valid": true,
+      "errors": []
+    },
+    "PAE_pending_without_outcomes": {
+      "valid": false,
+      "errors": [
+        {
+          "instancePath": "/project/verification/0",
+          "keyword": "required",
+          "message": "must have required property 'verification_date'",
+          "params": {
+            "missingProperty": "verification_date"
+          }
+        },
+        {
+          "instancePath": "/project/verification/0",
+          "keyword": "required",
+          "message": "must have required property 'verification_report_url'",
+          "params": {
+            "missingProperty": "verification_report_url"
+          }
+        },
+        {
+          "instancePath": "/project/verification/0",
+          "keyword": "required",
+          "message": "must have required property 'verified_quantity'",
+          "params": {
+            "missingProperty": "verified_quantity"
+          }
+        }
+      ]
+    },
+    "PAE_negative_quantity": {
+      "valid": true,
+      "errors": []
+    },
+    "PAE_invalid_report_url": {
+      "valid": true,
+      "errors": []
+    },
+    "PAE_duplicate_event_id": {
+      "valid": true,
+      "errors": []
+    },
+    "PAE_tCO2": {
+      "valid": false,
+      "errors": [
+        {
+          "instancePath": "/project/verification/0/verification_quantity_uom",
+          "keyword": "enum",
+          "message": "must be equal to one of the allowed values",
+          "params": {
+            "allowedValues": [
+              "tCO2e (Metric tonnes of CO2 equivalent)",
+              "kgCO2e (Kilograms of CO2 equivalent)",
+              "MWh (Megawatt-hours)",
+              "m3_biogas (Cubic meters of biogas)",
+              "ha (Hectares)",
+              "kg_plastic (Kilograms of plastic recovered)"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

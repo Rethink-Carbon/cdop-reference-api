@@ -350,6 +350,7 @@ export async function loadAggregates(db: Database, ids: string[]): Promise<Proje
             cdop_project_status: s.cdop_project_status as CdopProjectStatus,
             actor_kind: s.actor_kind as ProjectAggregate["statusHistory"][number]["actor_kind"],
             effective_at: dt(s.effective_at) as Date,
+            recorded_at: dt(s.recorded_at) as Date,
             is_current: s.is_current,
           };
           defineOptional(out, "native_state_name", und(s.native_state_name));
@@ -579,6 +580,7 @@ export async function loadAggregates(db: Database, ids: string[]): Promise<Proje
                 action: h.action,
                 actor_kind: h.actor_kind as UnitBlock["history"][number]["actor_kind"],
                 effective_at: dt(h.effective_at) as Date,
+                recorded_at: dt(h.recorded_at) as Date,
                 is_current: h.is_current,
               };
               defineOptional(ho, "from_state", und(h.from_state) as UnitState | undefined);

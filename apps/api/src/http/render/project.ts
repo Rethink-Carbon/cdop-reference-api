@@ -37,6 +37,7 @@ export function projectLinks(linker: Linker, id: string, agg?: ProjectAggregate)
   const base = `/v2/projects/${id}`;
   const links: Links = {
     self: linker.link(base),
+    proposal: linker.link(`${base}/proposals/0.1.0`, { title: "Rethink proposal 0.1.0" }),
     curies: linker.curies(),
     collection: linker.link("/v2/projects"),
     describedby: schemaLink(linker, "project-approach-details"),

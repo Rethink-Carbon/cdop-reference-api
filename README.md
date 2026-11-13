@@ -1,6 +1,6 @@
 # CDOP reference API
 
-A reference implementation of an API for the [Carbon Data Open Protocol](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol) (CDOP) schema v2.0.
+A reference implementation of an API for the [Carbon Data Open Protocol](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol) (CDOP) schema v2.1.0.
 
 It serves the CDOP documents over a hypermedia REST API (HAL + HAL-FORMS). It publishes an OpenAPI 3.1 description that embeds the CDOP JSON Schemas verbatim. It exposes the same data to AI agents over MCP and streams changes as CloudEvents. It ships with a synthetic multi-registry dataset and a lifecycle simulator. Every place where the schema could not be implemented as published is logged in [SCHEMA-FEEDBACK.md](SCHEMA-FEEDBACK.md).
 
@@ -8,13 +8,13 @@ Maintained by [Rethink Carbon](https://rethinkcarbon.co.uk). MIT licence.
 
 ## Why this exists
 
-CDOP is a member-driven data standard for carbon credit projects (co-chairs GCMU, Sylvera, RMI and S&P Global; 75 members). Schema v2.0 was published on 16 to 18 September 2026. It is authored in Excel and converted to JSON Schema 2020-12 by a script. The published artefacts are twelve schema files and eleven example documents. There is no API, the examples do not validate against the schemas, there is no lint step, and there is no model for change or synchronisation.
+CDOP is a member-driven data standard for carbon credit projects, authored in Excel and converted to JSON Schema 2020-12. The reference implementation now vendors the v2.1.0 release (5 November 2026): twelve schemas and twelve validating examples. The API, change model and worked proposals in this repository help test how those documents behave in practice.
 
 In September 2026 the CDOP Technical Working Group confirmed it wanted a reference implementation of an API. Rethink Carbon committed to deliver one. The commitment covers a working API with an OpenAPI description and synthetic data for every current schema document. It also covers an exploration of hypermedia navigation, and a written record of every gap, ambiguity or decision that could affect schema development. This repository is that deliverable. Rethink Carbon also uses the protocol itself.
 
 ## Status
 
-M1 (v0.1) is feature complete locally: the read-only API, the seed, the conformance tests and the MCP read surface all pass CI's checks. It is not yet deployed to the hosted demo. The endpoint table below marks each route with the milestone in which it lands.
+The published schema baseline is v2.1.0. The November TWG work adds a versioned identity and lifecycle proposal, worked JSON examples and an Atlas version selector. See the [proposal walkthrough](docs/twg-proposal.md) and [draft Registry/Verification review](docs/reviews/round2-2026-11-13.md). These local changes need the normal PR/deployment process before they appear on the hosted demo. The milestone table below records the original implementation plan.
 
 | Milestone | Scope                                                                                                                                                                 | Target            |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
@@ -92,7 +92,7 @@ curl -s -X POST "http://localhost:3000/v2/validate?schema=full-list" \
   -H 'content-type: application/json' --data @full-list.json | jq '{valid, errors: (.errors | length)}'
 ```
 
-Expect `"valid": false`. That is the point of the exercise, not a bug: no Full List document for a voluntary-market project can validate against the published schema, because `project.compliance_market_id` is required with at least one item (`CDOP-FB-020`). The `X-CDOP-Conformance` header from step 4 names the register entry behind every error, for example `invalid; errors=4; ref=CDOP-FB-005,CDOP-FB-020,CDOP-FB-028`. The pods those defects do not touch validate. Add `?strict=1` to have the API fill required-but-unpublished sections with flagged placeholders:
+The result depends on the project. v2.1.0 makes `compliance_market_id` optional, so voluntary-market projects can now validate without fabricated compliance membership. Remaining gaps include absent required sections (`CDOP-FB-005`) and UK program/methodology enums (`CDOP-FB-028`). The `X-CDOP-Conformance` header names the register entries behind failures. Add `?strict=1` to fill supported required-but-unpublished sections with flagged placeholders:
 
 ```bash
 ESTIMATIONS=$(curl -s "$PROJECT" | jq -r '._links["cdop:document"][] | select(.name == "estimations") | .href')
@@ -114,7 +114,7 @@ A longer walkthrough, including `If-None-Match`, the URN resolver, HAL-FORMS tem
 
 ## Conformance
 
-The CDOP schemas are vendored, not re-expressed. `packages/cdop-schemas/schemas/v2/` holds the twelve schema files and `examples/v2/` the eleven upstream examples, pinned to upstream commit `eff6ca3` (16 September 2026) with a SHA-256 per file in `UPSTREAM.json`. Ajv 2020-12 validates every CDOP-shaped payload, with the `x-cdop-*` annotation keywords registered as a vocabulary.
+The CDOP schemas are vendored, not re-expressed. `packages/cdop-schemas/schemas/v2/` holds the twelve schema files and `examples/v2/` the twelve upstream examples, pinned to release `v2.1.0` at upstream commit `363b194` (5 November 2026) with a SHA-256 per file in `UPSTREAM.json`. Ajv 2020-12 validates every CDOP-shaped payload, with the `x-cdop-*` annotation keywords registered as a vocabulary.
 
 | Command                      | What it does                                                                                                                                                                                                           |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -123,19 +123,13 @@ The CDOP schemas are vendored, not re-expressed. `packages/cdop-schemas/schemas/
 | `pnpm cdop:sync --ref <sha>` | Re-vendors from upstream at a commit and rewrites `UPSTREAM.json`. Run in a PR. Add `--round2` for the Round 2 drafts.                                                                                                 |
 | `pnpm cdop:drift`            | Compares upstream `main` with the pinned copy. A weekly workflow opens an issue on drift. Add `--round2` to compare the Round 2 branch.                                                                                |
 
-The test suite asserts that the upstream examples for Unit Description, Estimations, Crediting Period and Full List do not validate against the upstream schemas (see `CDOP-FB-004`).
+All twelve published upstream examples now validate, and the tests require that result. The suite also projects each synthetic project through every applicable pod in default and strict modes. Remaining failures must map to a feedback entry; unexplained failures fail the build.
 
-It also projects every seeded project through every pod and validates the result. Eight of the eleven project pods validate for every project under every standard. The other three fail only for reasons the register records, and the suite fails the build on any error no register entry explains:
-
-| Pod                                                                                                                            | Result                                      | Why                                                                                                          |
-| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Location Details, Disclosures, Issuances, Crediting Period, Estimations, Co-Benefits, Durability & Permanence, Project Finance | valid for every project                     |                                                                                                              |
-| Project Approach & Details                                                                                                     | valid except WCC and Peatland Code projects | The UK codes are missing from the program and methodology enums (`CDOP-FB-028`)                              |
-| Full List, Labels & Certifications                                                                                             | invalid for every project                   | `compliance_market_id` is required with `minItems: 1` (`CDOP-FB-020`); labelled units also hit `CDOP-FB-029` |
+Project Approach & Details still rejects WCC/Peatland program or methodology values (FB-028). Full List can still fail for missing required sections (FB-005), UK vocabularies (FB-028) or unit-label combinations (FB-029), but optional compliance membership no longer causes a blanket failure. Proposal documents use a separate schema and semantic validator; run `pnpm proposals:check` to verify their exported examples.
 
 ### Round 2 draft pods
 
-The TWG's Round 2 "fast track" pods, Registry Metadata, Validation Metadata and Verification Metadata, are served as drafts beside the published ones (ADR 0013). They are not on upstream `main`: the three schema files and their examples are vendored byte for byte from the `R2P-FT-Testing` branch at `39ac535` (13 October 2026), pinned in `UPSTREAM-ROUND2.json` under `schemas/round2/` and `examples/round2/`. Their documents carry `X-CDOP-Schema-Version: round2-draft+39ac535`, their links are titled "(Round 2 draft)", and `/v2/schemas` lists them with `"status": "draft"`. All three upstream examples validate against their schemas. On the default dataset of 370 projects:
+The separately pinned October Round 2 "fast track" pods, Registry Metadata, Validation Metadata and Verification Metadata, are served as drafts beside the published ones (ADR 0013). They are not on upstream `main`: the three schema files and their examples are vendored byte for byte from the `R2P-FT-Testing` branch at `39ac535` (13 October 2026), pinned in `UPSTREAM-ROUND2.json` under `schemas/round2/` and `examples/round2/`. Their documents carry `X-CDOP-Schema-Version: round2-draft+39ac535`, their links are titled "(Round 2 draft)", and `/v2/schemas` lists them with `"status": "draft"`. All three upstream examples validate against their schemas. On the default dataset of 370 projects:
 
 | Pod                   | Result                                                                   | Why                                                                                                                                    |
 | --------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -143,14 +137,14 @@ The TWG's Round 2 "fast track" pods, Registry Metadata, Validation Metadata and 
 | Validation Metadata   | invalid for every project with a validation (`?strict=1`: valid for WCC) | Required values registries do not publish (`CDOP-FB-035`); no sectoral scope for REDD+, IFM, wetlands, peat or biochar (`CDOP-FB-038`) |
 | Verification Metadata | invalid for every verification (`?strict=1`: valid once it is completed) | A decentralised identifier is required (`CDOP-FB-039`)                                                                                 |
 
-Entries `CDOP-FB-030` to `CDOP-FB-041` record what the drafts get wrong, most of them raised with the TWG on 1 September 2026.
+Entries `CDOP-FB-030` to `CDOP-FB-041` record the October drafts’ gaps. Newer Registry (26 October) and Verification (6 November) attachments have been [reviewed separately](docs/reviews/round2-2026-11-13.md); the served Round 2 pin has not changed.
 
 ## API version is not schema version
 
 The URL prefix `/v2` is the API major version. The CDOP schema version travels separately in a response header on every CDOP document and on the root:
 
 ```
-X-CDOP-Schema-Version: 2.0+eff6ca3
+X-CDOP-Schema-Version: 2.1.0+363b194
 X-API-Version: 0.1.0
 ```
 

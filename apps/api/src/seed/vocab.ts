@@ -148,7 +148,7 @@ export const STANDARDS: StandardSeed[] = [
   },
   {
     id: "vcs",
-    cdop_name: "Verificed Carbon Standard (VCS)",
+    cdop_name: "Verified Carbon Standard (VCS)",
     short_code: "VCS",
     crediting_program_id: "verra",
     registry_id: "verra",
