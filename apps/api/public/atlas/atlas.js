@@ -1351,15 +1351,6 @@ async function projectDetail(id, tab, ctx) {
       "CDOP documents",
       "Each pod is a schema-pure CDOP document for this project. The API validates it against the vendored schema named in the Schema column and reports the result in X-CDOP-Conformance, citing the schema feedback register entry behind each error. Round 2 drafts include the fast track metadata pods and the separately pinned standard track Additionality proposal. They are not part of the published CDOP release.",
       h(
-        "p",
-        {},
-        "Additionality: project exports contain only known project facts; no assessment has been performed. ",
-        external("/docs/guides/additionality-review", "Read the review"),
-        " or inspect the ",
-        external("/v2/drafts/additionality/example", "upstream hypothetical worked example"),
-        ".",
-      ),
-      h(
         "div",
         { class: "table-wrap" },
         dataTable(
@@ -1410,12 +1401,13 @@ async function projectDetail(id, tab, ctx) {
         ),
       ),
     );
+    const additionalityPod = pods.find((pod) => pod.name === "additionality");
     const publishedBody = body;
     const content = h("div", { "aria-live": "polite" });
     const select = h(
       "select",
       { id: "document-profile" },
-      h("option", { value: "published" }, "Published CDOP"),
+      h("option", { value: "published" }, "CDOP published + drafts"),
       h("option", { value: "0.1.0" }, "Rethink proposal 0.1.0"),
     );
     select.value = state.documentProfile;
@@ -1515,7 +1507,24 @@ async function projectDetail(id, tab, ctx) {
     body = h(
       "div",
       {},
-      h("p", {}, h("label", { for: "document-profile" }, "Document version "), select),
+      h(
+        "section",
+        { class: "draft-highlight", "aria-label": "Additionality draft" },
+        h("h2", {}, "Additionality draft"),
+        h(
+          "p",
+          {},
+          "Explore the latest proposal. Project data contains known facts only; additionality has not been assessed. The worked example is hypothetical.",
+        ),
+        h(
+          "div",
+          { class: "draft-links" },
+          additionalityPod ? external(local(additionalityPod.href), "Project JSON") : undefined,
+          external("/v2/drafts/additionality/example", "Worked example (JSON)"),
+          external("/docs/guides/additionality-review", "Review and explanation"),
+        ),
+      ),
+      h("p", {}, h("label", { for: "document-profile" }, "Document view "), select),
       content,
     );
     await show();
