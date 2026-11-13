@@ -17,13 +17,13 @@ This supersedes our 20 October review of the 8 October draft:
 
 ## Try it in the demo
 
-Open a project in [Atlas](/atlas/), choose **CDOP documents**, then find **Additionality (Round 2 draft)** in the CDOP document table. Its result says **schema valid · not assessed**.
+Open a project in [Atlas](https://cdop.rethinkcarbon.co.uk/atlas/), choose **CDOP documents**, then find **Additionality (Round 2 draft)** in the CDOP document table. Its result says **schema valid · not assessed**.
 
-- [Inspect the draft schema](/v2/schemas/Additionality.schema.json).
-- [Inspect the complete upstream hypothetical example](/v2/drafts/additionality/example). Its financial figures and assessment narratives are synthetic worked examples, not evidence about an actual project.
+- [Inspect the draft schema](https://cdop.rethinkcarbon.co.uk/v2/schemas/Additionality.schema.json).
+- [Inspect the complete upstream hypothetical example](https://cdop.rethinkcarbon.co.uk/v2/drafts/additionality/example). Its financial figures and assessment narratives are synthetic worked examples, not evidence about an actual project.
 - Fetch `/v2/projects/{id}/cdop/additionality` for an existing demo project.
 - Submit a document to `POST /v2/validate?schema=additionality` to check its structure.
-- [Inspect the schema index and separate source pins](/v2/schemas).
+- [Inspect the schema index and separate source pins](https://cdop.rethinkcarbon.co.uk/v2/schemas).
 
 Project exports contain the project reference and available area/duration facts only. No pass/fail claims are inferred from lifecycle status, verification status or generic document titles. The existing demo PDFs are placeholders and do not establish assessment evidence. `strict=1` does not invent missing assessment or financial information. A schema-valid export can therefore be a very incomplete assessment record.
 

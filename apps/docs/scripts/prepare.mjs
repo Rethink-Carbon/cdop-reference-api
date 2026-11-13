@@ -20,6 +20,11 @@ const GUIDES = {
 mkdirSync(out, { recursive: true });
 for (const [slug, source] of Object.entries(GUIDES)) {
   const md = readFileSync(path.join(repo, source), "utf8")
+    // Absolute API links escape the documentation router; the API substitutes its origin.
+    .replace(
+      /\]\(https:\/\/cdop\.rethinkcarbon\.co\.uk\/(atlas|v2)([/)])/g,
+      "](https://api-origin.cdop.invalid/$1$2",
+    )
     .replace(
       /\]\((hateoas-tour|api-profile|projection|mcp|twg-proposal|additionality-review)\.md(#[^)]*)?\)/g,
       "](./$1$2)",
