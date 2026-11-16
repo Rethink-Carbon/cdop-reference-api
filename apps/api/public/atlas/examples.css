@@ -1,0 +1,251 @@
+:root {
+  color-scheme: light;
+  --ink: #172b27;
+  --muted: #53665f;
+  --line: #d4dfd8;
+  --paper: #fff;
+  --wash: #f5f7f4;
+  --accent: #176348;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--wash);
+  color: var(--ink);
+  font:
+    16px/1.6 system-ui,
+    sans-serif;
+}
+a {
+  color: var(--accent);
+  text-underline-offset: 4px;
+}
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #206fb0;
+  outline-offset: 4px;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px max(24px, calc((100vw - 1120px) / 2));
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+.brand {
+  font-size: 27px;
+  font-weight: 800;
+  text-decoration: none;
+  color: var(--ink);
+}
+.brand span {
+  font-size: 15px;
+  font-weight: 500;
+  margin-left: 12px;
+}
+nav,
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+nav a[aria-current="page"] {
+  font-weight: 750;
+  text-decoration-thickness: 3px;
+}
+main {
+  max-width: 1120px;
+  margin: auto;
+  padding: 36px 24px 60px;
+}
+h1 {
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin: 14px 0;
+}
+h2 {
+  font-size: 23px;
+  line-height: 1.3;
+  margin: 0 0 12px;
+}
+h3 {
+  font-size: 17px;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+p {
+  margin: 0 0 16px;
+}
+.intro {
+  max-width: 780px;
+  color: var(--muted);
+  font-size: 18px;
+}
+.badge {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 13px;
+  background: var(--paper);
+}
+.notice {
+  background: #fff7e7;
+  border-left: 4px solid #a6751a;
+  padding: 16px 20px;
+  margin: 22px 0;
+}
+.notice p:last-child {
+  margin-bottom: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 24px 0;
+}
+.card,
+.shared,
+details {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px;
+}
+.shared {
+  background: #e8f3eb;
+  margin: 24px 0;
+}
+.shared .identifier {
+  font-size: clamp(14px, 2vw, 20px);
+}
+.identifier {
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, monospace;
+}
+.step {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+dl {
+  margin: 0;
+}
+dt {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 14px;
+}
+dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.checks {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.checks span {
+  background: #e8f3eb;
+  padding: 7px 12px;
+  border-radius: 6px;
+}
+.jump {
+  padding: 18px 0;
+  border-block: 1px solid var(--line);
+  margin: 24px 0;
+}
+details {
+  margin: 16px 0;
+  scroll-margin-top: 20px;
+}
+summary {
+  cursor: pointer;
+  font-size: 21px;
+  font-weight: 700;
+}
+summary small {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 400;
+  margin-left: 10px;
+}
+.field {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  margin-top: 20px;
+}
+.field p {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.field .badge {
+  font-weight: 400;
+  margin-left: 8px;
+  font-size: 12px;
+  background: #fff7e7;
+}
+.description {
+  font-size: 14px;
+  color: var(--muted);
+}
+.question {
+  margin: 26px 0;
+  padding: 20px 0;
+  border-block: 1px solid var(--line);
+}
+button {
+  font: inherit;
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--accent);
+}
+footer {
+  padding: 20px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: 12px;
+  top: 12px;
+  background: white;
+  padding: 12px;
+}
+@media (max-width: 650px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  header {
+    padding: 16px;
+  }
+  main {
+    padding: 26px 16px;
+  }
+  .card,
+  .shared,
+  details {
+    padding: 18px;
+  }
+  nav {
+    gap: 10px 16px;
+    font-size: 14px;
+  }
+}

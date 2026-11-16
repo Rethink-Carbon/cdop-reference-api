@@ -5,9 +5,10 @@ This is Rethink Carbon's worked proposal for the 16 November 2026 TWG review, fo
 ## Walk through the demo
 
 1. Open `/atlas`, select a project, and open its **CDOP documents** tab.
-2. Change **Document version** from **Published CDOP** to **Rethink proposal 0.1.0**. Read its validation result, identity, lifecycle, hold flag and status history.
-3. Follow **Explore proposal links**, **Proposal JSON** or **Proposal schema** to inspect the same data through the API. Switch back to Published CDOP to compare the existing pod documents.
-4. Open `/v2/proposals/0.1.0` for the proposal's scope and worked WCC, Peatland Code, VCS and registry-transfer examples. Each standard example includes the published Full List and its conformance result alongside the proposed document and its result.
+2. Change **Document view** from **CDOP published + drafts** to **Rethink proposal 0.1.0**. Read its validation result, identity, lifecycle, hold flag and status history.
+3. Follow **Explore proposal links**, **Proposal JSON** or **Proposal schema** to inspect the same data through the API. Switch back to CDOP published + drafts to compare the existing pod documents.
+4. Open the [visual registry-transfer example](https://cdop.rethinkcarbon.co.uk/atlas/examples.html#registry-transfer) to compare before and after without raw JSON.
+5. Open `/v2/proposals/0.1.0` for the proposal's scope and worked WCC, Peatland Code, VCS and registry-transfer examples. Each standard example includes the published Full List and its conformance result alongside the proposed document and its result.
 
 The static examples are generated without a database and checked into `examples/proposals/0.1.0/`. Project routes load the same aggregate used by the published API. All data in the examples is synthetic. The registry transfer is hypothetical; it does not assert that a particular standard permits transfers.
 

@@ -1,0 +1,484 @@
+{
+  "reviewed_on": "2026-11-16",
+  "published_release": "v2.1.0",
+  "published_commit": "363b1944f949eb45b5dd5a22aed576621a27678b",
+  "fast_track_reviewed_commit": "f7b21490a199dd492cec79753db9e6915855300b",
+  "note": "Review only. The demo still serves fast-track commit 39ac535; the reviewed Registry and Verification schemas match the October 26 Registry and November 6 PAE attachments.",
+  "published_examples": [
+    {
+      "pod": "full-list",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "location-details",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "project-approach-details",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "disclosures",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "issuances",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "unit-description",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "crediting-period",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "estimations",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "co-benefits",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "durability-permanence",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "project-finance",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "pod": "labels-certifications",
+      "valid": true,
+      "errors": []
+    }
+  ],
+  "published_required_sections": [
+    "agreement",
+    "cobenefits",
+    "estimations",
+    "geolocation_file",
+    "project",
+    "project_stakeholder",
+    "unit",
+    "validation",
+    "vintage"
+  ],
+  "published_formats": [
+    "date"
+  ],
+  "published_open_fields": [
+    {
+      "path": "project.activity_type",
+      "type": "string",
+      "privacy": "Public"
+    },
+    {
+      "path": "project.project_risk",
+      "type": "string",
+      "privacy": "Public"
+    },
+    {
+      "path": "crediting_program.crediting_program[].crediting_program_name",
+      "type": "string",
+      "enum": [
+        "American Carbon Registry (ACR)",
+        "ACORN",
+        "Architecture for REDD+ Transactions (ART)",
+        "Asia Carbon Institute",
+        "Biocarbon Registry (BCR)",
+        "Carbon Assets Trading System (CATS)",
+        "Carbon Standards International",
+        "CDM",
+        "Cercarbono",
+        "Chile National Registry",
+        "China Certified Emission Reduction Trading System (CCER)",
+        "City Forest Credits",
+        "Climate Action Reserve (CAR)",
+        "Costa Rica National Registry",
+        "Covalent",
+        "Credible Carbon",
+        "Cultivo",
+        "ECO Natural Forest Standard",
+        "EcoRegistry",
+        "Ecosystem Restoration Standard",
+        "Global Carbon Council",
+        "Gold Standard",
+        "Inclusive Carbon Standard",
+        "International Carbon Registry",
+        "Isometric",
+        "IUCN UK Peatland Programme",
+        "Joint Crediting Mechanism",
+        "Mexico National Registry",
+        "MoorFutures",
+        "Open Earth Foundation",
+        "PACM",
+        "Pakistan National Registry",
+        "Plan Vivo",
+        "Puro.earth",
+        "Riverse",
+        "Royal Kingdom of Bhutan",
+        "RUN Carbon Crediting Program",
+        "Singapore National Registry",
+        "SOCIAL CARBON Registry",
+        "Sweden National Registry",
+        "Switzerland National Registry",
+        "Trusted Carbon",
+        "Verra"
+      ],
+      "privacy": "Public"
+    },
+    {
+      "path": "registry.previous[].previous_project_registration_id",
+      "type": "integer",
+      "privacy": "Public"
+    },
+    {
+      "path": "validation.validation[].validation_id",
+      "type": "integer",
+      "privacy": "Public"
+    },
+    {
+      "path": "validation.event[].validation_id",
+      "type": "integer",
+      "privacy": "Public"
+    },
+    {
+      "path": "unit.descriptor[].type",
+      "type": "string",
+      "enum": [
+        "ERT",
+        "TREES Credit",
+        "VCC",
+        "CRT",
+        "CER",
+        "CFC",
+        "ACC",
+        "VER, CER",
+        "Isometric credit",
+        "JCM",
+        "A6.4 ER, MCU",
+        "PVC",
+        "CORC",
+        "VCU",
+        "PIU"
+      ],
+      "privacy": "Public"
+    },
+    {
+      "path": "unit.owner_account_id",
+      "type": "string",
+      "privacy": "Private"
+    },
+    {
+      "path": "estimations.estimation_event[].estimation_id",
+      "type": "integer",
+      "privacy": "Public"
+    },
+    {
+      "path": "agreement.project_financing_stage",
+      "type": "string",
+      "enum": [
+        "Origination",
+        "Pre-feasability",
+        "Feasability",
+        "Project design drafting",
+        "Project design finalization",
+        "Listed",
+        "Validation",
+        "Validated",
+        "Registered",
+        "Approved",
+        "Authorized",
+        "Verified and issuing"
+      ],
+      "privacy": "Public"
+    }
+  ],
+  "drafts": {
+    "Registry": {
+      "sha256": "e083ef54b8c39efd57fdb510107675cacc551860eb4a1248740dc40727a6160a",
+      "matches_previous_review": [
+        "registry/Registry_Metadata.schema.json"
+      ],
+      "field_count": 20,
+      "missing_mutability": [],
+      "missing_privacy": [],
+      "project_references": [
+        {
+          "path": "project_registry_history.project_identifier",
+          "type": "string",
+          "required": "1..1"
+        },
+        {
+          "path": "project_registry_history.registrations[].registry_project_identifier",
+          "type": "string",
+          "required": "1..1"
+        }
+      ]
+    },
+    "Validation": {
+      "sha256": "1f7f1cdc75d848df3e3bd56775363cffa2f8d11a86167e11dae6068d4e2bbfda",
+      "matches_previous_review": [],
+      "field_count": 31,
+      "missing_mutability": [],
+      "missing_privacy": [],
+      "project_references": [
+        {
+          "path": "validation.validation_project_id",
+          "type": "string",
+          "required": "0..1"
+        }
+      ]
+    },
+    "Verification": {
+      "sha256": "ff578d51fbb5df2aa90077010a910d31d65abbfeaacd7357b0987ca755deb989",
+      "matches_previous_review": [
+        "verification/Verification_Metadata.schema PAE.json"
+      ],
+      "field_count": 24,
+      "missing_mutability": [],
+      "missing_privacy": [],
+      "project_references": [
+        {
+          "path": "project.verification[].verification_project_id",
+          "type": "string",
+          "required": "1..1"
+        }
+      ]
+    }
+  },
+  "validation_example_sha256": "178b0f069132ca3b91771630f5359baade57438b97499abdde02ce7871ffc60d",
+  "validation_example": {
+    "valid": true,
+    "errors": []
+  },
+  "planned_validation_without_outcome_date": {
+    "valid": false,
+    "errors": [
+      {
+        "instancePath": "/validation",
+        "schemaPath": "#/properties/validation/required",
+        "keyword": "required",
+        "params": {
+          "missingProperty": "validation_date"
+        },
+        "message": "must have required property 'validation_date'"
+      }
+    ]
+  },
+  "validation_required": [
+    "current_crediting_period_end_date",
+    "current_crediting_period_number",
+    "current_crediting_period_start_date",
+    "date_validation_expiration",
+    "date_validation_planned",
+    "date_validation_requested",
+    "validation_date",
+    "validation_id",
+    "validation_is_planned",
+    "validation_period_end_date",
+    "validation_period_start_date",
+    "validation_stages",
+    "validation_type"
+  ],
+  "validation_fields": [
+    {
+      "path": "validation.current_crediting_period_end_date",
+      "type": "string",
+      "cardinality": "1..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.current_crediting_period_number",
+      "type": "integer",
+      "cardinality": "1..1"
+    },
+    {
+      "path": "validation.current_crediting_period_start_date",
+      "type": "string",
+      "cardinality": "1..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.date_previous_validation",
+      "type": "string",
+      "cardinality": "0..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.date_validation_expiration",
+      "type": "string",
+      "cardinality": "1..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.date_validation_planned",
+      "type": "string",
+      "cardinality": "1..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.date_validation_requested",
+      "type": "string",
+      "cardinality": "1..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.lca[].lca_completed",
+      "type": "boolean",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.lca[].lca_emissions_quantification",
+      "type": "boolean",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.lca[].lca_link",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.lca[].lca_repository",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.lca[].lca_results",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.lca[].lca_system_boundary_figure",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.lca[].lca_system_boundary_overview",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.validation_project_id",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.validation_id",
+      "type": "integer",
+      "cardinality": "1..1"
+    },
+    {
+      "path": "validation.validation_vvb_id[]",
+      "type": "string",
+      "cardinality": "0..*"
+    },
+    {
+      "path": "validation.validation_date",
+      "type": "string",
+      "cardinality": "1..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.validation_type",
+      "type": "string",
+      "enum": [
+        "Project validation",
+        "Program validation"
+      ],
+      "cardinality": "1..1"
+    },
+    {
+      "path": "validation.validation_is_planned",
+      "type": "boolean",
+      "cardinality": "1..1"
+    },
+    {
+      "path": "validation.validation_period_end_date",
+      "type": "string",
+      "cardinality": "1..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.validation_period_start_date",
+      "type": "string",
+      "cardinality": "1..1",
+      "format": "date"
+    },
+    {
+      "path": "validation.validation_report_link",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.validation_report_summary",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.validation_report_version",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.validation_stage_description",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.validation_stage_document_link",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.validation_stages[]",
+      "type": "string",
+      "enum": [
+        "Desk review",
+        "On-site audits and interviews",
+        "Public comment period",
+        "Resolution of findings",
+        "Final validation report issued"
+      ],
+      "cardinality": "1..*"
+    },
+    {
+      "path": "validation.status[].validation_status",
+      "type": "string",
+      "enum": [
+        "Desk review",
+        "On-site audits and interviews",
+        "Public comment period",
+        "Resolution of findings",
+        "Final validation report issued",
+        "Completed",
+        "Not started"
+      ],
+      "cardinality": "1..1"
+    },
+    {
+      "path": "validation.status[].validation_status_reason",
+      "type": "string",
+      "cardinality": "0..1"
+    },
+    {
+      "path": "validation.status[].is_current",
+      "type": "boolean",
+      "cardinality": "0..1"
+    }
+  ]
+}

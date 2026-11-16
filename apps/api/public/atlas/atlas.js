@@ -1455,10 +1455,7 @@ async function projectDetail(id, tab, ctx) {
               " · ",
               external(local(linkHref(resource, "describedby")), "Proposal schema"),
               " · ",
-              external(
-                "/v2/proposals/0.1.0/examples/registry-transfer",
-                "Registry-transfer example",
-              ),
+              external("/atlas/examples.html#registry-transfer", "Registry-transfer example"),
             ),
             h(
               "div",
@@ -1520,7 +1517,7 @@ async function projectDetail(id, tab, ctx) {
           "div",
           { class: "draft-links" },
           additionalityPod ? external(local(additionalityPod.href), "Project JSON") : undefined,
-          external("/v2/drafts/additionality/example", "Worked example (JSON)"),
+          external("/atlas/examples.html#additionality", "Explore worked example"),
           external("/docs/guides/additionality-review", "Review and explanation"),
         ),
       ),
