@@ -17,8 +17,9 @@ This supersedes our 20 October review of the 8 October draft:
 
 ## Try it in the demo
 
-In [Atlas](https://cdop.rethinkcarbon.co.uk/atlas/), the **Additionality draft** link in the top navigation opens this guide. For a project, choose **CDOP documents** to see the Additionality panel above the document list, with direct links to the project JSON, worked example and review. The **CDOP published + drafts** view also lists **Additionality (Round 2 draft)** in the table, with the result **schema valid · not assessed**.
+In [Atlas](https://cdop.rethinkcarbon.co.uk/atlas/), the **Additionality draft** link in the top navigation opens the visual worked example. For a project, choose **CDOP documents** to see the Additionality panel above the document list, with direct links to the project JSON, visual worked example and review. The **CDOP published + drafts** view also lists **Additionality (Round 2 draft)** in the table, with the result **schema valid · not assessed**.
 
+- [Open the visual worked example](https://cdop.rethinkcarbon.co.uk/atlas/examples.html#additionality).
 - [Inspect the draft schema](https://cdop.rethinkcarbon.co.uk/v2/schemas/Additionality.schema.json).
 - [Inspect the complete upstream hypothetical example](https://cdop.rethinkcarbon.co.uk/v2/drafts/additionality/example). Its financial figures and assessment narratives are synthetic worked examples, not evidence about an actual project.
 - Fetch `/v2/projects/{id}/cdop/additionality` for an existing demo project.

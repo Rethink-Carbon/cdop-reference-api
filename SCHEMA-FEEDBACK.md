@@ -4,6 +4,18 @@ This file is the numbered record of every point where the CDOP schema could not 
 
 The register is served by the API at `/rels/feedback` and to MCP clients as the `cdop://feedback` resource.
 
+## Current position: 16 November 2026
+
+**6 entries are fixed in published CDOP and reflected in the demo. 36 are not yet fully resolved in the published/served contract.** The latter include local proposals, partial improvements and fixes available only in newer drafts.
+
+The **On this page** list labels every entry: **✓ FIXED** means closed in published CDOP; **DRAFT FIX** means addressed in a newer draft but not yet adopted; **PARTIAL** means some of the issue remains; **PROPOSAL / OPEN** means we have a working proposal awaiting agreement; **OPEN** means unresolved. The summary IDs below are clickable.
+
+Checked the latest release and branch heads on 16 November. Published **v2.1.0** remains current; changes on main since that release affect README/schema descriptions, not the JSON contracts. All twelve published examples pass again. The Registry draft matches the October 26 attachment; the current Verification draft matches the November 6 PAE attachment. The **newer Validation draft has now also been reviewed**, superseding the earlier “not re-reviewed” notes. Additionality remains unchanged.
+
+Sources: [published release](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/releases/tag/v2.1.0), [main at 720ec27](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/720ec274bad57c40418feb49a3e21e5a3656c4ac), [fast-track at f7b2149](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/f7b21490a199dd492cec79753db9e6915855300b), [Additionality at daab3d5](https://github.com/Carbon-Data-Open-Protocol/Carbon-Data-Open-Protocol/tree/daab3d58d7b7b01cc26ca849f652194b111a35eb). Reproduce the checks with `node apps/api/scripts/review-feedback.mjs`; results are recorded in `docs/reviews/feedback-2026-11-16.json`.
+
+**Scope matters:** the demo uses published v2.1.0, the fast-track pin from 13 October, and the separate Additionality draft. Reviewing a newer draft does not silently replace the served contract. Each entry's latest dated recheck takes precedence over older observations and implementation notes.
+
 ## How the register works
 
 **Implementation snapshot.** Original observations and the "What the reference API does" sections are written against the vendored schema at upstream commit `eff6ca3d634fc4032d9873cc2c423487c8f34a1b` (16 September 2026), schema version 2.0. File paths are relative to `packages/cdop-schemas/`. Field ids are the `x-cdop-field-id` values from the schema. Dated rechecks preserve the evidence at each review. The 20 October audit did not change the pins. On 13 November the published pin and projection were upgraded to v2.1.0 (`363b194`); the Round 2 pin remains unchanged. Original observations below are historical unless a newer recheck says otherwise.
@@ -31,50 +43,50 @@ The register is served by the API at `/rels/feedback` and to MCP clients as the 
 
 ## Summary
 
-| Id          | Category  | Location                                                                                             | Title                                                                                                              | Status after 20 October recheck  |
-| ----------- | --------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
-| CDOP-FB-001 | defect    | `validation`                                                                                         | Identifier key on the validation record (historical, fixed upstream)                                               | fixed upstream                   |
-| CDOP-FB-002 | defect    | `project."crediting period"`, `cobenefits.cobenefit_target[]`                                        | Property names containing spaces                                                                                   | fixed; adopted v2.1.0            |
-| CDOP-FB-003 | defect    | `unit.credit_blockblock_start`                                                                       | Mangled key, required, while `block_end` sits in `credit_block[]`                                                  | fixed; adopted v2.1.0            |
-| CDOP-FB-004 | defect    | `examples/v2/*.json`                                                                                 | Published examples do not validate against the published schemas                                                   | fixed in v2.1.0                  |
-| CDOP-FB-005 | defect    | `Full_List.required`                                                                                 | Mechanically derived `required` overconstrains project documents                                                   | open, not yet raised upstream    |
-| CDOP-FB-006 | defect    | `crediting_program.standard[].standard_name`                                                         | Enum typo `Verificed Carbon Standard (VCS)` is the wire contract                                                   | fixed in v2.1.0                  |
-| CDOP-FB-007 | defect    | `x-cdop-mutability`, `x-cdop-public-private`, `x-cdop-data-source`, `x-cdop-pre-issuance-inclusion`  | Annotation values inconsistent in casing, spelling and column                                                      | open, not yet raised upstream    |
-| CDOP-FB-008 | defect    | `project.activity_type`                                                                              | Described as an enumeration but ships with no list                                                                 | open, not yet raised upstream    |
-| CDOP-FB-009 | defect    | `agreement.project_financing_stage`                                                                  | Enum typos (`Pre-feasability`, `Feasability`) and duplication of `project_status`                                  | open, not yet raised upstream    |
-| CDOP-FB-010 | ambiguity | `project.project_id`, `project_identifier`, `current_registry_project_id`                            | Three overlapping project identifiers and an unspecified country-keyed URN                                         | proposal implemented             |
-| CDOP-FB-011 | ambiguity | `validation_id`, `estimation_id`, `previous_project_registration_id`                                 | Integer identifiers                                                                                                | open, not yet raised upstream    |
-| CDOP-FB-012 | ambiguity | `unit.status[].status`                                                                               | Three unit-status vocabularies; states, hold reasons and events mixed                                              | proposal implemented             |
-| CDOP-FB-013 | ambiguity | `project.status[].project_status`                                                                    | Funnel stages, Article 6 authorisation and activity in one enum                                                    | proposal implemented             |
-| CDOP-FB-014 | ambiguity | `issuance.issuance[].issuance_status`                                                                | Precondition (`Verified`) mixed with process states                                                                | proposal implemented             |
-| CDOP-FB-015 | ambiguity | `project.status[]`, `unit.status[]`, `estimations.status[]`                                          | Status records carry no timestamp, actor or sequence                                                               | proposal implemented             |
-| CDOP-FB-016 | ambiguity | `estimations.*`, `validation.*`, `unit.*`                                                            | Parallel arrays without keys; scalars beside arrays                                                                | open, not yet raised upstream    |
-| CDOP-FB-017 | ambiguity | `geolocation_file.location[]`                                                                        | No file link, geometry or project reference; vector and raster, acquisition and lifecycle mixed                    | open, not yet raised upstream    |
-| CDOP-FB-018 | ambiguity | all pods                                                                                             | Only `format: date` is used; no `uri`, `email` or `date-time`                                                      | open, not yet raised upstream    |
-| CDOP-FB-019 | ambiguity | `unit.owner_account_id`, `unit.expected_carbon_credit_price`                                         | Required and Private; no account entity                                                                            | open, not yet raised upstream    |
-| CDOP-FB-020 | ambiguity | `project.compliance_market_id`                                                                       | Required with `minItems: 1` although "if applicable"                                                               | fixed in v2.1.0                  |
-| CDOP-FB-021 | ambiguity | `crediting_program`, `carbon_crediting_standard`, `registry`                                         | Three overlapping "standard" concepts; field 242 has a different path in Full List and Labels & Certifications     | partly fixed in v2.1.0           |
-| CDOP-FB-022 | ambiguity | `methodology.versions[].methodology`                                                                 | A 496-value enum with embedded program prefixes                                                                    | open, not yet raised upstream    |
-| CDOP-FB-023 | ambiguity | `project.buffer_pool[]`                                                                              | Buffer totals without dates; the buffer is a ledger                                                                | open, not yet raised upstream    |
-| CDOP-FB-024 | ambiguity | `project.project_risk`                                                                               | JSON stored in a string                                                                                            | open, not yet raised upstream    |
-| CDOP-FB-025 | ambiguity | `unit.descriptor[].type`                                                                             | Lacks WCU and PCU while including PIU; `"VER, CER"` is two values                                                  | open, not yet raised upstream    |
-| CDOP-FB-026 | ambiguity | all pods                                                                                             | `additionalProperties: true` everywhere, so misspelled keys validate                                               | open, not yet raised upstream    |
-| CDOP-FB-027 | api-gap   | n/a                                                                                                  | No `modified_at`, version, deletion, pagination, change-feed or link conventions                                   | open, not yet raised upstream    |
-| CDOP-FB-028 | defect    | `crediting_program.crediting_program[].crediting_program_name`, `methodology.versions[].methodology` | The UK codes are in the standard enum but missing from the program and methodology enums                           | open, not yet raised upstream    |
-| CDOP-FB-029 | defect    | `unit.unit_level[]`                                                                                  | Every unit label must be an accreditation and a compliance eligibility at once; CORSIA phases are spelled two ways | open, not yet raised upstream    |
-| CDOP-FB-030 | defect    | Round 2 field ids 261 to 325                                                                         | Two Round 2 branches give the same field ids to different fields                                                   | open, not yet raised upstream    |
-| CDOP-FB-031 | ambiguity | `Registry_Metadata`, `Validation_Metadata`                                                           | No project identifier: the records cannot be joined to their project                                               | partly addressed in new draft    |
-| CDOP-FB-032 | ambiguity | `registry.identification[]`, `registry.program[]`                                                    | Integer registry and program ids, and free-text names where Round 1 has enums                                      | addressed in Registry draft      |
-| CDOP-FB-033 | ambiguity | `registry.original[]`, `creation_date`, `update_date`                                                | Registry history arrays and dates are underspecified                                                               | partly addressed in new draft    |
-| CDOP-FB-034 | ambiguity | `validation.*[]`, `verification.*[]`                                                                 | Sibling arrays with no key to their validation or verification event                                               | partly addressed in new draft    |
-| CDOP-FB-035 | ambiguity | `validation.date[]`, `validation_body.details[]`, `verification.*`                                   | Required values that registries do not publish, or that do not exist yet                                           | open; draft rechecked            |
-| CDOP-FB-036 | ambiguity | `project.validation_status`, `project.validation_stage[]`                                            | Validation status modelled three ways                                                                              | raised upstream                  |
-| CDOP-FB-037 | ambiguity | `validation.crediting_period[]`, `validation_type`, report links                                     | Round 2 restates Round 1 fields under new ids, names and vocabularies                                              | raised upstream                  |
-| CDOP-FB-038 | defect    | `validation_body.details[].validation_body_sectoral_scopes`                                          | The sectoral scope list is the CDM list: no scope for REDD+, IFM, wetlands, peat or biochar                        | open, not yet raised upstream    |
-| CDOP-FB-039 | ambiguity | `verification.verification_credential_issuer_id`                                                     | A decentralised identifier is required on every verification                                                       | addressed in Verification drafts |
-| CDOP-FB-040 | ambiguity | `verification.quantity[]`, `verification.deductions[]`                                               | Verified quantity: unit, uncertainty basis and period are ambiguous                                                | partly addressed in new draft    |
-| CDOP-FB-041 | defect    | Round 2 annotations                                                                                  | Round 2 drops annotations Round 1 carries, and one cardinality contradicts `required`                              | raised upstream                  |
-| CDOP-FB-042 | design    | Additionality evidence                                                                               | Schema validity does not establish assessment completeness                                                         | open, not yet raised upstream    |
+| Id                                                                                                                 | Category  | Location                                                                                             | Title                                                                                                              | Status as of 16 November                                |
+| ------------------------------------------------------------------------------------------------------------------ | --------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| [CDOP-FB-001](#cdop-fb-001-identifier-key-on-the-validation-record-historical)                                     | defect    | `validation`                                                                                         | Identifier key on the validation record (historical, fixed upstream)                                               | ✓ FIXED · fixed upstream                                |
+| [CDOP-FB-002](#cdop-fb-002-property-names-containing-spaces)                                                       | defect    | `project."crediting period"`, `cobenefits.cobenefit_target[]`                                        | Property names containing spaces                                                                                   | ✓ FIXED · fixed; adopted v2.1.0                         |
+| [CDOP-FB-003](#cdop-fb-003-unitcredit_blockblock_start-is-mangled-and-required)                                    | defect    | `unit.credit_blockblock_start`                                                                       | Mangled key, required, while `block_end` sits in `credit_block[]`                                                  | ✓ FIXED · fixed; adopted v2.1.0                         |
+| [CDOP-FB-004](#cdop-fb-004-published-examples-do-not-validate-against-the-published-schemas)                       | defect    | `examples/v2/*.json`                                                                                 | Published examples do not validate against the published schemas                                                   | ✓ FIXED · fixed in v2.1.0                               |
+| [CDOP-FB-005](#cdop-fb-005-mechanically-derived-full_listrequired-overconstrains-project-documents)                | defect    | `Full_List.required`                                                                                 | Mechanically derived `required` overconstrains project documents                                                   | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-006](#cdop-fb-006-enum-typo-verificed-carbon-standard-vcs)                                                | defect    | `crediting_program.standard[].standard_name`                                                         | Enum typo `Verificed Carbon Standard (VCS)` is the wire contract                                                   | ✓ FIXED · fixed in v2.1.0                               |
+| [CDOP-FB-007](#cdop-fb-007-x-cdop--annotation-values-are-inconsistent)                                             | defect    | `x-cdop-mutability`, `x-cdop-public-private`, `x-cdop-data-source`, `x-cdop-pre-issuance-inclusion`  | Annotation values inconsistent in casing, spelling and column                                                      | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-008](#cdop-fb-008-projectactivity_type-has-no-enumeration)                                                | defect    | `project.activity_type`                                                                              | Described as an enumeration but ships with no list                                                                 | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-009](#cdop-fb-009-agreementproject_financing_stage-typos-and-duplication)                                 | defect    | `agreement.project_financing_stage`                                                                  | Enum typos (`Pre-feasability`, `Feasability`) and duplication of `project_status`                                  | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-010](#cdop-fb-010-three-overlapping-project-identifiers-and-an-unspecified-urn)                           | ambiguity | `project.project_id`, `project_identifier`, `current_registry_project_id`                            | Three overlapping project identifiers and an unspecified country-keyed URN                                         | PROPOSAL / OPEN · proposal live; upstream decision open |
+| [CDOP-FB-011](#cdop-fb-011-integer-identifiers)                                                                    | ambiguity | `validation_id`, `estimation_id`, `previous_project_registration_id`                                 | Integer identifiers                                                                                                | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-012](#cdop-fb-012-three-unit-status-vocabularies)                                                         | ambiguity | `unit.status[].status`                                                                               | Three unit-status vocabularies; states, hold reasons and events mixed                                              | PROPOSAL / OPEN · proposal live; upstream decision open |
+| [CDOP-FB-013](#cdop-fb-013-project_status-conflates-funnel-stages-authorisation-and-activity)                      | ambiguity | `project.status[].project_status`                                                                    | Funnel stages, Article 6 authorisation and activity in one enum                                                    | PROPOSAL / OPEN · proposal live; upstream decision open |
+| [CDOP-FB-014](#cdop-fb-014-issuance_status-mixes-a-precondition-with-process-states)                               | ambiguity | `issuance.issuance[].issuance_status`                                                                | Precondition (`Verified`) mixed with process states                                                                | PROPOSAL / OPEN · proposal live; upstream decision open |
+| [CDOP-FB-015](#cdop-fb-015-status-records-carry-no-timestamp-actor-or-sequence)                                    | ambiguity | `project.status[]`, `unit.status[]`, `estimations.status[]`                                          | Status records carry no timestamp, actor or sequence                                                               | PROPOSAL / OPEN · proposal live; upstream decision open |
+| [CDOP-FB-016](#cdop-fb-016-parallel-arrays-without-keys-scalars-beside-arrays)                                     | ambiguity | `estimations.*`, `validation.*`, `unit.*`                                                            | Parallel arrays without keys; scalars beside arrays                                                                | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-017](#cdop-fb-017-geolocation_file-has-no-link-geometry-or-project-reference)                             | ambiguity | `geolocation_file.location[]`                                                                        | No file link, geometry or project reference; vector and raster, acquisition and lifecycle mixed                    | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-018](#cdop-fb-018-only-format-date-is-used)                                                               | ambiguity | all pods                                                                                             | Only `format: date` is used; no `uri`, `email` or `date-time`                                                      | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-019](#cdop-fb-019-required-and-private-no-account-entity)                                                 | ambiguity | `unit.owner_account_id`, `unit.expected_carbon_credit_price`                                         | Required and Private; no account entity                                                                            | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-020](#cdop-fb-020-compliance_market_id-required-with-minitems-1)                                          | ambiguity | `project.compliance_market_id`                                                                       | Required with `minItems: 1` although "if applicable"                                                               | ✓ FIXED · fixed in v2.1.0                               |
+| [CDOP-FB-021](#cdop-fb-021-three-overlapping-standard-concepts)                                                    | ambiguity | `crediting_program`, `carbon_crediting_standard`, `registry`                                         | Three overlapping "standard" concepts; field 242 has a different path in Full List and Labels & Certifications     | PARTIAL · partly fixed in v2.1.0                        |
+| [CDOP-FB-022](#cdop-fb-022-methodology-is-a-496-value-enum-with-embedded-prefixes)                                 | ambiguity | `methodology.versions[].methodology`                                                                 | A 496-value enum with embedded program prefixes                                                                    | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-023](#cdop-fb-023-buffer_pool-totals-without-dates)                                                       | ambiguity | `project.buffer_pool[]`                                                                              | Buffer totals without dates; the buffer is a ledger                                                                | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-024](#cdop-fb-024-project_risk-is-json-in-a-string)                                                       | ambiguity | `project.project_risk`                                                                               | JSON stored in a string                                                                                            | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-025](#cdop-fb-025-unitdescriptortype-lacks-wcu-and-pcu-ver-cer-is-two-values)                             | ambiguity | `unit.descriptor[].type`                                                                             | Lacks WCU and PCU while including PIU; `"VER, CER"` is two values                                                  | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-026](#cdop-fb-026-additionalproperties-true-everywhere)                                                   | ambiguity | all pods                                                                                             | `additionalProperties: true` everywhere, so misspelled keys validate                                               | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-027](#cdop-fb-027-no-api-conventions)                                                                     | api-gap   | n/a                                                                                                  | No `modified_at`, version, deletion, pagination, change-feed or link conventions                                   | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-028](#cdop-fb-028-the-uk-codes-are-missing-from-the-program-and-methodology-enums)                        | defect    | `crediting_program.crediting_program[].crediting_program_name`, `methodology.versions[].methodology` | The UK codes are in the standard enum but missing from the program and methodology enums                           | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-029](#cdop-fb-029-unit_level-requires-an-accreditation-and-a-compliance-eligibility-on-every-entry)       | defect    | `unit.unit_level[]`                                                                                  | Every unit label must be an accreditation and a compliance eligibility at once; CORSIA phases are spelled two ways | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-030](#cdop-fb-030-draft-field-ids-collide-with-other-draft-and-published-fields)                          | defect    | Round 2 field ids 261 to 325                                                                         | Two Round 2 branches give the same field ids to different fields                                                   | OPEN · open, not yet raised upstream                    |
+| [CDOP-FB-031](#cdop-fb-031-no-project-identifier-in-registry-metadata-or-validation-metadata)                      | ambiguity | `Registry_Metadata`, `Validation_Metadata`                                                           | No project identifier: the records cannot be joined to their project                                               | PARTIAL · partly addressed in current drafts            |
+| [CDOP-FB-032](#cdop-fb-032-integer-registry-and-program-ids-and-free-text-names-where-round-1-has-enums)           | ambiguity | `registry.identification[]`, `registry.program[]`                                                    | Integer registry and program ids, and free-text names where Round 1 has enums                                      | DRAFT FIX · addressed in Registry draft                 |
+| [CDOP-FB-033](#cdop-fb-033-registry-history-arrays-and-dates-are-underspecified)                                   | ambiguity | `registry.original[]`, `creation_date`, `update_date`                                                | Registry history arrays and dates are underspecified                                                               | PARTIAL · partly addressed in new draft                 |
+| [CDOP-FB-034](#cdop-fb-034-sibling-arrays-with-no-key-to-their-validation-or-verification-event)                   | ambiguity | `validation.*[]`, `verification.*[]`                                                                 | Sibling arrays with no key to their validation or verification event                                               | PARTIAL · partly addressed in current drafts            |
+| [CDOP-FB-035](#cdop-fb-035-required-values-that-registries-do-not-publish-or-that-do-not-exist-yet)                | ambiguity | `validation.date[]`, `validation_body.details[]`, `verification.*`                                   | Required values that registries do not publish, or that do not exist yet                                           | OPEN · open; draft rechecked                            |
+| [CDOP-FB-036](#cdop-fb-036-validation-status-modelled-three-ways)                                                  | ambiguity | `project.validation_status`, `project.validation_stage[]`                                            | Validation status modelled three ways                                                                              | PARTIAL · partly addressed in Validation draft          |
+| [CDOP-FB-037](#cdop-fb-037-round-2-restates-round-1-fields-under-new-ids-names-and-vocabularies)                   | ambiguity | `validation.crediting_period[]`, `validation_type`, report links                                     | Round 2 restates Round 1 fields under new ids, names and vocabularies                                              | OPEN · raised upstream                                  |
+| [CDOP-FB-038](#cdop-fb-038-the-sectoral-scope-list-is-the-cdm-list-no-scope-for-redd-ifm-wetlands-peat-or-biochar) | defect    | `validation_body.details[].validation_body_sectoral_scopes`                                          | The sectoral scope list is the CDM list: no scope for REDD+, IFM, wetlands, peat or biochar                        | PARTIAL · scope block removed in draft; model open      |
+| [CDOP-FB-039](#cdop-fb-039-a-decentralised-identifier-is-required-on-every-verification)                           | ambiguity | `verification.verification_credential_issuer_id`                                                     | A decentralised identifier is required on every verification                                                       | DRAFT FIX · addressed in Verification drafts            |
+| [CDOP-FB-040](#cdop-fb-040-verified-quantity-unit-uncertainty-basis-and-period-are-ambiguous)                      | ambiguity | `verification.quantity[]`, `verification.deductions[]`                                               | Verified quantity: unit, uncertainty basis and period are ambiguous                                                | PARTIAL · partly addressed in new draft                 |
+| [CDOP-FB-041](#cdop-fb-041-round-2-drops-annotations-round-1-carries-and-one-cardinality-contradicts-required)     | defect    | Round 2 annotations                                                                                  | Round 2 drops annotations Round 1 carries, and one cardinality contradicts `required`                              | PARTIAL · partly addressed in current drafts            |
+| [CDOP-FB-042](#cdop-fb-042-additionality-validation-does-not-establish-assessment-completeness)                    | design    | Additionality evidence                                                                               | Schema validity does not establish assessment completeness                                                         | OPEN · open, not yet raised upstream                    |
 
 ## November implementation and draft review
 
@@ -124,13 +136,17 @@ The generation workflow still does not validate the examples. The upstream `scri
 
 ---
 
-## CDOP-FB-001: Identifier key on the validation record (historical)
+<a id="cdop-fb-001-identifier-key-on-the-validation-record-historical"></a>
+
+## CDOP-FB-001 · ✓ FIXED: Identifier key on the validation record (historical)
 
 |                   |                                                    |
 | ----------------- | -------------------------------------------------- |
 | File / field path | `validation` (pre-release v2 draft), the `_id` key |
 | Category          | defect                                             |
 | Status            | fixed upstream                                     |
+
+**Recheck (16 November 2026).** The malformed validation identifier key remains fixed. Integer identifier types are a separate open issue (011).
 
 **Recheck (20 October 2026).** Fixed upstream. Published `main` uses `validation_id` at fields 154 and 170, with no malformed `_id` property. This was already true in the September implementation snapshot. The unmerged Validation Metadata pod also uses `validation_id` (287). Close the naming defect; integer typing remains 011.
 
@@ -144,13 +160,17 @@ The generation workflow still does not validate the examples. The upstream `scri
 
 ---
 
-## CDOP-FB-002: Property names containing spaces
+<a id="cdop-fb-002-property-names-containing-spaces"></a>
+
+## CDOP-FB-002 · ✓ FIXED: Property names containing spaces
 
 |                   |                                                                                                                                                                                                                                              |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `schemas/v2/Full_List.schema.json`: `project."crediting period"[]` (field 161); `schemas/v2/Co_Benefits.schema.json` and `Full_List.schema.json`: `cobenefits.cobenefit_target[]."overview_of_the_projects_approach_to_ track_and_quantify"` |
 | Category          | defect                                                                                                                                                                                                                                       |
 | Status            | fixed; adopted v2.1.0                                                                                                                                                                                                                        |
+
+**Recheck (16 November 2026).** The cleaned crediting-period and co-benefit property names are in v2.1.0 and used by the demo.
 
 **Recheck (13 November 2026).** The clean crediting-period and co-benefit keys are now vendored and used by the projection. Historical workaround text below describes the September snapshot.
 
@@ -192,13 +212,17 @@ The second is a key with an embedded space inside a snake_case name:
 
 ---
 
-## CDOP-FB-003: `unit.credit_blockblock_start` is mangled and required
+<a id="cdop-fb-003-unitcredit_blockblock_start-is-mangled-and-required"></a>
+
+## CDOP-FB-003 · ✓ FIXED: `unit.credit_blockblock_start` is mangled and required
 
 |                   |                                                                                                       |
 | ----------------- | ----------------------------------------------------------------------------------------------------- |
 | File / field path | `schemas/v2/Full_List.schema.json`: `unit.credit_blockblock_start` (field 152), `unit.credit_block[]` |
 | Category          | defect                                                                                                |
 | Status            | fixed; adopted v2.1.0                                                                                 |
+
+**Recheck (16 November 2026).** The published and served documents use credit_block[].block_start. The malformed field is gone.
 
 **Recheck (13 November 2026).** The projection now uses `credit_block[].block_start`. The malformed `credit_blockblock_start` output has been removed.
 
@@ -232,13 +256,17 @@ The field path `unit.credit_block[]block_start` is missing the dot, which is the
 
 ---
 
-## CDOP-FB-004: Published examples do not validate against the published schemas
+<a id="cdop-fb-004-published-examples-do-not-validate-against-the-published-schemas"></a>
+
+## CDOP-FB-004 · ✓ FIXED: Published examples do not validate against the published schemas
 
 |                   |                                                                                                                                                                                                                                                             |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `examples/v2/full_list.json`, `unit_description.json`, `co_benefits.json`, `project_finance.json` against the matching schemas (four of the eleven examples fail; seven pass, but `additionalProperties: true` hides wrong shapes in some, see CDOP-FB-026) |
 | Category          | defect                                                                                                                                                                                                                                                      |
 | Status            | fixed in v2.1.0                                                                                                                                                                                                                                             |
+
+**Recheck (16 November 2026).** All twelve published v2.1.0 examples pass again. Upstream runs example checks. New draft Full List attachment issues remain separate.
 
 **Recheck (13 November 2026).** All twelve published examples validate against their corresponding v2.1.0 schemas, including the new Labels & Certifications example. The schema package tests require this, and upstream now runs example validation. Newer Round 2 attachment issues are recorded separately in the November review.
 
@@ -270,13 +298,17 @@ The schema defines `status[]` (objects with `status`, `status_reason`, `is_curre
 
 ---
 
-## CDOP-FB-005: Mechanically derived `Full_List.required` overconstrains project documents
+<a id="cdop-fb-005-mechanically-derived-full_listrequired-overconstrains-project-documents"></a>
+
+## CDOP-FB-005 · OPEN: Mechanically derived `Full_List.required` overconstrains project documents
 
 |                   |                                                                             |
 | ----------------- | --------------------------------------------------------------------------- |
 | File / field path | `schemas/v2/Full_List.schema.json`: top-level `required`; `unit`, `vintage` |
 | Category          | defect                                                                      |
 | Status            | open, not yet raised upstream                                               |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present, with narrower wording. The nine top-level required entities are unchanged, including financial agreement, co-benefit, unit and vintage sections even when a project has no such data. `unit` and `vintage` remain single objects. This constrains project documents; it does not make every possible document invalid, and `credit_block[]` itself can carry multiple blocks. Fast track adds three more required entities and a single verification object.
 
@@ -302,13 +334,17 @@ So a valid Full List must contain unit and vintage objects, an agreement with an
 
 ---
 
-## CDOP-FB-006: Enum typo `Verificed Carbon Standard (VCS)`
+<a id="cdop-fb-006-enum-typo-verificed-carbon-standard-vcs"></a>
+
+## CDOP-FB-006 · ✓ FIXED: Enum typo `Verificed Carbon Standard (VCS)`
 
 |                   |                                                                                                                                        |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `schemas/v2/Full_List.schema.json` and `Project_Approach_Details.schema.json`: `crediting_program.standard[].standard_name` (field 46) |
 | Category          | defect                                                                                                                                 |
 | Status            | fixed in v2.1.0                                                                                                                        |
+
+**Recheck (16 November 2026).** The published VCS name is correctly spelled Verified Carbon Standard (VCS).
 
 **Recheck (13 November 2026).** The published enum now spells `Verified Carbon Standard (VCS)` correctly. The seed vocabulary and projection use that spelling.
 
@@ -332,13 +368,17 @@ The upstream example `project_approach_and_details.json` uses the misspelt value
 
 ---
 
-## CDOP-FB-007: `x-cdop-*` annotation values are inconsistent
+<a id="cdop-fb-007-x-cdop--annotation-values-are-inconsistent"></a>
+
+## CDOP-FB-007 · OPEN: `x-cdop-*` annotation values are inconsistent
 
 |                   |                                                                                                               |
 | ----------------- | ------------------------------------------------------------------------------------------------------------- |
 | File / field path | all pods: `x-cdop-mutability`, `x-cdop-public-private`, `x-cdop-data-source`, `x-cdop-pre-issuance-inclusion` |
 | Category          | defect                                                                                                        |
 | Status            | open, not yet raised upstream                                                                                 |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. Annotation counts are unchanged: 23 `Public` values under mutability, 9 `Immutable` and 14 `Mutable` values under public/private, mixed casing, 15 data-source spellings, and no `x-cdop-required-optional`. The generator fix normalises property paths, not these annotations.
 
@@ -361,13 +401,17 @@ The upstream example `project_approach_and_details.json` uses the misspelt value
 
 ---
 
-## CDOP-FB-008: `project.activity_type` has no enumeration
+<a id="cdop-fb-008-projectactivity_type-has-no-enumeration"></a>
+
+## CDOP-FB-008 · OPEN: `project.activity_type` has no enumeration
 
 |                   |                                                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------------------------------- |
 | File / field path | `schemas/v2/Full_List.schema.json`: `project.activity_type` (field 61); `schemas/v2/unmatched_enum_fields.csv` |
 | Category          | defect                                                                                                         |
 | Status            | open, not yet raised upstream                                                                                  |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. `project.activity_type` is a string without an enum, and `unmatched_enum_fields.csv` still lists `project,activity_type`.
 
@@ -386,13 +430,17 @@ project,activity_type
 
 ---
 
-## CDOP-FB-009: `agreement.project_financing_stage` typos and duplication
+<a id="cdop-fb-009-agreementproject_financing_stage-typos-and-duplication"></a>
+
+## CDOP-FB-009 · OPEN: `agreement.project_financing_stage` typos and duplication
 
 |                   |                                                                                                                       |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `schemas/v2/Full_List.schema.json` and `Project_Finance.schema.json`: `agreement.project_financing_stage` (field 230) |
 | Category          | defect                                                                                                                |
 | Status            | open, not yet raised upstream                                                                                         |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. Full List and Project Finance still use `Pre-feasability` and `Feasability`; the separate project-status enum uses the correct spellings. The duplicated vocabulary is unchanged.
 
@@ -414,13 +462,17 @@ The list is the first twelve values of `project.status[].project_status` (field 
 
 ---
 
-## CDOP-FB-010: Three overlapping project identifiers and an unspecified URN
+<a id="cdop-fb-010-three-overlapping-project-identifiers-and-an-unspecified-urn"></a>
+
+## CDOP-FB-010 · PROPOSAL / OPEN: Three overlapping project identifiers and an unspecified URN
 
 |                   |                                                                                                                                                                                        |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `project.project_id_type` (55), `project.project_id` (56), `project.project_identifier` (87), `project.current_registry_project_id` (139); `issuance.issuance[].batch_identifier` (93) |
 | Category          | ambiguity                                                                                                                                                                              |
-| Status            | proposal implemented                                                                                                                                                                   |
+| Status            | proposal live; upstream decision open                                                                                                                                                  |
+
+**Recheck (16 November 2026).** The proposal is implemented and live for review, including identity preservation, separate statuses and ordered histories where relevant. It is not an approved upstream change; the TWG decision remains outstanding.
 
 **Recheck (13 November 2026).** Proposal 0.1.0 uses a registry-independent UUID and separate registry/native identifiers. The registry-transfer fixture preserves the UUID. Assignment authority and cross-issuer deduplication remain open; this is an experimental implementation, not an upstream fix.
 
@@ -452,13 +504,17 @@ No grammar for the URN is published. A country is not an identifier authority: o
 
 ---
 
-## CDOP-FB-011: Integer identifiers
+<a id="cdop-fb-011-integer-identifiers"></a>
+
+## CDOP-FB-011 · OPEN: Integer identifiers
 
 |                   |                                                                                                                                                                                                             |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `validation.validation[].validation_id` (154), `validation.event[].validation_id` (170), `estimations.estimation_event[].estimation_id` (162), `registry.previous[].previous_project_registration_id` (132) |
 | Category          | ambiguity                                                                                                                                                                                                   |
 | Status            | open, not yet raised upstream                                                                                                                                                                               |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. Fields 132, 154, 162 and 170 remain integers. Fast track still adds integer registry, original-registry, program and validation-event identifiers; its verification identifier is a string.
 
@@ -478,13 +534,17 @@ The examples use `1`. Nothing says whether the integer is global, per project, o
 
 ---
 
-## CDOP-FB-012: Three unit-status vocabularies
+<a id="cdop-fb-012-three-unit-status-vocabularies"></a>
+
+## CDOP-FB-012 · PROPOSAL / OPEN: Three unit-status vocabularies
 
 |                   |                                                                                                    |
 | ----------------- | -------------------------------------------------------------------------------------------------- |
 | File / field path | `unit.status[].status` (146); the CDOP wiki unit state machine; the CAD Trust unit status picklist |
 | Category          | ambiguity                                                                                          |
-| Status            | proposal implemented                                                                               |
+| Status            | proposal live; upstream decision open                                                              |
+
+**Recheck (16 November 2026).** The proposal is implemented and live for review, including identity preservation, separate statuses and ordered histories where relevant. It is not an approved upstream change; the TWG decision remains outstanding.
 
 **Recheck (13 November 2026).** Proposal 0.1.0 uses seven canonical unit states and separate reasons, with ordered from/to history. The vocabulary remains for TWG review.
 
@@ -506,13 +566,17 @@ The examples use `1`. Nothing says whether the integer is global, per project, o
 
 ---
 
-## CDOP-FB-013: `project_status` conflates funnel stages, authorisation and activity
+<a id="cdop-fb-013-project_status-conflates-funnel-stages-authorisation-and-activity"></a>
+
+## CDOP-FB-013 · PROPOSAL / OPEN: `project_status` conflates funnel stages, authorisation and activity
 
 |                   |                                        |
 | ----------------- | -------------------------------------- |
 | File / field path | `project.status[].project_status` (66) |
 | Category          | ambiguity                              |
-| Status            | proposal implemented                   |
+| Status            | proposal live; upstream decision open  |
+
+**Recheck (16 November 2026).** The proposal is implemented and live for review, including identity preservation, separate statuses and ordered histories where relevant. It is not an approved upstream change; the TWG decision remains outstanding.
 
 **Recheck (13 November 2026).** Proposal 0.1.0 exposes the API’s eight lifecycle stages separately from native status, hold and unreported authorization. This is a candidate vocabulary, not a claim of TWG agreement.
 
@@ -534,13 +598,17 @@ Five are developer-side funnel stages before a registry is involved. `Approved` 
 
 ---
 
-## CDOP-FB-014: `issuance_status` mixes a precondition with process states
+<a id="cdop-fb-014-issuance_status-mixes-a-precondition-with-process-states"></a>
+
+## CDOP-FB-014 · PROPOSAL / OPEN: `issuance_status` mixes a precondition with process states
 
 |                   |                                             |
 | ----------------- | ------------------------------------------- |
 | File / field path | `issuance.issuance[].issuance_status` (101) |
 | Category          | ambiguity                                   |
-| Status            | proposal implemented                        |
+| Status            | proposal live; upstream decision open       |
+
+**Recheck (16 November 2026).** The proposal is implemented and live for review, including identity preservation, separate statuses and ordered histories where relevant. It is not an approved upstream change; the TWG decision remains outstanding.
 
 **Recheck (13 November 2026).** Proposal 0.1.0 separates five issuance process states from verification. A completed ex-post/conversion issuance requires a reference to a completed verification. The ambiguous legacy `Verified` issuance value is rejected in this proposal.
 
@@ -562,13 +630,17 @@ Five are developer-side funnel stages before a registry is involved. `Approved` 
 
 ---
 
-## CDOP-FB-015: Status records carry no timestamp, actor or sequence
+<a id="cdop-fb-015-status-records-carry-no-timestamp-actor-or-sequence"></a>
+
+## CDOP-FB-015 · PROPOSAL / OPEN: Status records carry no timestamp, actor or sequence
 
 |                   |                                                                                                                                 |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `project.status[]` (66 to 68), `unit.status[]` (146 to 148), `estimations.status[]` (164 to 166), `agreement.funding_details[]` |
 | Category          | ambiguity                                                                                                                       |
-| Status            | proposal implemented                                                                                                            |
+| Status            | proposal live; upstream decision open                                                                                           |
+
+**Recheck (16 November 2026).** The proposal is implemented and live for review, including identity preservation, separate statuses and ordered histories where relevant. It is not an approved upstream change; the TWG decision remains outstanding.
 
 **Recheck (13 November 2026).** Proposal 0.1.0 includes event IDs, sequence, effective and recorded timestamps, actor, action, reason, from/to states and one current record, with semantic regression tests. Estimation and every other history type are not yet covered.
 
@@ -591,13 +663,17 @@ There is no `effective_at`, no `recorded_at`, no actor and no sequence number. T
 
 ---
 
-## CDOP-FB-016: Parallel arrays without keys; scalars beside arrays
+<a id="cdop-fb-016-parallel-arrays-without-keys-scalars-beside-arrays"></a>
+
+## CDOP-FB-016 · OPEN: Parallel arrays without keys; scalars beside arrays
 
 |                   |                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `estimations.estimation_event[]`, `estimations.vintage_mitigation[]`, `estimations.monitoring[]`, `estimations.estimation_event[].estimated_issuance_date[]`; `validation.validation_body_name`/`validation_date`/`validation_report` vs `validation.validation[]`/`validation.event[]`; `unit.descriptor[]`, `unit.reference[]`, `unit.status[]`, `unit.credit_block[]`, `unit.retirement[]` |
 | Category          | ambiguity                                                                                                                                                                                                                                                                                                                                                                                     |
 | Status            | open, not yet raised upstream                                                                                                                                                                                                                                                                                                                                                                 |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. Estimation vintage, monitoring and event arrays remain separate, validation still mixes scalar fields with event arrays, and the unit still has five separate groups. Fixing the placement of `block_start` in 003 does not join these records.
 
@@ -619,13 +695,17 @@ There is no `effective_at`, no `recorded_at`, no actor and no sequence number. T
 
 ---
 
-## CDOP-FB-017: `geolocation_file` has no link, geometry or project reference
+<a id="cdop-fb-017-geolocation_file-has-no-link-geometry-or-project-reference"></a>
+
+## CDOP-FB-017 · OPEN: `geolocation_file` has no link, geometry or project reference
 
 |                   |                                          |
 | ----------------- | ---------------------------------------- |
 | File / field path | `geolocation_file.location[]` (34 to 43) |
 | Category          | ambiguity                                |
 | Status            | open, not yet raised upstream            |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. The location-file record still has no content URL, hash, inline geometry or project id. Its status/area/geometry enums are unchanged, and creation/edit/deletion strings still have no date-time format.
 
@@ -650,13 +730,17 @@ There is no URL, hash or inline geometry, and no field naming the project (the p
 
 ---
 
-## CDOP-FB-018: Only `format: date` is used
+<a id="cdop-fb-018-only-format-date-is-used"></a>
+
+## CDOP-FB-018 · OPEN: Only `format: date` is used
 
 |                   |                               |
 | ----------------- | ----------------------------- |
 | File / field path | all pods                      |
 | Category          | ambiguity                     |
 | Status            | open, not yet raised upstream |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. Across all twelve published schemas, the only `format` is still `date` (56 occurrences); there are no `uri`, `email` or `date-time` formats. The Round 2 link fields are unchanged too.
 
@@ -670,13 +754,17 @@ There is no URL, hash or inline geometry, and no field naming the project (the p
 
 ---
 
-## CDOP-FB-019: Required and Private; no account entity
+<a id="cdop-fb-019-required-and-private-no-account-entity"></a>
+
+## CDOP-FB-019 · OPEN: Required and Private; no account entity
 
 |                   |                                                                          |
 | ----------------- | ------------------------------------------------------------------------ |
 | File / field path | `unit.owner_account_id` (141), `unit.expected_carbon_credit_price` (206) |
 | Category          | ambiguity                                                                |
 | Status            | open, not yet raised upstream                                            |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. `owner_account_id` is still JSON-required and Private, and no account entity was added. Expected price is Private and annotated `1..1`, but is not in `unit.required`; distinguish that annotation inconsistency from the enforceable owner-account requirement.
 
@@ -696,13 +784,17 @@ There is no URL, hash or inline geometry, and no field naming the project (the p
 
 ---
 
-## CDOP-FB-020: `compliance_market_id` required with `minItems: 1`
+<a id="cdop-fb-020-compliance_market_id-required-with-minitems-1"></a>
+
+## CDOP-FB-020 · ✓ FIXED: `compliance_market_id` required with `minItems: 1`
 
 |                   |                                      |
 | ----------------- | ------------------------------------ |
 | File / field path | `project.compliance_market_id` (243) |
 | Category          | ambiguity                            |
 | Status            | fixed in v2.1.0                      |
+
+**Recheck (16 November 2026).** Compliance-market membership is optional in v2.1.0. Voluntary projects can omit it.
 
 **Recheck (13 November 2026).** `compliance_market_id` is optional. The API omits empty optional membership arrays; voluntary-market projects are no longer invalid solely because they lack compliance membership.
 
@@ -728,13 +820,17 @@ There is no URL, hash or inline geometry, and no field naming the project (the p
 
 ---
 
-## CDOP-FB-021: Three overlapping "standard" concepts
+<a id="cdop-fb-021-three-overlapping-standard-concepts"></a>
+
+## CDOP-FB-021 · PARTIAL: Three overlapping "standard" concepts
 
 |                   |                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `crediting_program.crediting_program[]` (44 to 45), `crediting_program.standard[]` (46 to 47), `registry.current_registry` (83); field 242 at `carbon_crediting_standard.carbon_standard_level_accreditation` in `schemas/v2/Full_List.schema.json` and at `crediting_program.carbon_standard_level_accreditation` in `schemas/v2/Labels_Certifications.schema.json` |
 | Category          | ambiguity                                                                                                                                                                                                                                                                                                                                                            |
 | Status            | partly fixed in v2.1.0                                                                                                                                                                                                                                                                                                                                               |
+
+**Recheck (16 November 2026).** The field-242 path inconsistency is fixed in v2.1.0. The broader program/standard/registry relationship remains unresolved.
 
 **Recheck (13 November 2026).** Field 242 now consistently belongs to `crediting_program.carbon_standard_level_accreditation`, and the projection follows it. The broader distinction between program, standard and registry remains open.
 
@@ -772,13 +868,17 @@ Pods are built as the Full List pruned to the keys each pod's schema declares (`
 
 ---
 
-## CDOP-FB-022: `methodology` is a 496-value enum with embedded prefixes
+<a id="cdop-fb-022-methodology-is-a-496-value-enum-with-embedded-prefixes"></a>
+
+## CDOP-FB-022 · OPEN: `methodology` is a 496-value enum with embedded prefixes
 
 |                   |                                           |
 | ----------------- | ----------------------------------------- |
 | File / field path | `methodology.versions[].methodology` (50) |
 | Category          | ambiguity                                 |
 | Status            | open, not yet raised upstream             |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. The methodology field remains a 496-value string enum with embedded program prefixes and a separate free-text version. No external reference-list model was added.
 
@@ -792,13 +892,17 @@ Pods are built as the Full List pruned to the keys each pod's schema declares (`
 
 ---
 
-## CDOP-FB-023: `buffer_pool[]` totals without dates
+<a id="cdop-fb-023-buffer_pool-totals-without-dates"></a>
+
+## CDOP-FB-023 · OPEN: `buffer_pool[]` totals without dates
 
 |                   |                                      |
 | ----------------- | ------------------------------------ |
 | File / field path | `project.buffer_pool[]` (196 to 199) |
 | Category          | ambiguity                            |
 | Status            | open, not yet raised upstream        |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. `project.buffer_pool[]` still has only four required aggregate integers, with no date or issuance reference. Fast track has a per-verification buffer deduction, but does not resolve the aggregate history ambiguity.
 
@@ -818,13 +922,17 @@ No `as_of` date, no per-issuance breakdown, and the array can hold several rows 
 
 ---
 
-## CDOP-FB-024: `project_risk` is JSON in a string
+<a id="cdop-fb-024-project_risk-is-json-in-a-string"></a>
+
+## CDOP-FB-024 · OPEN: `project_risk` is JSON in a string
 
 |                   |                               |
 | ----------------- | ----------------------------- |
 | File / field path | `project.project_risk` (200)  |
 | Category          | ambiguity                     |
 | Status            | open, not yet raised upstream |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. `project_risk` is still a string explicitly described as a JSON dictionary stored as a string; the example is unchanged.
 
@@ -838,13 +946,17 @@ No `as_of` date, no per-issuance breakdown, and the array can hold several rows 
 
 ---
 
-## CDOP-FB-025: `unit.descriptor[].type` lacks WCU and PCU; `"VER, CER"` is two values
+<a id="cdop-fb-025-unitdescriptortype-lacks-wcu-and-pcu-ver-cer-is-two-values"></a>
+
+## CDOP-FB-025 · OPEN: `unit.descriptor[].type` lacks WCU and PCU; `"VER, CER"` is two values
 
 |                   |                                |
 | ----------------- | ------------------------------ |
 | File / field path | `unit.descriptor[].type` (149) |
 | Category          | ambiguity                      |
 | Status            | open, not yet raised upstream  |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. The 15-value unit-type enum includes PIU but neither WCU nor PCU, and retains the joined values `VER, CER` and `A6.4 ER, MCU`.
 
@@ -864,13 +976,17 @@ No `as_of` date, no per-issuance breakdown, and the array can hold several rows 
 
 ---
 
-## CDOP-FB-026: `additionalProperties: true` everywhere
+<a id="cdop-fb-026-additionalproperties-true-everywhere"></a>
+
+## CDOP-FB-026 · OPEN: `additionalProperties: true` everywhere
 
 |                   |                               |
 | ----------------- | ----------------------------- |
 | File / field path | all pods (141 occurrences)    |
 | Category          | ambiguity                     |
 | Status            | open, not yet raised upstream |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. Every object on published `main` still sets `additionalProperties: true`. The current count is 140, down from 141 because 002 merged the duplicate crediting-period group. There is no strict profile or extension-key convention. The draft counts remain 159 (standard track) and 187 (fast track).
 
@@ -884,13 +1000,17 @@ No `as_of` date, no per-issuance breakdown, and the array can hold several rows 
 
 ---
 
-## CDOP-FB-027: No API conventions
+<a id="cdop-fb-027-no-api-conventions"></a>
+
+## CDOP-FB-027 · OPEN: No API conventions
 
 |                   |                               |
 | ----------------- | ----------------------------- |
 | File / field path | n/a                           |
 | Category          | api-gap                       |
 | Status            | open, not yet raised upstream |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present as an API-profile gap. The upstream document schemas, README and API-relevant documentation have not changed since the implementation snapshot. No synchronisation, pagination, change-feed or companion API profile was added.
 
@@ -904,13 +1024,17 @@ No `as_of` date, no per-issuance breakdown, and the array can hold several rows 
 
 ---
 
-## CDOP-FB-028: The UK codes are missing from the program and methodology enums
+<a id="cdop-fb-028-the-uk-codes-are-missing-from-the-program-and-methodology-enums"></a>
+
+## CDOP-FB-028 · OPEN: The UK codes are missing from the program and methodology enums
 
 |                   |                                                                                                                                                                   |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `crediting_program.crediting_program[].crediting_program_name` (44), `crediting_program.standard[].standard_name` (46), `methodology.versions[].methodology` (50) |
 | Category          | defect                                                                                                                                                            |
 | Status            | open, not yet raised upstream                                                                                                                                     |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. The standard enum still includes both UK codes, the program enum has no Woodland Carbon Code entry, and the 496-value methodology enum has neither UK calculator. Correction: the program and methodology sections are optional in Project Approach & Details. A producer may omit them, but supplying the real UK values still fails enum validation. Historical synthetic-project failure counts were not rerun.
 
@@ -930,13 +1054,17 @@ The crediting program enum (43 values) has a program for one of them only. It li
 
 ---
 
-## CDOP-FB-029: `unit_level[]` requires an accreditation and a compliance eligibility on every entry
+<a id="cdop-fb-029-unit_level-requires-an-accreditation-and-a-compliance-eligibility-on-every-entry"></a>
+
+## CDOP-FB-029 · OPEN: `unit_level[]` requires an accreditation and a compliance eligibility on every entry
 
 |                   |                                                                                                         |
 | ----------------- | ------------------------------------------------------------------------------------------------------- |
 | File / field path | `unit.unit_level[]` (253 to 260), `carbon_crediting_standard.carbon_standard_level_accreditation` (242) |
 | Category          | defect                                                                                                  |
 | Status            | open, not yet raised upstream                                                                           |
+
+**Recheck (16 November 2026).** Checked against published v2.1.0. This issue remains unresolved; no later JSON changes on main supersede it. Earlier observations below are retained as historical evidence.
 
 **Recheck (20 October 2026).** Still present. Every `unit_level[]` entry still requires all eight accreditation and compliance fields, and accreditation still has only `CCP` as its allowed value. Standard-level CORSIA values say `approved`; unit-level values say `scope`. No split or optional expiry was introduced.
 
@@ -963,13 +1091,17 @@ The same CORSIA phases are also spelled differently at the two levels:
 
 ---
 
-## CDOP-FB-030: Draft field ids collide with other draft and published fields
+<a id="cdop-fb-030-draft-field-ids-collide-with-other-draft-and-published-fields"></a>
+
+## CDOP-FB-030 · OPEN: Draft field ids collide with other draft and published fields
 
 |                   |                                                                                                                                       |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | Round 2 drafts: `Registry_Metadata`, `Validation_Metadata`, `Verification_Metadata` (261 to 330); `Additionality` on `R2P-ST-Testing` |
 | Category          | defect                                                                                                                                |
 | Status            | open, not yet raised upstream                                                                                                         |
+
+**Recheck (16 November 2026).** The Additionality branch is unchanged at daab3d5. The recorded 57 collisions concern the published schema plus the older served fast-track pin; do not treat that breakdown as the numbering of the newer f7b2149 drafts. Separate pins and property paths remain necessary.
 
 **Recheck (20 October 2026).** Still present on the unmerged drafts. A fresh cross-branch field-id comparison finds the same 56 collisions within ids 261 to 325. For example, 261 means financial additionality cost breakdown on standard track and registry identifier on fast track. This has not yet become a collision on published `main`.
 
@@ -985,13 +1117,17 @@ The same CORSIA phases are also spelled differently at the two levels:
 
 ---
 
-## CDOP-FB-031: No project identifier in Registry Metadata or Validation Metadata
+<a id="cdop-fb-031-no-project-identifier-in-registry-metadata-or-validation-metadata"></a>
+
+## CDOP-FB-031 · PARTIAL: No project identifier in Registry Metadata or Validation Metadata
 
 |                   |                                                                                              |
 | ----------------- | -------------------------------------------------------------------------------------------- |
 | File / field path | `Registry_Metadata.schema.json` (261 to 270), `Validation_Metadata.schema.json` (271 to 306) |
 | Category          | ambiguity                                                                                    |
-| Status            | partly addressed in new draft                                                                |
+| Status            | partly addressed in current drafts                                                           |
+
+**Recheck (16 November 2026).** Both current Registry and Validation drafts now contain string project references. Validation adds validation.validation_project_id, but it is optional. The persistent global ID convention is still unclear, so the join issue is only partly addressed. The served fast-track pin is unchanged.
 
 **Recheck (13 November 2026).** The October 26 Registry attachment adds `project_registry_history.project_identifier`. This addresses the Registry join concern; the Validation Metadata part has not been re-reviewed. Clarify that joins use the persistent global project identifier.
 
@@ -1007,13 +1143,17 @@ The same CORSIA phases are also spelled differently at the two levels:
 
 ---
 
-## CDOP-FB-032: Integer registry and program ids, and free-text names where Round 1 has enums
+<a id="cdop-fb-032-integer-registry-and-program-ids-and-free-text-names-where-round-1-has-enums"></a>
+
+## CDOP-FB-032 · DRAFT FIX: Integer registry and program ids, and free-text names where Round 1 has enums
 
 |                   |                                                                                                                                  |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `registry.identification[]` (261, 262), `registry.original[]` (264, 265), `registry.program[]` (267, 268) in `Registry_Metadata` |
 | Category          | ambiguity                                                                                                                        |
 | Status            | addressed in Registry draft                                                                                                      |
+
+**Recheck (16 November 2026).** The current Registry schema exactly matches the October 26 attachment already reviewed. String identifiers and controlled names address this draft issue. It is not yet adopted in the demo or the published release; the missing WCC programme remains 028.
 
 **Recheck (13 November 2026).** The October 26 Registry attachment uses string identifiers and controlled names. WCC is still absent from the program-name enum (related FB-028). The API still serves the older October pin.
 
@@ -1036,13 +1176,17 @@ Round 1 already has vocabularies for both concepts: `registry.current_registry` 
 
 ---
 
-## CDOP-FB-033: Registry history arrays and dates are underspecified
+<a id="cdop-fb-033-registry-history-arrays-and-dates-are-underspecified"></a>
+
+## CDOP-FB-033 · PARTIAL: Registry history arrays and dates are underspecified
 
 |                   |                                                                                                                      |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `registry.identification[]`, `registry.original[]`, `registry.program[]`, `creation_date` (269), `update_date` (270) |
 | Category          | ambiguity                                                                                                            |
 | Status            | partly addressed in new draft                                                                                        |
+
+**Recheck (16 November 2026).** The current Registry schema matches the October 26 attachment. Registration dates/current markers are present; status-to-registration joins, chronology and multiple-current-registration rules remain outstanding.
 
 **Recheck (13 November 2026).** The October 26 Registry attachment includes registration/exit dates, current markers and an update timestamp. Status history remains a sibling array without an explicit registration join or ordered audit fields. Cardinality and chronology need agreed semantic rules.
 
@@ -1058,13 +1202,17 @@ Round 1 already has vocabularies for both concepts: `registry.current_registry` 
 
 ---
 
-## CDOP-FB-034: Sibling arrays with no key to their validation or verification event
+<a id="cdop-fb-034-sibling-arrays-with-no-key-to-their-validation-or-verification-event"></a>
+
+## CDOP-FB-034 · PARTIAL: Sibling arrays with no key to their validation or verification event
 
 |                   |                                                                                                                                                                  |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `validation.date[]`, `validation.report[]`, `validation.stage[]`, `validation.validation_event[]`, `validation_body.details[]`; the arrays inside `verification` |
 | Category          | ambiguity                                                                                                                                                        |
-| Status            | partly addressed in new draft                                                                                                                                    |
+| Status            | partly addressed in current drafts                                                                                                                               |
+
+**Recheck (16 November 2026).** The newer Validation draft flattens event dates, reports and crediting-period details into one validation object; the current Verification PAE schema matches the November 6 attachment and groups each event. This improves the old parallel-array design. Validation still has one shared stage description/document beside a list of stages, and repeat-event/history semantics need agreement. The served schemas remain older.
 
 **Recheck (13 November 2026).** Both November 6 Verification alternatives keep each event’s details, quantity and reports together. That addresses the Verification parallel-array problem; the Validation part has not been re-reviewed. VAE is the recommended event-first option for the reference API.
 
@@ -1080,13 +1228,17 @@ Round 1 already has vocabularies for both concepts: `registry.current_registry` 
 
 ---
 
-## CDOP-FB-035: Required values that registries do not publish, or that do not exist yet
+<a id="cdop-fb-035-required-values-that-registries-do-not-publish-or-that-do-not-exist-yet"></a>
+
+## CDOP-FB-035 · OPEN: Required values that registries do not publish, or that do not exist yet
 
 |                   |                                                                                                                                                                                                                                       |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `validation.date[]` (277 to 279), `validation.validation_event[]` (296, 298, 299), `validation_body.details[]` (292, 294, 295), `verification.reporting[].verification_date` (314), `verification.quantity[].verified_quantity` (315) |
 | Category          | ambiguity                                                                                                                                                                                                                             |
 | Status            | open; draft rechecked                                                                                                                                                                                                                 |
+
+**Recheck (16 November 2026).** The current Validation example passes, but a planned validation without validation_date fails. Outcome dates are still unconditionally required. The November 6 Verification alternatives still require completion date, quantity and report for pending events. Keep open.
 
 **Recheck (13 November 2026).** Both November 6 Verification alternatives still require verification date, verified quantity and report URL for an in-progress event. Removing those outcome fields fails three required checks in each alternative. Make completed outcomes conditional.
 
@@ -1102,13 +1254,17 @@ Round 1 already has vocabularies for both concepts: `registry.current_registry` 
 
 ---
 
-## CDOP-FB-036: Validation status modelled three ways
+<a id="cdop-fb-036-validation-status-modelled-three-ways"></a>
+
+## CDOP-FB-036 · PARTIAL: Validation status modelled three ways
 
 |                   |                                                                                                                                                       |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `project.validation_status` (305), `project.validation_stage[].current_validation_stage_status` (275), `validation.stage[].validation_stages[]` (304) |
 | Category          | ambiguity                                                                                                                                             |
-| Status            | raised upstream                                                                                                                                       |
+| Status            | partly addressed in Validation draft                                                                                                                  |
+
+**Recheck (16 November 2026).** The latest Validation draft removes the old project-level boolean and stage-status fields, replacing them with validation_is_planned, validation_stages and a status array. This is an improvement, but overlapping stage/status values and history without ordered audit fields remain. Partly addressed in draft, not fixed in the served pin.
 
 **Recheck (20 October 2026).** Still present on fast track. Required boolean validation status, stage status and stages reached coexist unchanged, alongside the Round 1 project status. No single event-status vocabulary was introduced.
 
@@ -1122,13 +1278,17 @@ Round 1 already has vocabularies for both concepts: `registry.current_registry` 
 
 ---
 
-## CDOP-FB-037: Round 2 restates Round 1 fields under new ids, names and vocabularies
+<a id="cdop-fb-037-round-2-restates-round-1-fields-under-new-ids-names-and-vocabularies"></a>
+
+## CDOP-FB-037 · OPEN: Round 2 restates Round 1 fields under new ids, names and vocabularies
 
 |                   |                                                                                                                                                                                                                                                                 |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `validation.crediting_period[]` (271 to 273), `validation.validation_event[].validation_type` (288), `validation_body.details[].validation_body_name` (291), `verification.verification_report_url[]` (319), `verification.reporting[].verification_date` (314) |
 | Category          | ambiguity                                                                                                                                                                                                                                                       |
 | Status            | raised upstream                                                                                                                                                                                                                                                 |
+
+**Recheck (16 November 2026).** The newer Validation draft still duplicates crediting-period information and retains the two-value validation_type enum. The broader vocabulary/alignment issue remains; the old Validation Body block has been removed.
 
 **Recheck (20 October 2026).** Still present on fast track. Duplicate crediting-period/body/report/date concepts retain separate ids and shapes. Its two-value `validation_type` enum still disagrees with the four-value published Round 1 enum, including within the draft Full List.
 
@@ -1151,13 +1311,17 @@ Round 1 already has vocabularies for both concepts: `registry.current_registry` 
 
 ---
 
-## CDOP-FB-038: The sectoral scope list is the CDM list: no scope for REDD+, IFM, wetlands, peat or biochar
+<a id="cdop-fb-038-the-sectoral-scope-list-is-the-cdm-list-no-scope-for-redd-ifm-wetlands-peat-or-biochar"></a>
+
+## CDOP-FB-038 · PARTIAL: The sectoral scope list is the CDM list: no scope for REDD+, IFM, wetlands, peat or biochar
 
 |                   |                                                                     |
 | ----------------- | ------------------------------------------------------------------- |
 | File / field path | `validation_body.details[].validation_body_sectoral_scopes[]` (293) |
 | Category          | defect                                                              |
-| Status            | open, not yet raised upstream                                       |
+| Status            | scope block removed in draft; model open                            |
+
+**Recheck (16 November 2026).** The latest Validation draft removes the entire Validation Body block, including the narrow sectoral-scope enum. That removes the immediate constraint from this draft but supplies no replacement model for body expertise or programme-specific scopes. Treat as partly addressed, not a published fix; the served pin still has the restriction.
 
 **Recheck (20 October 2026).** Still present on fast track. The required, non-empty sectoral-scope enum is unchanged: the same 15 CDM-named scopes, with only afforestation/reforestation and agriculture for land use. No additional scope or program-specific scope reference was added. This audit confirms the unchanged vocabulary; historical project coverage counts were not rerun.
 
@@ -1171,13 +1335,17 @@ Round 1 already has vocabularies for both concepts: `registry.current_registry` 
 
 ---
 
-## CDOP-FB-039: A decentralised identifier is required on every verification
+<a id="cdop-fb-039-a-decentralised-identifier-is-required-on-every-verification"></a>
+
+## CDOP-FB-039 · DRAFT FIX: A decentralised identifier is required on every verification
 
 |                   |                                                                                                                                                       |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `verification.verification_credential_issuer_id` (320), `verification_cryptographic_proof_type` (321), `verification_digital_signature_payload` (322) |
 | Category          | ambiguity                                                                                                                                             |
 | Status            | addressed in Verification drafts                                                                                                                      |
+
+**Recheck (16 November 2026).** The current fast-track Verification schema exactly matches the November 6 PAE attachment. Credential fields are optional there and in the reviewed VAE alternative. The older served draft still requires the DID, so this is a draft fix awaiting adoption.
 
 **Recheck (13 November 2026).** Both November 6 Verification alternatives accept records without the DID, proof type and digital signature payload. These fields are now optional. The older served Round 2 pin still requires the DID.
 
@@ -1199,13 +1367,17 @@ It is described as "The decentralized identifier (DID) of the entity issuing the
 
 ---
 
-## CDOP-FB-040: Verified quantity: unit, uncertainty basis and period are ambiguous
+<a id="cdop-fb-040-verified-quantity-unit-uncertainty-basis-and-period-are-ambiguous"></a>
+
+## CDOP-FB-040 · PARTIAL: Verified quantity: unit, uncertainty basis and period are ambiguous
 
 |                   |                                                                                                                                        |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | File / field path | `verification.quantity[]` (315, 316), `verification.deductions[]` (323 to 327), `verification.details[].verification_claim_type` (309) |
 | Category          | ambiguity                                                                                                                              |
 | Status            | partly addressed in new draft                                                                                                          |
+
+**Recheck (16 November 2026).** The current Verification PAE schema matches the reviewed November 6 attachment. Event grouping improves period/quantity association; negative quantities, uncertainty basis and unit conventions remain unresolved.
 
 **Recheck (13 November 2026).** The November 6 alternatives place quantity and period within each verification event, but accept negative quantity and leave uncertainty basis unclear. `tCO2` is rejected by the current unit enum. See the reproducible probes and draft reply.
 
@@ -1221,13 +1393,17 @@ It is described as "The decentralized identifier (DID) of the entity issuing the
 
 ---
 
-## CDOP-FB-041: Round 2 drops annotations Round 1 carries, and one cardinality contradicts `required`
+<a id="cdop-fb-041-round-2-drops-annotations-round-1-carries-and-one-cardinality-contradicts-required"></a>
+
+## CDOP-FB-041 · PARTIAL: Round 2 drops annotations Round 1 carries, and one cardinality contradicts `required`
 
 |                   |                                                                                                             |
 | ----------------- | ----------------------------------------------------------------------------------------------------------- |
 | File / field path | every Round 2 field; `verification.status[].is_current` (330); `verification_audit_checkpoint_status` (328) |
 | Category          | defect                                                                                                      |
-| Status            | raised upstream                                                                                             |
+| Status            | partly addressed in current drafts                                                                          |
+
+**Recheck (16 November 2026).** All fields in the current Registry, Validation and Verification schemas now carry mutability and public/private annotations. Status is_current fields are optional with cardinality 0..1, so that contradiction is resolved. Verification enum values still embed definitions, and broader annotation consistency remains an issue. Partly addressed in draft; older served schemas are unchanged.
 
 **Recheck (20 October 2026).** Still present on fast track. Mutability annotations remain absent throughout the three metadata pods; Verification Metadata still lacks source/public-private/pre-issuance annotations. `verification.status[].is_current` is still JSON-required but annotated `0..1`, and audit-status definitions remain embedded in enum values.
 
@@ -1245,10 +1421,14 @@ with `"required": ["is_current"]` on its object. The audit status description st
 
 **Proposal.** A shared style guide for all pods, enforced by the lint step proposed in CDOP-FB-007: every field carries the same annotation set, cardinality is generated from `required` (or the reverse), and enum values are short codes with definitions in a separate column.
 
-## CDOP-FB-042: Additionality validation does not establish assessment completeness
+<a id="cdop-fb-042-additionality-validation-does-not-establish-assessment-completeness"></a>
+
+## CDOP-FB-042 · OPEN: Additionality validation does not establish assessment completeness
 
 - Source: standard-track `daab3d58d7b7b01cc26ca849f652194b111a35eb`, reviewed 13 November 2026.
 - Status: open, not yet raised upstream.
+
+**Recheck (16 November 2026).** The standard-track source is unchanged at daab3d5. Only the project reference is required; empty IDs and unsupported claims can still validate. The visual example presents the unchanged hypothetical data, not an assessment.
 
 Only `additionality_project_id` is required in the latest flat 57-field draft. That resolves the previous concern about requiring every alternative test and allows private financial fields to be omitted. However, the schema accepts an empty identifier, unknown properties, a regulatory claim without evidence and a selected financial benchmark approach without benchmark details. A boolean given as a string correctly fails. Both upstream examples validate, but 34 paths in the standard-track Full List example are undeclared.
 
